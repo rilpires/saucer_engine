@@ -1,7 +1,5 @@
 #include "window.h"
 
-#include <queue>
-#include <algorithm>
 
 #include "scene_node.h"
 #include "input.h"
@@ -32,16 +30,6 @@ void setupShader( unsigned int program , GLenum shader_type , std::string src ){
 }
 
 
-void    Window::handle_inputs(){
-    if( current_scene ){
-        Input::InputEvent* next_input_event = input->pop_event_queue();
-        while(next_input_event){
-            current_scene->propagate_input_event( next_input_event );
-            delete next_input_event;   
-            next_input_event = input->pop_event_queue();
-        }
-    } else while( input->pop_event_queue() );
-}
 void    Window::setup_renderer() const {
     // Compiling & Linking shaders
     std::string vs = read_file_as_string( "res/shaders/basic_vertex.vs" );
@@ -93,55 +81,6 @@ void    Window::setup_renderer() const {
     GL_CALL( glEnableVertexAttribArray(  0 ) );
     GL_CALL( glEnableVertexAttribArray( 1 ) );
 }
-void    Window::render_scene() const {
-
-    GL_CALL( glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
-    GL_CALL( glClearColor( 0,0,input->is_mouse_button_pressed(BUTTON_LEFT),1 ) );
-    
-    Vector2 window_size = get_window_size();
-    Transform camera_transf = Transform();
-    if( current_scene && current_scene->get_current_camera() )
-        camera_transf = current_scene->get_current_camera()->get_global_transform();
-    
-    unsigned int program_location = 1U;
-    GL_CALL( unsigned int viewport_size_attrib_location = glGetUniformLocation(program_location,"viewport_size") );
-    GL_CALL( unsigned int model_transf_attrib_location  = glGetUniformLocation(program_location,"model_transf") );
-    GL_CALL( unsigned int camera_transf_attrib_location = glGetUniformLocation(program_location,"camera_transf") );
-    
-    GL_CALL( glUniform2f( viewport_size_attrib_location , window_size.x , window_size.y ) );
-    GL_CALL( glUniformMatrix4fv( camera_transf_attrib_location , 1 , GL_FALSE , camera_transf.m ) );
-
-    std::vector<SceneNode*> nodes;
-    std::queue<SceneNode*> nodes_queue;
-    
-    nodes_queue.push( get_current_scene()->get_root_node() );
-    while( nodes_queue.size() ){
-        SceneNode* scene_node = nodes_queue.front();
-        if( scene_node->get_image_texture() ) nodes.push_back( scene_node );
-        nodes_queue.pop();
-        
-        
-        for( auto child : scene_node->get_children() )
-            nodes_queue.push( child );
-
-    }
-    
-    // Z-sorting
-    std::sort( nodes.begin() , nodes.end() , [](const SceneNode* n1 , const SceneNode* n2)->bool{
-        return n2->get_global_z() > n1->get_global_z();
-    });
-
-    for( auto it = nodes.begin() ; it != nodes.end() ; it ++ ){
-        SceneNode* scene_node = *it;
-        Transform model_transform = scene_node->get_global_transform();
-        model_transform.scale(Vector3(1,1,-1));
-
-        GL_CALL( glBindTexture( GL_TEXTURE_2D , scene_node->get_image_texture()->get_texture_id() ) );
-        GL_CALL( glUniformMatrix4fv( model_transf_attrib_location , 1 , GL_FALSE , model_transform.m ) );
-        GL_CALL( glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,NULL) );
-    }
-
-}
 
 
 Window::Window( Vector2 p_size , Vector2 p_pos , const char* title ){
@@ -183,7 +122,6 @@ Window::Window( Vector2 p_size , Vector2 p_pos , const char* title ){
 
     // Initial scene is Null
     current_scene = NULL;
-    input = Input::instance();
 
 }
 
@@ -195,11 +133,19 @@ Window::~Window(){
 
 void        Window::update(){
     glfwPollEvents();
-    handle_inputs();
-    render_scene();
+    if(current_scene) current_scene->loop();
     glfwSwapBuffers(glfw_window);
 }
 
+void        Window::set_current_scene(Scene* scene){
+    if( current_scene ){
+        current_scene->current_window = NULL;    
+    }
+    current_scene = scene;
+    if( current_scene ){
+        current_scene->current_window = this;    
+    }
+}
 
 void        Window::set_window_size( Vector2 new_size ){
     glfwSetWindowSize( glfw_window , new_size.x , new_size.y );

@@ -17,12 +17,9 @@ class Scene;
 class Window{
     private:
         GLFWwindow* glfw_window;
-        Input*      input;
         Scene*      current_scene;
 
-        void        handle_inputs();
         void        setup_renderer() const;
-        void        render_scene() const;
 
     public:
         Window( Vector2 p_size , Vector2 p_pos , const char* title );
@@ -30,7 +27,7 @@ class Window{
 
         void        update();
 
-        void        set_current_scene(Scene* scene){current_scene=scene;}
+        void        set_current_scene(Scene* scene);
         Scene*      get_current_scene() const { return current_scene;}
 
         void        set_window_size( Vector2 new_size );

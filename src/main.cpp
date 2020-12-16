@@ -28,8 +28,9 @@ int main( int argc , char** argv ){
     orbit->set_relative_z(false);
 
     root->set_image_texture( ImageResource::get_resource("res/gold.png") );
-    center->set_image_texture( ImageResource::get_resource("res/1YqqSAk.png") );
+    center->set_script_resource( LuaScriptResource::get_resource("res/scripts/test.lua") );
     orbit->set_image_texture( ImageResource::get_resource("res/gold.png") );
+
 
     root->add_child_node(center);
     center->add_child_node(orbit);

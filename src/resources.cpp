@@ -1,5 +1,6 @@
 #include "resources.h"
 #include "resources/image.h"
+#include "resources/lua_script.h"
 
 #include <iostream>
 
@@ -56,10 +57,16 @@ void                ResourceManager::set_resource(std::string resource_name , Re
 Resource*           ResourceManager::load_resource(std::string filepath){
     std::string str_filepath = filepath;
     Resource* ret = NULL;
-    if( str_filepath.substr( str_filepath.size()-4 , 4 ) == ".png" ){
+    std::string extension = str_filepath.substr( str_filepath.find_last_of('.') );
+
+    if( extension == ".png" ){
         ret = new ImageResource( filepath );
     }
-    if(ret==NULL) std::cerr << "Couldn't load resource for filepath=" << filepath << std::endl;
+    else if (extension == ".lua"){
+        ret = new LuaScriptResource( filepath );
+    } else {
+        std::cerr << "Couldn't load resource for filepath: " << filepath << std::endl;
+    }
     instance()->resources.insert(std::pair<ResourceId,Resource*>(ret->resource_id,ret));
     instance()->id_by_path.insert(std::pair<std::string,ResourceId>(ret->path ,ret->resource_id));
     return ret;

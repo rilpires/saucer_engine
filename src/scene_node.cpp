@@ -12,6 +12,8 @@ SceneNode::SceneNode(){
     relative_z = true;
     parent_node = NULL;
     scene = NULL;
+    image_texture = NULL;
+    lua_script = NULL;
 }
 SceneNode::~SceneNode(){
     get_out();

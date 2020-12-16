@@ -29,7 +29,6 @@ class ResourceManager {
         
         std::unordered_map<ResourceId,Resource*> resources;
         std::unordered_map<std::string,ResourceId> id_by_path;
-
         ResourceManager();
         ResourceManager(const ResourceManager&);
         void operator=(const ResourceManager& rm);
