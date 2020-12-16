@@ -3,11 +3,7 @@
 
 #include <iostream>
 #include <vector>
-#include "vector.h"
-#include "transform.h"
-#include "input.h"
-#include "resources.h"
-
+#include "core.h"
 
 class Scene;
 

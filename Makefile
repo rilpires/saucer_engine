@@ -1,5 +1,6 @@
 
 LINKER_FOLDERS := 	\
+	obj \
 	deps/libpng/lib \
 	deps/glfw/src \
 	deps/glew/lib 
@@ -13,18 +14,20 @@ LIBS := \
 	GLEW
 
 INCLUDE_PATHS := \
+	include \
 	deps/libpng/include \
 	deps/glfw/include \
 	deps/glew/include
 
-DEBUG ?= 0
+RELEASE ?= 0
 
-SRC_FILES := $(wildcard src/*.cpp)
-OBJ_FILES := $(patsubst %.cpp, %.o, $(SRC_FILES) )
+CXX	      := g++
 CXX_FLAGS := 
+SRC_FILES := $(wildcard src/*.cpp) $(wildcard src/*/*.cpp)
+OBJ_FILES := $(patsubst src/%.cpp, obj/%.o, $(SRC_FILES) )
 EXEC_NAME := main
 
-ifeq ($(DEBUG),1)
+ifeq ($(RELEASE),0)
 	CXX_FLAGS += -g -DDEBUG
 	EXEC_NAME := $(EXEC_NAME)_debug
 	OBJ_FILES := $(patsubst %.o, %.debug.o, $(OBJ_FILES) )
@@ -35,11 +38,11 @@ endif
 
 main_release main_debug : $(OBJ_FILES)
 	@echo Linking everything
-	g++ $(OBJ_FILES) -Bstatic -o $(EXEC_NAME) $(patsubst %, -L%, $(LINKER_FOLDERS) ) $(patsubst %, -l%, $(LIBS) ) $(patsubst %, -I%, $(INCLUDE_PATHS)) $(CXX_FLAGS)
+	$(CXX) $(OBJ_FILES) -Bstatic -o $(EXEC_NAME) $(patsubst %, -L%, $(LINKER_FOLDERS) ) $(patsubst %, -l%, $(LIBS) ) $(patsubst %, -I%, $(INCLUDE_PATHS)) $(CXX_FLAGS)
 
-%.release.o %.debug.o : %.cpp
+obj/%.release.o obj/%.debug.o : src/%.cpp
 	@echo Compiling $@
-	g++ $< -c -o $@  $(patsubst %, -I%, $(INCLUDE_PATHS)) $(CXX_FLAGS)
+	$(CXX) $< -c -o $@  $(patsubst %, -I%, $(INCLUDE_PATHS)) $(CXX_FLAGS)
 
 clean:
 	@rm -f $(OBJ_FILES) $(EXEC_NAME)

@@ -3,11 +3,9 @@
 
 #include <string>
 #include <unordered_map>
-#include "color.h"
 #include "vector.h"
 
 typedef unsigned int ResourceId;
-typedef unsigned int TextureId;
 
 class ResourceManager;
 class Resource {
@@ -24,29 +22,6 @@ class Resource {
         std::string         get_path() const {return path;};
 };
 
-class ImageResource : public Resource {
-    friend class ResourceManager;
-    private:
-        unsigned char*          data;
-        size_t                  width,height;
-        TextureId               tex_id;
-        ImageResource( std::string filepath );
-        ~ImageResource();
-    public:
-        TextureId               get_texture_id() const {return tex_id;}
-        Color                   get_pixel(size_t x , size_t y) const;
-        Vector2                 get_size() const {return Vector2(width,height);};
-        static ImageResource*   get_resource(std::string p_resource_path);
-};
-
-class NumberResource : public Resource {
-    public:
-        double n;
-        NumberResource( double number ){n=number;}
-        operator int() const {return (int)n;}
-        operator unsigned int() const {return (unsigned int)n;}
-        static NumberResource*  get_resource(std::string p_resource_path);
-};
 
 class ResourceManager {
     private:

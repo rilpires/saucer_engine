@@ -1,8 +1,10 @@
 #include "window.h"
 
-#include "input.h"
 #include <queue>
 #include <algorithm>
+
+#include "scene_node.h"
+#include "input.h"
 
 
 void setupShader( unsigned int program , GLenum shader_type , std::string src ){
@@ -46,7 +48,6 @@ void    Window::setup_renderer() const {
     std::string fs = read_file_as_string( "res/shaders/basic_fragment.fs" );
 
     unsigned int program = glCreateProgram();
-    ResourceManager::set_resource( "GL_PROGRAM" , new NumberResource(program) );
     setupShader( program , GL_VERTEX_SHADER , vs );
     setupShader( program , GL_FRAGMENT_SHADER , fs );
     GL_CALL( glBindFragDataLocation( program, 0, "outColor") ); 
@@ -102,7 +103,7 @@ void    Window::render_scene() const {
     if( current_scene && current_scene->get_current_camera() )
         camera_transf = current_scene->get_current_camera()->get_global_transform();
     
-    unsigned int program_location = *NumberResource::get_resource("GL_PROGRAM");
+    unsigned int program_location = 1U;
     GL_CALL( unsigned int viewport_size_attrib_location = glGetUniformLocation(program_location,"viewport_size") );
     GL_CALL( unsigned int model_transf_attrib_location  = glGetUniformLocation(program_location,"model_transf") );
     GL_CALL( unsigned int camera_transf_attrib_location = glGetUniformLocation(program_location,"camera_transf") );
