@@ -1,6 +1,8 @@
 #include "scene.h"
 
 #include "input.h"
+#include "lua_engine.h"
+
 #include "scene_node.h"
 #include <queue>
 #include <algorithm>
@@ -14,7 +16,6 @@ Scene::~Scene(){
     if(root_node) delete root_node;
     if(current_window) current_window->set_current_scene(NULL);
 }
-
 
 void    Scene::update_current_actors(){
     current_draws.clear();
@@ -84,7 +85,12 @@ void    Scene::loop_input(){
     }
 }
 void    Scene::loop_script(){
-
+    std::cout << "starting new loop: " << std::endl;
+    static LuaEngine lua_engine = LuaEngine();
+    for( auto it = current_script_actors.begin() ; it != current_script_actors.end() ; it++ ){
+        SceneNode* node = (*it);
+        lua_engine.execute( node->get_script_resource() );
+    }
 }
 void    Scene::loop_physics(){
 

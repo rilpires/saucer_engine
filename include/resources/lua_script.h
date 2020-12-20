@@ -11,7 +11,10 @@ class LuaScriptResource : public Resource {
         LuaScriptResource( std::string filepath );
         ~LuaScriptResource();
 
+        const std::string&          get_src() const {return src;}
+
         static LuaScriptResource*   get_resource( std::string filepath );
+
 
 };
 

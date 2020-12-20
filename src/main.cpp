@@ -15,7 +15,7 @@ int main( int argc , char** argv ){
     Scene* scene = new Scene();
     SceneNode* root = new SceneNode();
     SceneNode* center = new SceneNode();
-    Esfera* orbit = new Esfera();
+    SceneNode* orbit = new SceneNode();
     window.set_current_scene( scene );
     scene->set_root_node(root);
 
@@ -28,6 +28,7 @@ int main( int argc , char** argv ){
     orbit->set_relative_z(false);
 
     root->set_image_texture( ImageResource::get_resource("res/gold.png") );
+    center->set_image_texture( ImageResource::get_resource("res/gold.png") );
     center->set_script_resource( LuaScriptResource::get_resource("res/scripts/test.lua") );
     orbit->set_image_texture( ImageResource::get_resource("res/gold.png") );
 

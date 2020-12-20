@@ -5,7 +5,7 @@
 
 
 #include "window.h"
-#include "script.h"
+#include "lua_engine.h"
 #include "transform.h"
 #include "color.h"
 #include "vector.h"

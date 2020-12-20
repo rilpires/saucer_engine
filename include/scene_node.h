@@ -3,28 +3,38 @@
 
 #include <iostream>
 #include <vector>
+#include <unordered_map>
 #include "core.h"
 
 class Scene;
 
+typedef unsigned int SceneNodeId;
+
 class SceneNode{
     friend class Scene;
+    private:
+        static SceneNodeId      open_id;
+        static std::unordered_map<SceneNodeId,SceneNode*>    node_map;
+        SceneNodeId             id;
 
     protected:
-        Vector2                 position;
-        float                   rotation_degrees; // Counter clock wise
-        short                   z;
-        bool                    relative_z;
-        SceneNode*              parent_node;
-        std::vector<SceneNode*> children_nodes;
-        Scene*                  scene;
-        ImageResource*          image_texture;
-        LuaScriptResource*      lua_script;
+        Vector2                     position;
+        float                       rotation_degrees; // Counter clock wise
+        short                       z;
+        bool                        relative_z;
+        SceneNode*                  parent_node;
+        std::vector<SceneNode*>     children_nodes;
+        Scene*                      scene;
+        ImageResource*              image_texture;
+        LuaScriptResource*          lua_script;
 
     public:
         SceneNode();
         ~SceneNode();
 
+        static SceneNode*   from_id( SceneNodeId p_id );
+
+        SceneNodeId         get_id() const {return id;}
         void                set_position( const Vector2& new_pos ){position=new_pos;}
         Vector2             get_position( ) const {return position;}
         Vector2             get_global_position() const;
@@ -66,23 +76,6 @@ class CameraNode : public SceneNode {
         void    set_current( bool current );
 
         inline virtual void    entered_scene();
-};
-
-class Esfera : public SceneNode {
-    public:
-        virtual void process_input_event( Input::InputEvent* input_event ){
-            if( input_event->get_type() == INPUT_EVENT_TYPE_KEY ){
-                Input::InputEventKey key_event = *input_event;
-                Vector2 delta;
-                switch(key_event.key_unicode){
-                    case GLFW_KEY_LEFT:     delta = Vector2(-1,0);  break;
-                    case GLFW_KEY_RIGHT:    delta = Vector2(1,0);   break;
-                    case GLFW_KEY_UP:       delta = Vector2(0,1);  break;
-                    case GLFW_KEY_DOWN:     delta = Vector2(0,-1);   break;
-                }
-                set_position( get_position() + delta );
-            }
-        };
 };
 
 #endif

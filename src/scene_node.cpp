@@ -4,11 +4,15 @@
 
 #define SHORT_MAX 0b0111111111111111
 
+SceneNodeId SceneNode::open_id = 0;
+std::unordered_map<SceneNodeId,SceneNode*> SceneNode::node_map;
 
 SceneNode::SceneNode(){
     position = Vector2(0,0);
     rotation_degrees = 0.0f;
     z = 0;
+    id = open_id++;
+    node_map[id] = this;
     relative_z = true;
     parent_node = NULL;
     scene = NULL;
@@ -19,6 +23,12 @@ SceneNode::~SceneNode(){
     get_out();
     for(auto it = children_nodes.begin() ; it != children_nodes.end() ; it++ )
         delete (*it);
+    node_map.erase(id);
+}
+SceneNode*  SceneNode::from_id( SceneNodeId p_id ){
+    auto it = node_map.find(p_id);
+    if( it != node_map.end() ) return it->second;
+    else return NULL;
 }
 Vector2     SceneNode::get_global_position() const{
     if( parent_node == NULL ) return position;

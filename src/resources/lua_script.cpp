@@ -9,7 +9,6 @@ LuaScriptResource::~LuaScriptResource(){
     
 }
 
-
 LuaScriptResource*   LuaScriptResource::get_resource( std::string filepath ){
     return (LuaScriptResource*)ResourceManager::get_resource(filepath);
 }
