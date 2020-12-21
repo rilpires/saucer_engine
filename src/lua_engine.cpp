@@ -1,12 +1,18 @@
 #include "lua_engine.h"
 
 #include <string.h>
-
+#include "scene_node.h"
 #include <iostream>
+#include <set>
 
-size_t LuaEngine::chunk_reader_offset = 0;
+lua_State*  LuaEngine::ls = NULL;
+int         LuaEngine::kb_memory_used = 0;
+int         LuaEngine::kb_memory_threshold = 0;
+size_t      LuaEngine::chunk_reader_offset = 0;
+SceneNode*  LuaEngine::current_actor = NULL;
 
-LuaEngine::LuaEngine(){
+
+void LuaEngine::initialize(){
     std::cout << "Creating Lua state..." << std::endl;
     ls = lua_open();
     std::cout << "Loading lua libs..." << std::endl;
@@ -19,36 +25,63 @@ LuaEngine::LuaEngine(){
     kb_memory_threshold = lua_getgcthreshold(ls);
     kb_memory_used = lua_getgccount(ls);
     std::cout << "Creating lua enviroment..." << std::endl;
-    create_env();
+    create_global_env();
     std::cout << "Done." << std::endl;
 }
-LuaEngine::~LuaEngine(){
+void LuaEngine::finish(){
     lua_close(ls);
 }
-void    LuaEngine::create_env( ){
-    describe_stack();
-    
-    // lua_pushvalue(ls,LUA_GLOBALSINDEX);
-    
+void    LuaEngine::create_global_env( ){
     // Creating engine main table, it will be always at _G["_SAUCER"]
     lua_pushstring(ls,"_SAUCER");
     lua_newtable(ls);
-    
     // Creating nodes table
     lua_pushstring(ls,"_NODES");
     lua_newtable(ls);
     lua_settable(ls,2);
-
-    describe_stack();
-
     lua_settable(ls,LUA_GLOBALSINDEX);
 
-    describe_stack();
+    lua_pushstring(ls,"get_position");
+    lua_pushcfunction(ls,get_position);
+    lua_settable(ls,LUA_GLOBALSINDEX);
 }
-void    LuaEngine::update_env( SceneNode* new_actor ){
-
+void    LuaEngine::change_current_actor_env( SceneNode* new_actor ){
+    if( current_actor == new_actor ) return;
+    if( current_actor ){
+        lua_pushfstring(ls,"_SAUCER");
+        lua_gettable(ls,LUA_GLOBALSINDEX);
+        lua_pushfstring(ls,"_NODES");
+        lua_gettable(ls,-2);
+        lua_pushnumber(ls,current_actor->get_id());
+        lua_gettable(ls,-2);
+        lua_pushnil(ls);
+        while( lua_next(ls,-2)!=0 ){
+            lua_pushvalue(ls,-2);
+            lua_pushnil(ls);
+            lua_settable(ls,LUA_GLOBALSINDEX);
+            lua_pop(ls,1);
+        }
+        lua_pop(ls,1);
+    }
+    current_actor = new_actor;
+    if( current_actor ){
+        lua_pushfstring(ls,"_SAUCER");
+        lua_gettable(ls,LUA_GLOBALSINDEX);
+        lua_pushfstring(ls,"_NODES");
+        lua_gettable(ls,-2);
+        lua_pushnumber(ls,current_actor->get_id());
+        lua_gettable(ls,-2);
+        lua_pushnil(ls);
+        while( lua_next(ls,-2)!=0 ){
+            lua_pushvalue(ls,-2);
+            lua_pushvalue(ls,-2);
+            lua_settable(ls,LUA_GLOBALSINDEX);
+            lua_pop(ls,1);
+        }
+        lua_pop(ls,1);
+    }
 }
-void    LuaEngine::describe_stack() const{
+void    LuaEngine::describe_stack(){
     std::cout << "Stack (size=" << lua_gettop(ls) << ")" << std::endl;
     char s[128];
     for( int i = 1 ; i <= lua_gettop(ls) ; i++ ){
@@ -59,21 +92,7 @@ void    LuaEngine::describe_stack() const{
         std::cout << s << std::endl;
     }
 }
-int saucer_print(lua_State* ls){
-    std::cout<< lua_tostring( ls , -1 ) << std::endl;
-    lua_pop(ls,1);
-    return 0;
-}
-
-void    LuaEngine::execute( LuaScriptResource* script ){
-    
-    lua_pushstring(ls, "printa");
-    lua_pushcfunction(ls,saucer_print);
-    lua_settable(ls,LUA_GLOBALSINDEX);
-
-    chunk_reader_offset = 0;
-    int err = lua_load( ls , chunk_reader , (void*)(script->get_src().c_str()) , "." ) || lua_pcall(ls,0,0,0) ;
-    
+void    LuaEngine::print_error( int err , LuaScriptResource* script ){   
     if( err ){
         std::cerr << "Lua error on " << script->get_path() << std::endl;
         const char* error_msg = "[LUA ERROR]";
@@ -91,7 +110,85 @@ void    LuaEngine::execute( LuaScriptResource* script ){
         lua_pop(ls,1); 
     }
 }
-const char* LuaEngine::chunk_reader( lua_State* p_ls , void* data , size_t* size ){
+void    LuaEngine::execute_frame_start( SceneNode* actor ){
+    std::cout << "Current stack size: " << lua_gettop(ls) << std::endl;
+    change_current_actor_env( actor );
+    lua_pushstring(ls,"frame_start");
+    lua_gettable(ls,LUA_GLOBALSINDEX);
+    lua_pushnumber(ls,0.15);
+    int err = lua_pcall(ls,1,0,0);
+    print_error(err,actor->get_script_resource());
+}
+void    LuaEngine::execute_input_event( SceneNode* actor ){
+
+}
+
+int     LuaEngine::get_position( lua_State* ls ){
+    SceneNodeId id = lua_tonumber(ls,-1);
+    lua_pop(ls,1);
+    lua_push_vector2(ls,SceneNode::from_id(id)->get_position());
+    return 1;
+}
+
+
+void    LuaEngine::create_actor_env( SceneNode* new_actor ){
+    describe_stack();
+    SceneNode* old_actor = current_actor;
+    change_current_actor_env(NULL);
+    describe_stack();
+
+    std::set<std::string> old_names;
+
+    lua_pushnil(ls);
+    while( lua_next(ls,LUA_GLOBALSINDEX)!=0 ){
+        if( !lua_isstring(ls,-2) ){
+            std::cerr << "Oops? table key isn't string, it is: " << lua_typename(ls,lua_type(ls,-2)) << "\t"
+            << "converted to string: " << lua_tostring(ls,-2) << std::endl;
+        } else {
+            old_names.insert( lua_tostring(ls,-2) );
+        }
+        lua_pop(ls,1);
+    }
+
+    chunk_reader_offset = 0;
+    LuaScriptResource* script = new_actor->get_script_resource();
+    int err = lua_load( ls , chunk_reader , (void*)(script->get_src().c_str()) , "." ) || lua_pcall(ls,0,0,0) ;
+    print_error(err,script);
+
+    // Creating this actor env table
+    lua_newtable(ls);
+    lua_pushstring(ls,"_NODE_ID");
+    lua_pushnumber(ls,new_actor->get_id());
+    lua_settable(ls,1);
+
+    lua_pushnil(ls);
+    while( lua_next(ls,LUA_GLOBALSINDEX)!=0 ){
+        if( !lua_isstring(ls,-2) ){
+            std::cerr << "Oops? table key isn't string, it is: " << lua_typename(ls,lua_type(ls,-2)) << "\t"
+            << "converted to string: " << lua_tostring(ls,-2) << std::endl;
+        } else if( old_names.find( lua_tostring(ls,-2) ) == old_names.end() ) {
+            lua_pushvalue(ls,-2);
+            lua_pushvalue(ls,-2);
+            lua_settable(ls,1);
+        }
+        lua_pop(ls,1);
+    }
+
+    // Now inserting it into _G["_SAUCER"]["_NODES"][id]
+    lua_pushstring(ls,"_SAUCER");
+    lua_gettable(ls,LUA_GLOBALSINDEX);
+    lua_pushstring(ls,"_NODES");
+    lua_gettable(ls,-2);
+    lua_pushnumber(ls,new_actor->get_id());
+    lua_pushvalue(ls,1);
+    lua_settable(ls,-3);
+    lua_pop(ls,3);
+
+    describe_stack();
+    change_current_actor_env(old_actor);
+    describe_stack();
+}
+const char* LuaEngine::chunk_reader( lua_State* ls , void* data , size_t* size ){
     size_t total_size = strlen((char*)data);
     if( chunk_reader_offset < total_size ){
         size_t remaining_size = total_size - chunk_reader_offset;
@@ -100,4 +197,40 @@ const char* LuaEngine::chunk_reader( lua_State* p_ls , void* data , size_t* size
         chunk_reader_offset += CHUNK_READER_SIZE;
         return ret;
     } else return NULL;
+}
+
+void    LuaEngine::lua_push_vector2( lua_State* ls , Vector2 v ){
+    void* userdata = lua_newuserdata( ls , sizeof(Vector2) );
+    (*(Vector2*)userdata) = v;
+
+    // Pushing a vector2 metatable:
+    lua_newtable(ls);
+    
+    // __index
+    lua_pushstring(ls,"__index");
+    lua_pushcfunction(ls, [](lua_State* ls)->int{
+        Vector2* v = (Vector2*)lua_touserdata(ls,-2);
+        const char* arg = lua_tostring(ls,-1);
+        lua_pop(ls,2);
+                if(!strcmp(arg,"x"))   lua_pushnumber(ls,v->x);
+        else    if(!strcmp(arg,"y"))   lua_pushnumber(ls,v->y);
+        return 1;
+    });
+    lua_settable(ls,-3);
+
+    // __newindex
+    lua_pushstring(ls,"__newindex");
+    lua_pushcfunction(ls, [](lua_State* ls)->int{
+        Vector2* v = (Vector2*)lua_touserdata(ls,-3);
+        const char* arg = lua_tostring(ls,-2);
+        float new_val = lua_tonumber(ls,-1);
+        lua_pop(ls,3);
+                if(!strcmp(arg,"x"))    v->x=new_val;
+        else    if(!strcmp(arg,"y"))    v->y=new_val;
+        return 0;
+    });
+    lua_settable(ls,-3);
+
+    lua_setmetatable(ls,-2);
+
 }

@@ -56,6 +56,14 @@ short       SceneNode::get_global_z() const {
         return parent_node->get_global_z()+z;
     return z;
 }
+void        SceneNode::set_script_resource( LuaScriptResource* ls ){
+    if( lua_script ){
+        std::cerr << "Hmm you shouldn't change scripts attached in a node once set..." << std::endl;
+    } else {
+        lua_script = ls;
+        LuaEngine::create_actor_env( this );
+    }
+}
 void        SceneNode::get_out(){
     if( parent_node ){
         std::vector<SceneNode*>& parent_chidren = parent_node->children_nodes;

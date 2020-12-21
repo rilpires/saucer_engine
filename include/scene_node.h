@@ -55,8 +55,8 @@ class SceneNode{
         void                set_image_texture(ImageResource* img){image_texture=img;}
         ImageResource*      get_image_texture() const {return image_texture;}
 
-        void                set_script_resource( LuaScriptResource* ls ){ lua_script = ls;}
-        LuaScriptResource*  get_script_resource(){return lua_script;}
+        void                set_script_resource( LuaScriptResource* ls );
+        LuaScriptResource*  get_script_resource() const {return lua_script;}
 
         void                get_out();
         void                add_child_node( SceneNode* p_child_node );

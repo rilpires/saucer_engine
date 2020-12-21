@@ -86,10 +86,8 @@ void    Scene::loop_input(){
 }
 void    Scene::loop_script(){
     std::cout << "starting new loop: " << std::endl;
-    static LuaEngine lua_engine = LuaEngine();
     for( auto it = current_script_actors.begin() ; it != current_script_actors.end() ; it++ ){
-        SceneNode* node = (*it);
-        lua_engine.execute( node->get_script_resource() );
+        LuaEngine::execute_frame_start( *it );
     }
 }
 void    Scene::loop_physics(){

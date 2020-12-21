@@ -9,6 +9,9 @@ Vector2 Vector2::rotated( float rotation_degrees_cw ) const{
     return Vector2( x*c - y*s , x*s + y*c );
 }
 
+void Vector2::operator=( const Vector2& v ){
+    x = v.x ; y = v.y;
+}
 Vector2 Vector2::operator+( const Vector2& v ) const{
     Vector2 ret = Vector2( x+v.x , y+v.y );
     return ret;

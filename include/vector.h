@@ -10,6 +10,7 @@ struct Vector2 {
 
     Vector2 rotated( float rotation_degrees ) const ;
 
+    void operator=( const Vector2& v );
     Vector2 operator+( const Vector2& v ) const;
     Vector2 operator-( const Vector2& v ) const;
     Vector2 operator*( const Vector2 v ) const;

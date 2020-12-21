@@ -5,13 +5,10 @@ int main( int argc , char** argv ){
     for( int i = 0 ; i < argc ; i++ )
         std::cout << "argv[" << i << "] = " << argv[i] << std::endl;  
 
+    Window window( Vector2(640,480) , Vector2(100,100) , "SaucerEngine (GLFW+OpenGL)" );
+    
+    LuaEngine::initialize();
 
-    
-
-    Window window( Vector2(640,480) , Vector2(100,100) , "PlaygroundOpenGL" );
-    
-    ResourceManager::get_resource("res/gold.png");
-    
     Scene* scene = new Scene();
     SceneNode* root = new SceneNode();
     SceneNode* center = new SceneNode();
@@ -36,9 +33,9 @@ int main( int argc , char** argv ){
     root->add_child_node(center);
     center->add_child_node(orbit);
 
-    center->set_position( Vector2(55,55) );
+    center->set_position( Vector2(50,50) );
     center->set_rotation_degrees( 45 );
-    orbit->set_position( Vector2(55,55) );
+    orbit->set_position( Vector2(50,50) );
 
     
 
@@ -46,6 +43,6 @@ int main( int argc , char** argv ){
         window.update();
     }
 
-
+    LuaEngine::finish();
     std::cout << "Bye bye!!!" << std::endl;
 }

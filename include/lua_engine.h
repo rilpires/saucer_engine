@@ -15,23 +15,31 @@ class SceneNode;
 
 class LuaEngine {
     private:
-        lua_State*      ls;
-        int             kb_memory_used;
-        int             kb_memory_threshold;
+        static lua_State*       ls;
+        static int              kb_memory_used;
+        static int              kb_memory_threshold;
+        static size_t           chunk_reader_offset;
+        static SceneNode*       current_actor;
 
-        static size_t   chunk_reader_offset; // Ugh I hate that it should be static. If another LuaEngine should be created, gotta fix it somehow
-
-        void            create_env();
-        void            update_env( SceneNode* new_actor );
-        void            describe_stack() const;
+        static void             create_global_env();
+        static void             change_current_actor_env( SceneNode* new_actor );
+        static void             describe_stack();
+        static void             print_error( int err , LuaScriptResource* script );
 
     public:
-        LuaEngine();
-        ~LuaEngine();
-        
-        void    execute( LuaScriptResource* script );
+        static void             initialize();
+        static void             finish();
 
-        static const char* chunk_reader( lua_State* ls , void* data , size_t* size );
+        static void             execute_frame_start( SceneNode* actor );
+        static void             execute_input_event( SceneNode* actor );
+        static void             create_actor_env( SceneNode* new_actor );
+
+        static const char*      chunk_reader( lua_State* ls , void* data , size_t* size );
+
+    private:
+        static int              get_position(lua_State* ls);
+
+        static void             lua_push_vector2( lua_State* ls , Vector2 v );
 };
 
 #endif
