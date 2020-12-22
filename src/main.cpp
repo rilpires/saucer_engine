@@ -26,14 +26,14 @@ int main( int argc , char** argv ){
 
     root->set_image_texture( ImageResource::get_resource("res/gold.png") );
     center->set_image_texture( ImageResource::get_resource("res/gold.png") );
-    center->set_script_resource( LuaScriptResource::get_resource("res/scripts/test.lua") );
     orbit->set_image_texture( ImageResource::get_resource("res/gold.png") );
+    orbit->set_script_resource( LuaScriptResource::get_resource("res/scripts/test.lua") );
 
 
     root->add_child_node(center);
     center->add_child_node(orbit);
 
-    center->set_position( Vector2(50,50) );
+    center->set_position( Vector2(25,25) );
     center->set_rotation_degrees( 45 );
     orbit->set_position( Vector2(50,50) );
 

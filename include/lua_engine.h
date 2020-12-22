@@ -21,6 +21,7 @@ class LuaEngine {
         static size_t           chunk_reader_offset;
         static SceneNode*       current_actor;
 
+        static const char*      chunk_reader( lua_State* ls , void* data , size_t* size );
         static void             create_global_env();
         static void             change_current_actor_env( SceneNode* new_actor );
         static void             describe_stack();
@@ -34,11 +35,13 @@ class LuaEngine {
         static void             execute_input_event( SceneNode* actor );
         static void             create_actor_env( SceneNode* new_actor );
 
-        static const char*      chunk_reader( lua_State* ls , void* data , size_t* size );
-
+        
     private:
+        static int              get_parent(lua_State* ls);
         static int              get_position(lua_State* ls);
+        static int              set_position(lua_State* ls);
 
+        static void             lua_push_scene_node( lua_State* ls , SceneNode* node );
         static void             lua_push_vector2( lua_State* ls , Vector2 v );
 };
 
