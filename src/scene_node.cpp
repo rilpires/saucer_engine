@@ -1,18 +1,15 @@
 #include "scene_node.h"
+#include "core.h"
 #include <iostream>
-#include "scene.h"
+#include <type_traits>
 
 #define SHORT_MAX 0b0111111111111111
 
-SceneNodeId SceneNode::open_id = 0;
-std::unordered_map<SceneNodeId,SceneNode*> SceneNode::node_map;
 
 SceneNode::SceneNode(){
     position = Vector2(0,0);
     rotation_degrees = 0.0f;
     z = 0;
-    id = open_id++;
-    node_map[id] = this;
     relative_z = true;
     parent_node = NULL;
     scene = NULL;
@@ -20,15 +17,14 @@ SceneNode::SceneNode(){
     lua_script = NULL;
 }
 SceneNode::~SceneNode(){
-    get_out();
     for(auto it = children_nodes.begin() ; it != children_nodes.end() ; it++ )
         delete (*it);
-    node_map.erase(id);
 }
-SceneNode*  SceneNode::from_id( SceneNodeId p_id ){
-    auto it = node_map.find(p_id);
-    if( it != node_map.end() ) return it->second;
-    else return NULL;
+void        SceneNode::set_position( const Vector2 new_pos ){
+    position = new_pos;
+}
+Vector2     SceneNode::get_position( ) const{
+    return position;
 }
 Vector2     SceneNode::get_global_position() const{
     if( parent_node == NULL ) return position;
@@ -85,9 +81,34 @@ void        SceneNode::add_child_node( SceneNode* p_child_node ){
     }
 
 }
+std::vector<SceneNode*> const&  SceneNode::get_children() const {
+    return std::forward<std::vector<SceneNode*> const&&>(children_nodes);
+}
 Scene*      SceneNode::get_scene() const{
     if(parent_node) return parent_node->get_scene();
     else return scene;
+}
+
+void        SceneNode::bind_methods(){
+    
+    // LuaEngine::register_function("SceneNode","get_position", LuaEngine::to_lua_cfunction<pointer_without_const<decltype(&SceneNode::get_position)>::type>::generate_lambda<(&SceneNode::get_position)>() );
+
+    REGISTER_LUA_FUNCTION(SceneNode,get_position);
+    REGISTER_LUA_FUNCTION(SceneNode,set_position);
+    REGISTER_LUA_FUNCTION(SceneNode,get_global_position);
+    REGISTER_LUA_FUNCTION(SceneNode,get_rotation_degrees);
+    REGISTER_LUA_FUNCTION(SceneNode,set_rotation_degrees);
+    REGISTER_LUA_FUNCTION(SceneNode,get_global_rotation_degrees);
+    REGISTER_LUA_FUNCTION(SceneNode,get_z);
+    REGISTER_LUA_FUNCTION(SceneNode,get_global_z);
+    REGISTER_LUA_FUNCTION(SceneNode,is_z_relative);
+    REGISTER_LUA_FUNCTION(SceneNode,get_image_texture);
+    REGISTER_LUA_FUNCTION(SceneNode,get_script_resource);
+    REGISTER_LUA_FUNCTION(SceneNode,get_parent);
+    REGISTER_LUA_FUNCTION(SceneNode,get_children);
+    REGISTER_LUA_FUNCTION(SceneNode,get_scene);
+
+    
 }
 
 CameraNode::~CameraNode(){
@@ -105,5 +126,5 @@ void        CameraNode::set_current( bool current ){
     }
 }
 void        CameraNode::entered_scene(){
-    image_texture;
 }
+

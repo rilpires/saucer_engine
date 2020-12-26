@@ -4,11 +4,12 @@
 #include "input.h"
 #include "window.h"
 #include <vector>
+#include "saucer_object.h"
 
 class SceneNode;
 class CameraNode;
 
-class Scene {
+class Scene : public SaucerObject {
     
     friend class Window; // access current_window
 

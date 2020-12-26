@@ -1,9 +1,6 @@
 #include "scene.h"
+#include "core.h"
 
-#include "input.h"
-#include "lua_engine.h"
-
-#include "scene_node.h"
 #include <queue>
 #include <algorithm>
 

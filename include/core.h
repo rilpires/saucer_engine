@@ -4,6 +4,7 @@
 #define GLEW_STATIC
 
 
+#include "saucer_object.h"
 #include "window.h"
 #include "lua_engine.h"
 #include "transform.h"

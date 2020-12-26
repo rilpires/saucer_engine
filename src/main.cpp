@@ -1,7 +1,6 @@
 #include "core.h"
 
 int main( int argc , char** argv ){
-    
     for( int i = 0 ; i < argc ; i++ )
         std::cout << "argv[" << i << "] = " << argv[i] << std::endl;  
 
@@ -27,14 +26,16 @@ int main( int argc , char** argv ){
     root->set_image_texture( ImageResource::get_resource("res/gold.png") );
     center->set_image_texture( ImageResource::get_resource("res/gold.png") );
     orbit->set_image_texture( ImageResource::get_resource("res/gold.png") );
+    //center->set_script_resource( LuaScriptResource::get_resource("res/scripts/test.lua") );
     orbit->set_script_resource( LuaScriptResource::get_resource("res/scripts/test.lua") );
 
 
     root->add_child_node(center);
     center->add_child_node(orbit);
 
-    center->set_position( Vector2(25,25) );
-    center->set_rotation_degrees( 45 );
+    root->set_position( Vector2(-125,25) );
+    center->set_position( Vector2(125,25) );
+    // center->set_rotation_degrees( 45 );
     orbit->set_position( Vector2(50,50) );
 
     

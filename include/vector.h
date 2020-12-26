@@ -1,6 +1,8 @@
 #ifndef VECTOR_H
 #define VECTOR_H
 
+#include <string>
+
 class Transform;
 
 struct Vector2 {
@@ -23,6 +25,12 @@ struct Vector2 {
     Vector2 operator*=( const float scale );
     Vector2 operator/=( const Vector2& v );
     Vector2 operator/=( const float div );
+
+    operator std::string() const{
+        char buff[32];
+        sprintf(buff , "Vector2( %f , %f )" , x , y );
+        return std::string(buff);
+    }
 };
 
 struct Vector3 {

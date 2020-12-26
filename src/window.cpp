@@ -1,8 +1,5 @@
 #include "window.h"
-
-
-#include "scene_node.h"
-#include "input.h"
+#include "core.h"
 
 
 void setupShader( unsigned int program , GLenum shader_type , std::string src ){

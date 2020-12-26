@@ -6,7 +6,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include <iostream> 
+#include <iostream>
+#include "saucer_object.h"
 
 
 class Vector2;
@@ -14,7 +15,7 @@ class Input;
 class Scene;
 
 
-class Window{
+class Window : public SaucerObject{
     private:
         GLFWwindow* glfw_window;
         Scene*      current_scene;
