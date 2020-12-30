@@ -60,7 +60,7 @@ template<> void LuaEngine::push( lua_State* ls , Vector2 v ){
         lua_pop(ls,2);
                 if(!strcmp(arg,"x"))   lua_pushnumber(ls,v->x);
         else    if(!strcmp(arg,"y"))   lua_pushnumber(ls,v->y);
-        else    if(!strcmp(arg,"rotated"))   lua_pushcfunction(ls,c_function_db["Vector2"]["rotated"]);
+        else    if(!strcmp(arg,"rotated"))   lua_pushcfunction(ls, recover_cfunction("Vector2","rotated") );
         return 1;
     });
     lua_settable(ls,-3);
@@ -229,7 +229,7 @@ template<> void LuaEngine::push( lua_State* ls , SceneNode* obj ){
     lua_pushcfunction(ls,[](lua_State* ls){
         const char* arg = lua_tostring(ls,-1);
         lua_pop(ls,2);
-        lua_pushcfunction( ls , c_function_db["SceneNode"][arg] );
+        lua_pushcfunction( ls , LuaEngine::recover_cfunction("SceneNode",arg) );
         return 1;
     });
     lua_settable(ls,-3);
@@ -247,7 +247,7 @@ template<> void LuaEngine::push( lua_State* ls , Resource* r ){
     lua_pushcfunction(ls,[](lua_State* ls){
         const char* arg = lua_tostring(ls,-1);
         lua_pop(ls,2);
-        lua_pushcfunction( ls , c_function_db["Resource"][arg] );
+        lua_pushcfunction( ls , LuaEngine::recover_cfunction("Resource",arg) );
         return 1;
     });
     lua_settable(ls,-3);
@@ -335,7 +335,7 @@ template<> lua_CFunction    LuaEngine::create_lua_constructor<Color>( lua_State*
     };
 }
 
-const char* LuaEngine::chunk_reader( lua_State* ls , void* data , size_t* size ){
+const char*     LuaEngine::chunk_reader( lua_State* ls , void* data , size_t* size ){
     size_t total_size = strlen((char*)data);
     if( chunk_reader_offset < total_size ){
         size_t remaining_size = total_size - chunk_reader_offset;
@@ -345,7 +345,7 @@ const char* LuaEngine::chunk_reader( lua_State* ls , void* data , size_t* size )
         return ret;
     } else return NULL;
 }
-void        LuaEngine::initialize(){
+void            LuaEngine::initialize(){
     std::cout << "Creating Lua state..." << std::endl;
     ls = lua_open();
     std::cout << "Loading lua libs..." << std::endl;
@@ -372,10 +372,10 @@ void        LuaEngine::initialize(){
     create_global_env();
     std::cout << "Done." << std::endl;
 }
-void        LuaEngine::finish(){
+void            LuaEngine::finish(){
     lua_close(ls);
 }
-void        LuaEngine::create_global_env( ){
+void            LuaEngine::create_global_env( ){
     // Creating engine main table, it will be always at _G["_SAUCER"]
     lua_pushstring(ls,"_SAUCER");
     lua_newtable(ls);
@@ -413,7 +413,7 @@ void        LuaEngine::create_global_env( ){
     LUAENGINE_VALUE_CONSTRUCTOR(Vector3);
 
 }
-void        LuaEngine::change_current_actor_env( SceneNode* new_actor ){
+void            LuaEngine::change_current_actor_env( SceneNode* new_actor ){
     if( current_actor == new_actor ) return;
     if( current_actor ){
         lua_pushfstring(ls,"_SAUCER");
@@ -455,7 +455,7 @@ void        LuaEngine::change_current_actor_env( SceneNode* new_actor ){
         lua_pop(ls,3);
     }
 }
-void        LuaEngine::describe_stack(){
+void            LuaEngine::describe_stack(){
     std::cout << "Stack (size=" << lua_gettop(ls) << ")" << std::endl;
     char s[128];
     for( int i = 1 ; i <= lua_gettop(ls) ; i++ ){
@@ -466,7 +466,7 @@ void        LuaEngine::describe_stack(){
         std::cout << s << std::endl;
     }
 }
-void        LuaEngine::print_error( int err , LuaScriptResource* script ){   
+void            LuaEngine::print_error( int err , LuaScriptResource* script ){   
     if( err ){
         std::cerr << "Lua error on " << script->get_path() << std::endl;
         const char* error_msg = "[LUA ERROR]";
@@ -482,10 +482,29 @@ void        LuaEngine::print_error( int err , LuaScriptResource* script ){
             }
         std::cerr << error_msg << " : " << lua_tostring(ls,-1) << std::endl;
         lua_pop(ls,1);  
-        // exit(1);
+        exit(1);
     }
 }
-void        LuaEngine::execute_frame_start( SceneNode* actor ){
+lua_CFunction   LuaEngine::recover_cfunction( std::string class_name , std::string function_name ){
+    auto class_find = c_function_db.find( class_name );
+    if( class_find == c_function_db.end() ){
+        std::cerr << "Couldn't find any function for class " << class_name << std::endl;
+        // exit(1);
+    } else {
+        auto function_find = class_find->second.find( function_name );
+        if( function_find == class_find->second.end() ){
+            std::cerr << "Couldn't find any function named " << function_name << " for class " << class_name << std::endl;
+            // exit(1);
+        } else {
+            return function_find->second;
+        }
+    }
+    return [](lua_State* ls ){ 
+        // std::cerr << "This function should not be called!" << std::endl ; 
+        return 0; 
+    };
+}
+void            LuaEngine::execute_frame_start( SceneNode* actor ){
     change_current_actor_env( actor );
     lua_pushstring(ls,"frame_start");
     lua_gettable(ls,LUA_GLOBALSINDEX);
@@ -494,10 +513,10 @@ void        LuaEngine::execute_frame_start( SceneNode* actor ){
 
     print_error(err,actor->get_script_resource());
 }
-void        LuaEngine::execute_input_event( SceneNode* actor ){
+void            LuaEngine::execute_input_event( SceneNode* actor ){
 
 }
-void        LuaEngine::create_actor_env( SceneNode* new_actor ){
+void            LuaEngine::create_actor_env( SceneNode* new_actor ){
     SceneNode* old_actor = current_actor;
     change_current_actor_env(NULL);
     std::set<std::string> old_names;
@@ -560,6 +579,6 @@ void        LuaEngine::create_actor_env( SceneNode* new_actor ){
 
     change_current_actor_env(old_actor);
 }
-void        LuaEngine::register_function( std::string class_name , std::string function_name , lua_CFunction f ){
+void            LuaEngine::register_function( std::string class_name , std::string function_name , lua_CFunction f ){
     c_function_db[class_name][function_name] = f;
 }

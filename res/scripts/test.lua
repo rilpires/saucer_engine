@@ -11,6 +11,8 @@ function frame_start( dt_seconds )
     print( "res is " , res )
     print( "it's path is " , res:get_path() )
 
+    this:die()
+
     if res:get_path() == "res/troll.png" then
         this:set_image_texture( ResourceManager.get_resource("res/gold.png") )
     else 

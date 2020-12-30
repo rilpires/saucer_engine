@@ -43,6 +43,7 @@ class LuaEngine {
         static void             change_current_actor_env( SceneNode* new_actor );
         static void             describe_stack();
         static void             print_error( int err , LuaScriptResource* script );
+        static lua_CFunction    recover_cfunction( std::string class_name , std::string function_name );
 
     protected:
         static SceneNode*       current_actor;
