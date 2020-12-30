@@ -6,11 +6,10 @@
 
 Scene::Scene(){
     root_node = NULL;
-    current_window = NULL;
 }
 Scene::~Scene(){
     if(root_node) delete root_node;
-    if(current_window) current_window->set_current_scene(NULL);
+    if( Engine::get_current_scene()==this ) Engine::set_current_scene(nullptr);
 }
 Scene*      Scene::lua_new(){ return new Scene(); }
 void        Scene::set_root_node(SceneNode* p_root_node){
@@ -20,7 +19,6 @@ void        Scene::set_root_node(SceneNode* p_root_node){
 SceneNode*  Scene::get_root_node(){return root_node;}
 Transform   Scene::get_camera_transform(){return camera_transform;}
 void        Scene::set_camera_transform(Transform t){camera_transform=t;}
-Window*     Scene::get_current_window(){return current_window;}
 void        Scene::update_current_actors(){
     current_draws.clear();
     current_input_handlers.clear();
@@ -49,7 +47,7 @@ void        Scene::loop_draw(){
     GL_CALL( glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
     GL_CALL( glClearColor( 0,0,0,1 ) );
     
-    Vector2 window_size = get_current_window()->get_window_size();
+    Vector2 window_size = Engine::get_window_size();
     
     unsigned int program_location = 1U;
     GL_CALL( unsigned int viewport_size_attrib_location = glGetUniformLocation(program_location,"viewport_size") );

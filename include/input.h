@@ -1,7 +1,7 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-#include "window.h" // glfw events
+#include "engine.h" // glfw events
 #include <vector>  // std
 #include "vector.h" // Vector2
 #include <iostream>

@@ -1,6 +1,11 @@
-#include "window.h"
+#include "engine.h"
 #include "core.h"
 
+#define FPS_FRAMES_TO_ACCOUNT 30
+
+GLFWwindow*         Engine::glfw_window     = nullptr;
+Scene*              Engine::current_scene   = nullptr;
+std::list<double>   Engine::last_uptimes;
 
 void setupShader( unsigned int program , GLenum shader_type , std::string src ){
 
@@ -27,7 +32,7 @@ void setupShader( unsigned int program , GLenum shader_type , std::string src ){
 }
 
 
-void    Window::setup_renderer() const {
+void    Engine::setup_renderer(){
     // Compiling & Linking shaders
     std::string vs = read_file_as_string( "res/shaders/basic_vertex.vs" );
     std::string fs = read_file_as_string( "res/shaders/basic_fragment.fs" );
@@ -80,7 +85,7 @@ void    Window::setup_renderer() const {
 }
 
 
-Window::Window( Vector2 p_size , Vector2 p_pos , const char* title ){
+void Engine::initialize( Vector2 p_size , Vector2 p_pos , const char* title ){
     
     if( !glfwInit() ) std::cerr << "Failed to glfwInit()" << std::endl;
     
@@ -122,58 +127,82 @@ Window::Window( Vector2 p_size , Vector2 p_pos , const char* title ){
 
 }
 
-Window::~Window(){
+void Engine::close(){
     std::cout << "Closing window" << std::endl;
     glfwDestroyWindow(glfw_window);
     glfwTerminate();
 }
 
-void        Window::update(){
+void        Engine::update(){
+    last_uptimes.push_front( get_uptime() );
+    if( last_uptimes.size() > FPS_FRAMES_TO_ACCOUNT ) {
+        last_uptimes.pop_back();
+    }
+
     glfwPollEvents();
-    if(current_scene) current_scene->loop();
+    if(current_scene) {
+        current_scene->loop();
+    }
     glfwSwapBuffers(glfw_window);
 }
-
-void        Window::set_current_scene(Scene* scene){
-    if( current_scene ){
-        current_scene->current_window = NULL;    
-    }
-    current_scene = scene;
-    if( current_scene ){
-        current_scene->current_window = this;    
-    }
+double      Engine::get_uptime(){
+    return glfwGetTime();
 }
-
-void        Window::set_window_size( Vector2 new_size ){
+double      Engine::get_fps(){
+    size_t number_of_frames = last_uptimes.size();
+    double elapsed_time = last_uptimes.front() - last_uptimes.back();
+    if( number_of_frames > 1 && elapsed_time > 0 ){
+        return (number_of_frames-1) / elapsed_time; 
+    } else return 0;
+}
+void        Engine::set_current_scene(Scene* scene){
+    current_scene = scene;
+}
+Scene*      Engine::get_current_scene(){ 
+    return current_scene;
+}
+void        Engine::set_window_size( Vector2 new_size ){
     glfwSetWindowSize( glfw_window , new_size.x , new_size.y );
 }
-Vector2     Window::get_window_size() const {
+Vector2     Engine::get_window_size(){
     int w,h;
     glfwGetWindowSize( glfw_window , &w , &h );
     return Vector2( w,h );
 }
-void        Window::set_window_pos( Vector2 new_pos ){
+void        Engine::set_window_pos( Vector2 new_pos ){
     glfwSetWindowPos( glfw_window , new_pos.x , new_pos.y );
 }
-Vector2     Window::get_window_pos() const {
+Vector2     Engine::get_window_pos() {
     int x,y;
     glfwGetWindowPos( glfw_window , &x , &y );
     return Vector2(x,y);
 }
-void        Window::set_fullscreen( bool fs ){
-    if( !(this->is_fullscreen()) && fs ){
+void        Engine::set_fullscreen( bool fs ){
+    if( !is_fullscreen() && fs ){
         int w,h;
         glfwGetWindowSize( glfw_window , &w , &h );
         glfwSetWindowMonitor( glfw_window , glfwGetPrimaryMonitor() , 0 , 0 , w , h , 60 );
-    } else if( this->is_fullscreen() && !fs ) {
+    } else if( is_fullscreen() && !fs ) {
         int w,h;
         glfwGetWindowSize( glfw_window , &w , &h );
         glfwSetWindowMonitor( glfw_window , NULL , 0 , 0 , w , h , 60 );
     }
 }
-bool        Window::is_fullscreen(){
+bool        Engine::is_fullscreen(){
     return glfwGetWindowMonitor(glfw_window) != NULL;
 }
-bool        Window::should_close() const{
+bool        Engine::should_close() {
     return glfwWindowShouldClose(glfw_window);
+}
+void        Engine::bind_methods(){
+    REGISTER_LUA_STATIC_FUNCTION( Engine , get_uptime );
+    REGISTER_LUA_STATIC_FUNCTION( Engine , get_fps );
+    REGISTER_LUA_STATIC_FUNCTION( Engine , set_current_scene );
+    REGISTER_LUA_STATIC_FUNCTION( Engine , get_current_scene );
+    REGISTER_LUA_STATIC_FUNCTION( Engine , set_window_size );
+    REGISTER_LUA_STATIC_FUNCTION( Engine , get_window_size );
+    REGISTER_LUA_STATIC_FUNCTION( Engine , set_window_pos );
+    REGISTER_LUA_STATIC_FUNCTION( Engine , get_window_pos );
+    REGISTER_LUA_STATIC_FUNCTION( Engine , set_fullscreen );
+    REGISTER_LUA_STATIC_FUNCTION( Engine , is_fullscreen );
 }

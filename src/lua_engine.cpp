@@ -356,6 +356,7 @@ void            LuaEngine::initialize(){
     luaopen_table(ls);
     lua_settop(ls,0); // idk why but previous luaopen_[lib] changes the stack so I clean it
     std::cout << "Loading lua binded methods..." << std::endl;
+    Engine::bind_methods();
     Scene::bind_methods();
     SceneNode::bind_methods();
     Vector2::bind_methods();
@@ -401,7 +402,9 @@ void            LuaEngine::create_global_env( ){
             if( function_name == "lua_new" ){
                 lua_pushstring( ls , "new" );
             }
-            else lua_pushstring(ls,function_name.c_str());
+            else{
+                lua_pushstring(ls,function_name.c_str());
+            }
             lua_pushcfunction( ls , it2.second );
             lua_settable(ls,-3);
         }

@@ -2,7 +2,7 @@
 #define SCENE_H
 
 #include "input.h"
-#include "window.h"
+#include "engine.h"
 #include "transform.h"
 #include "saucer_object.h"
 
@@ -19,8 +19,6 @@ class Scene : public SaucerObject {
 
         SceneNode*  root_node;
         Transform   camera_transform;
-        Window*     current_window;
-
         std::vector<SceneNode*> current_draws;
         std::vector<SceneNode*> current_input_handlers;
         std::vector<SceneNode*> current_script_actors;
@@ -43,8 +41,6 @@ class Scene : public SaucerObject {
 
         Transform       get_camera_transform();
         void            set_camera_transform(Transform t);
-
-        Window*         get_current_window();
 
         void            propagate_input_event( Input::InputEvent* input_event );
         void            loop();

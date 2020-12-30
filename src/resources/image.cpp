@@ -1,6 +1,6 @@
 #include "resources/image.h"
 #include "debug.h"
-#include "window.h" // glfw & glew stuff
+#include "engine.h" // glfw & glew stuff
 
 #include <png.h>
 #include <string.h>

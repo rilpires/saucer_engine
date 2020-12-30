@@ -4,7 +4,7 @@ int main( int argc , char** argv ){
     for( int i = 0 ; i < argc ; i++ )
         std::cout << "argv[" << i << "] = " << argv[i] << std::endl;  
 
-    Window window( Vector2(640,480) , Vector2(100,100) , "SaucerEngine (GLFW+OpenGL)" );
+    Engine::initialize( Vector2(640,480) , Vector2(100,100) , "SaucerEngine (GLFW+OpenGL)" );
     
     LuaEngine::initialize();
 
@@ -12,7 +12,7 @@ int main( int argc , char** argv ){
     SceneNode* root = new SceneNode();
     SceneNode* center = new SceneNode();
     SceneNode* orbit = new SceneNode();
-    window.set_current_scene( scene );
+    Engine::set_current_scene( scene );
     scene->set_root_node(root);
 
     root->set_z  (-1);
@@ -40,8 +40,8 @@ int main( int argc , char** argv ){
 
     
 
-    while( !window.should_close() ){
-        window.update();
+    while( !Engine::should_close() ){
+        Engine::update();
     }
 
     LuaEngine::finish();

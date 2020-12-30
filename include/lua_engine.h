@@ -130,7 +130,6 @@ SAUCER_USE_BY_REFERENCE(Scene);
 SAUCER_USE_BY_REFERENCE(Resource);
 SAUCER_USE_BY_REFERENCE(ImageResource);
 SAUCER_USE_BY_REFERENCE(LuaScriptResource);
-SAUCER_USE_BY_REFERENCE(Window);
 
 template< typename R >
 struct LuaEngine::to_lua_cfunction<R()>{

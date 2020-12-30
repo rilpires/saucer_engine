@@ -8,10 +8,10 @@ function frame_start( dt_seconds )
     this:set_rotation_degrees( this:get_rotation_degrees() - 5 )
     
     res = this:get_image_texture()
+    
     print( "res is " , res )
     print( "it's path is " , res:get_path() )
-
-    this:die()
+    print(" current FPS is " , Engine.get_fps() )
 
     if res:get_path() == "res/troll.png" then
         this:set_image_texture( ResourceManager.get_resource("res/gold.png") )
