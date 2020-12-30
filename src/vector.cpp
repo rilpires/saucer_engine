@@ -3,6 +3,83 @@
 #include <math.h>
 
 
+template<> void LuaEngine::push( lua_State* ls , Vector2 v ){
+    void* userdata = lua_newuserdata( ls , sizeof(Vector2) );
+    (*(Vector2*)userdata) = v;
+
+    // Pushing a vector2 metatable:
+    lua_newtable(ls);
+    
+    // __index
+    lua_pushstring(ls,"__index");
+    lua_pushcfunction(ls, [](lua_State* ls)->int{
+        Vector2* v = (Vector2*)lua_touserdata(ls,-2);
+        const char* arg = lua_tostring(ls,-1);
+        lua_pop(ls,2);
+                if(!strcmp(arg,"x"))   lua_pushnumber(ls,v->x);
+        else    if(!strcmp(arg,"y"))   lua_pushnumber(ls,v->y);
+        else    if(!strcmp(arg,"rotated"))   lua_pushcfunction(ls, recover_cfunction("Vector2","rotated") );
+        return 1;
+    });
+    lua_settable(ls,-3);
+
+    // __newindex
+    lua_pushstring(ls,"__newindex");
+    lua_pushcfunction(ls, [](lua_State* ls)->int{
+        Vector2* v = (Vector2*)lua_touserdata(ls,-3);
+        const char* arg = lua_tostring(ls,-2);
+        float new_val = lua_tonumber(ls,-1);
+        lua_pop(ls,3);
+                if(!strcmp(arg,"x"))    v->x=new_val;
+        else    if(!strcmp(arg,"y"))    v->y=new_val;
+        return 0;
+    });
+    lua_settable(ls,-3);
+
+    
+    #define PUSH_VECTOR2_METATABLE_OPERATION(index_str,operator)     \
+    lua_pushstring(ls,index_str);                                    \
+    lua_pushcfunction(ls, [](lua_State* ls)->int{                    \
+        Vector2 v1 = *(Vector2*)lua_touserdata(ls,-2);               \
+        Vector2 v2 = *(Vector2*)lua_touserdata(ls,-1);               \
+        lua_pop(ls,2);                                               \
+        LuaEngine::push(ls,v1 operator v2);                          \
+        return 1;                                                    \
+    });                                                              \
+    lua_settable(ls,-3);
+
+    #define PUSH_VECTOR2_METATABLE_OPERATION_SCALAR(index_str,operator) \
+    lua_pushstring(ls,index_str);                                       \
+    lua_pushcfunction(ls, [](lua_State* ls)->int{                       \
+        Vector2 v1 = *(Vector2*)lua_touserdata(ls,-2);                  \
+        float f = lua_tonumber(ls,-1);                                  \
+        lua_pop(ls,2);                                                  \
+        LuaEngine::push(ls,v1 operator f);                              \
+        return 1;                                                       \
+    });                                                                 \
+    lua_settable(ls,-3);
+    
+    PUSH_VECTOR2_METATABLE_OPERATION("__add",+);
+    PUSH_VECTOR2_METATABLE_OPERATION("__sub",-);
+    PUSH_VECTOR2_METATABLE_OPERATION_SCALAR("__mul",*);
+    PUSH_VECTOR2_METATABLE_OPERATION_SCALAR("__div",/);
+    
+
+    lua_setmetatable(ls,-2);
+
+}
+LUAENGINE_POP_USERDATA_AS_VALUE(Vector2)   
+template<> lua_CFunction    LuaEngine::create_lua_constructor<Vector2>( lua_State* ls ){
+    return [](lua_State* ls){
+        float x = lua_tonumber(ls,-2);
+        float y = lua_tonumber(ls,-1);
+        lua_pop( ls , 2 );
+        LuaEngine::push( ls , Vector2(x,y) );
+        return 1;
+    };
+}
+
+
 Vector2 Vector2::rotated( float rotation_degrees_cw ) const{
     float rotation_radians_cw = rotation_degrees_cw * M_PI / 180.0;
     float c = cos(rotation_radians_cw);
@@ -26,6 +103,84 @@ void     Vector2::operator/= (const float    div   )      { x/=div;y/=div; }
 
 void Vector2::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(Vector2,rotated);
+}
+
+template<> void LuaEngine::push( lua_State* ls , Vector3 v ){
+    void* userdata = lua_newuserdata( ls , sizeof(Vector3) );
+    (*(Vector3*)userdata) = v;
+
+    // Pushing a vector3 metatable:
+    lua_newtable(ls);
+    
+    // __index
+    lua_pushstring(ls,"__index");
+    lua_pushcfunction(ls, [](lua_State* ls)->int{
+        Vector3* v = (Vector3*)lua_touserdata(ls,-2);
+        const char* arg = lua_tostring(ls,-1);
+        lua_pop(ls,2);
+                if(!strcmp(arg,"x"))   lua_pushnumber(ls,v->x);
+        else    if(!strcmp(arg,"y"))   lua_pushnumber(ls,v->y);
+        else    if(!strcmp(arg,"rotated"))   lua_pushcfunction(ls,c_function_db["Vector3"]["rotated"]);
+        return 1;
+    });
+    lua_settable(ls,-3);
+
+    // __newindex
+    lua_pushstring(ls,"__newindex");
+    lua_pushcfunction(ls, [](lua_State* ls)->int{
+        Vector3* v = (Vector3*)lua_touserdata(ls,-3);
+        const char* arg = lua_tostring(ls,-2);
+        float new_val = lua_tonumber(ls,-1);
+        lua_pop(ls,3);
+                if(!strcmp(arg,"x"))    v->x=new_val;
+        else    if(!strcmp(arg,"y"))    v->y=new_val;
+        return 0;
+    });
+    lua_settable(ls,-3);
+
+    
+    #define PUSH_VECTOR3_METATABLE_OPERATION(index_str,operator)     \
+    lua_pushstring(ls,index_str);                                    \
+    lua_pushcfunction(ls, [](lua_State* ls)->int{                    \
+        Vector3 v1 = *(Vector3*)lua_touserdata(ls,-2);               \
+        Vector3 v2 = *(Vector3*)lua_touserdata(ls,-1);               \
+        lua_pop(ls,2);                                               \
+        LuaEngine::push(ls,v1 operator v2);                          \
+        return 1;                                                    \
+    });                                                              \
+    lua_settable(ls,-3);
+
+    #define PUSH_VECTOR3_METATABLE_OPERATION_SCALAR(index_str,operator) \
+    lua_pushstring(ls,index_str);                                       \
+    lua_pushcfunction(ls, [](lua_State* ls)->int{                       \
+        Vector3 v1 = *(Vector3*)lua_touserdata(ls,-2);                  \
+        float f = lua_tonumber(ls,-1);                                  \
+        lua_pop(ls,2);                                                  \
+        LuaEngine::push(ls,v1 operator f);                              \
+        return 1;                                                       \
+    });                                                                 \
+    lua_settable(ls,-3);
+    
+    PUSH_VECTOR3_METATABLE_OPERATION("__add",+);
+    PUSH_VECTOR3_METATABLE_OPERATION("__sub",-);
+    PUSH_VECTOR3_METATABLE_OPERATION_SCALAR("__mul",*);
+    PUSH_VECTOR3_METATABLE_OPERATION_SCALAR("__div",/);
+    
+
+    lua_setmetatable(ls,-2);
+
+}
+LUAENGINE_POP_USERDATA_AS_VALUE(Vector3)   
+template<> lua_CFunction    LuaEngine::create_lua_constructor<Vector3>( lua_State* ls ){
+    return [](lua_State* ls){
+        float r = lua_tonumber(ls,-4);
+        float g = lua_tonumber(ls,-3);
+        float b = lua_tonumber(ls,-2);
+        float a = lua_tonumber(ls,-1);
+        lua_pop( ls , 4 );
+        LuaEngine::push( ls , Color(r,g,b,a) );
+        return 1;
+    };
 }
 
 void     Vector3::operator=  (const Vector3  v     )      { x=v.x;y=v.y;z=v.z; }

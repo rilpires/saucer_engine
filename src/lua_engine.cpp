@@ -13,327 +13,56 @@ SceneNode*  LuaEngine::current_actor = NULL;
 std::unordered_map< std::string , std::unordered_map< std::string , lua_CFunction > > LuaEngine::c_function_db;
 
 
-#define _LUAENGINE_PUSH_AS_NUMBER(t)                    \
-template<> void LuaEngine::push( lua_State* ls , t n ){ \
-    lua_pushnumber(ls,n);                               \
-}                                                          
-
-#define _LUAENGINE_POP_AS_NUMBER(T)                       \
-template<> T    LuaEngine::pop( lua_State* ls ){    \
-    T ret = lua_tonumber(ls,-1);                    \
-    lua_pop(ls,1);                                  \
-    return ret;                                     \
-} 
-
-#define _LUAENGINE_POP_SAUCER_OBJECT( T )                                   \
-template<> T  LuaEngine::pop( lua_State* ls ){                              \
-    SaucerId saucer_id = *(SaucerId*)lua_touserdata(ls,-1);                 \
-    T ret = static_cast<T>( SaucerObject::from_saucer_id(saucer_id) );      \
-    lua_pop(ls,1);                                                          \
-    return ret;                                                             \
-}
-
-#define _LUAENGINE_POP_USERDATA_AS_VALUE( T )   \
-template<> T  LuaEngine::pop( lua_State* ls ){  \
-    T ret = *(T*)lua_touserdata(ls,-1);         \
-    lua_pop(ls,1);                              \
-    return ret;                                 \
-}   
-
-_LUAENGINE_PUSH_AS_NUMBER(double)
-_LUAENGINE_PUSH_AS_NUMBER(float)
-_LUAENGINE_PUSH_AS_NUMBER(int)
-_LUAENGINE_PUSH_AS_NUMBER(short)
-
-template<> void LuaEngine::push( lua_State* ls , Vector2 v ){
-    void* userdata = lua_newuserdata( ls , sizeof(Vector2) );
-    (*(Vector2*)userdata) = v;
-
-    // Pushing a vector2 metatable:
-    lua_newtable(ls);
-    
-    // __index
-    lua_pushstring(ls,"__index");
-    lua_pushcfunction(ls, [](lua_State* ls)->int{
-        Vector2* v = (Vector2*)lua_touserdata(ls,-2);
-        const char* arg = lua_tostring(ls,-1);
-        lua_pop(ls,2);
-                if(!strcmp(arg,"x"))   lua_pushnumber(ls,v->x);
-        else    if(!strcmp(arg,"y"))   lua_pushnumber(ls,v->y);
-        else    if(!strcmp(arg,"rotated"))   lua_pushcfunction(ls, recover_cfunction("Vector2","rotated") );
-        return 1;
-    });
-    lua_settable(ls,-3);
-
-    // __newindex
-    lua_pushstring(ls,"__newindex");
-    lua_pushcfunction(ls, [](lua_State* ls)->int{
-        Vector2* v = (Vector2*)lua_touserdata(ls,-3);
-        const char* arg = lua_tostring(ls,-2);
-        float new_val = lua_tonumber(ls,-1);
-        lua_pop(ls,3);
-                if(!strcmp(arg,"x"))    v->x=new_val;
-        else    if(!strcmp(arg,"y"))    v->y=new_val;
-        return 0;
-    });
-    lua_settable(ls,-3);
-
-    
-    #define PUSH_VECTOR2_METATABLE_OPERATION(index_str,operator)     \
-    lua_pushstring(ls,index_str);                                    \
-    lua_pushcfunction(ls, [](lua_State* ls)->int{                    \
-        Vector2 v1 = *(Vector2*)lua_touserdata(ls,-2);               \
-        Vector2 v2 = *(Vector2*)lua_touserdata(ls,-1);               \
-        lua_pop(ls,2);                                               \
-        LuaEngine::push(ls,v1 operator v2);                          \
-        return 1;                                                    \
-    });                                                              \
-    lua_settable(ls,-3);
-
-    #define PUSH_VECTOR2_METATABLE_OPERATION_SCALAR(index_str,operator) \
-    lua_pushstring(ls,index_str);                                       \
-    lua_pushcfunction(ls, [](lua_State* ls)->int{                       \
-        Vector2 v1 = *(Vector2*)lua_touserdata(ls,-2);                  \
-        float f = lua_tonumber(ls,-1);                                  \
-        lua_pop(ls,2);                                                  \
-        LuaEngine::push(ls,v1 operator f);                              \
-        return 1;                                                       \
-    });                                                                 \
-    lua_settable(ls,-3);
-    
-    PUSH_VECTOR2_METATABLE_OPERATION("__add",+);
-    PUSH_VECTOR2_METATABLE_OPERATION("__sub",-);
-    PUSH_VECTOR2_METATABLE_OPERATION_SCALAR("__mul",*);
-    PUSH_VECTOR2_METATABLE_OPERATION_SCALAR("__div",/);
-    
-
-    lua_setmetatable(ls,-2);
-
-}
-template<> void LuaEngine::push( lua_State* ls , Vector3 v ){
-    void* userdata = lua_newuserdata( ls , sizeof(Vector3) );
-    (*(Vector3*)userdata) = v;
-
-    // Pushing a vector3 metatable:
-    lua_newtable(ls);
-    
-    // __index
-    lua_pushstring(ls,"__index");
-    lua_pushcfunction(ls, [](lua_State* ls)->int{
-        Vector3* v = (Vector3*)lua_touserdata(ls,-2);
-        const char* arg = lua_tostring(ls,-1);
-        lua_pop(ls,2);
-                if(!strcmp(arg,"x"))   lua_pushnumber(ls,v->x);
-        else    if(!strcmp(arg,"y"))   lua_pushnumber(ls,v->y);
-        else    if(!strcmp(arg,"rotated"))   lua_pushcfunction(ls,c_function_db["Vector3"]["rotated"]);
-        return 1;
-    });
-    lua_settable(ls,-3);
-
-    // __newindex
-    lua_pushstring(ls,"__newindex");
-    lua_pushcfunction(ls, [](lua_State* ls)->int{
-        Vector3* v = (Vector3*)lua_touserdata(ls,-3);
-        const char* arg = lua_tostring(ls,-2);
-        float new_val = lua_tonumber(ls,-1);
-        lua_pop(ls,3);
-                if(!strcmp(arg,"x"))    v->x=new_val;
-        else    if(!strcmp(arg,"y"))    v->y=new_val;
-        return 0;
-    });
-    lua_settable(ls,-3);
-
-    
-    #define PUSH_VECTOR3_METATABLE_OPERATION(index_str,operator)     \
-    lua_pushstring(ls,index_str);                                    \
-    lua_pushcfunction(ls, [](lua_State* ls)->int{                    \
-        Vector3 v1 = *(Vector3*)lua_touserdata(ls,-2);               \
-        Vector3 v2 = *(Vector3*)lua_touserdata(ls,-1);               \
-        lua_pop(ls,2);                                               \
-        LuaEngine::push(ls,v1 operator v2);                          \
-        return 1;                                                    \
-    });                                                              \
-    lua_settable(ls,-3);
-
-    #define PUSH_VECTOR3_METATABLE_OPERATION_SCALAR(index_str,operator) \
-    lua_pushstring(ls,index_str);                                       \
-    lua_pushcfunction(ls, [](lua_State* ls)->int{                       \
-        Vector3 v1 = *(Vector3*)lua_touserdata(ls,-2);                  \
-        float f = lua_tonumber(ls,-1);                                  \
-        lua_pop(ls,2);                                                  \
-        LuaEngine::push(ls,v1 operator f);                              \
-        return 1;                                                       \
-    });                                                                 \
-    lua_settable(ls,-3);
-    
-    PUSH_VECTOR3_METATABLE_OPERATION("__add",+);
-    PUSH_VECTOR3_METATABLE_OPERATION("__sub",-);
-    PUSH_VECTOR3_METATABLE_OPERATION_SCALAR("__mul",*);
-    PUSH_VECTOR3_METATABLE_OPERATION_SCALAR("__div",/);
-    
-
-    lua_setmetatable(ls,-2);
-
-}
-template<> void LuaEngine::push( lua_State* ls , Color v ){
-    void* userdata = lua_newuserdata( ls , sizeof(Color) );
-    (*(Color*)userdata) = v;
-
-    // Pushing a vector3 metatable:
-    lua_newtable(ls);
-    
-    // __index
-    lua_pushstring(ls,"__index");
-    lua_pushcfunction(ls, [](lua_State* ls)->int{
-        Color* v = (Color*)lua_touserdata(ls,-2);
-        const char* arg = lua_tostring(ls,-1);
-        lua_pop(ls,2);
-                if(!strcmp(arg,"r"))   lua_pushnumber(ls,v->r);
-        else    if(!strcmp(arg,"g"))   lua_pushnumber(ls,v->g);
-        else    if(!strcmp(arg,"b"))   lua_pushnumber(ls,v->b);
-        else    if(!strcmp(arg,"a"))   lua_pushnumber(ls,v->a);
-        else    if(!strcmp(arg,"rotated"))   lua_pushcfunction(ls,c_function_db["Color"]["rotated"]);
-        return 1;
-    });
-    lua_settable(ls,-3);
-
-    // __newindex
-    lua_pushstring(ls,"__newindex");
-    lua_pushcfunction(ls, [](lua_State* ls)->int{
-        Color* v = (Color*)lua_touserdata(ls,-3);
-        const char* arg = lua_tostring(ls,-2);
-        float new_val = lua_tonumber(ls,-1);
-        lua_pop(ls,3);
-                if(!strcmp(arg,"r"))    v->r=new_val;
-        else    if(!strcmp(arg,"g"))    v->g=new_val;
-        else    if(!strcmp(arg,"b"))    v->b=new_val;
-        else    if(!strcmp(arg,"a"))    v->a=new_val;
-        return 0;
-    });
-    lua_settable(ls,-3);
-    
-    lua_setmetatable(ls,-2);
-}
-template<> void LuaEngine::push( lua_State* ls , bool b ){
+template<> void     LuaEngine::push( lua_State* ls , bool b ){
     lua_pushboolean(ls,b);
 }
-template<> void LuaEngine::push( lua_State* ls , std::string s ){
+template<> void     LuaEngine::push( lua_State* ls , std::string s ){
     lua_pushstring(ls,s.c_str());
-}
-template<> void LuaEngine::push( lua_State* ls , SceneNode* obj ){
-    if( obj )   *(SaucerId*) lua_newuserdata(ls,sizeof(SaucerId)) = obj->get_saucer_id();
-    else        *(SaucerId*) lua_newuserdata(ls,sizeof(SaucerId)) = 0;
-        
-    lua_newtable(ls);
-    lua_pushstring(ls,"__index");
-    lua_pushcfunction(ls,[](lua_State* ls){
-        const char* arg = lua_tostring(ls,-1);
-        lua_pop(ls,2);
-        lua_pushcfunction( ls , LuaEngine::recover_cfunction("SceneNode",arg) );
-        return 1;
-    });
-    lua_settable(ls,-3);
-    lua_setmetatable(ls,-2);
-}
-template<> void LuaEngine::push( lua_State* ls , Scene* r ){
-    lua_pushnumber(ls,666);
-}
-template<> void LuaEngine::push( lua_State* ls , Resource* r ){
-    if( r ) *(SaucerId*) lua_newuserdata(ls,sizeof(SaucerId)) = r->get_saucer_id();
-    else    *(SaucerId*) lua_newuserdata(ls,sizeof(SaucerId)) = 0;
+}      
+template<> void     LuaEngine::push( lua_State* ls , double n ){
+    lua_pushnumber(ls,n);
+}   
+template<> void     LuaEngine::push( lua_State* ls , float n ){
+    lua_pushnumber(ls,n);
+}   
+template<> void     LuaEngine::push( lua_State* ls , int n ){
+    lua_pushnumber(ls,n);
+}   
+template<> void     LuaEngine::push( lua_State* ls , short n ){
+    lua_pushnumber(ls,n);
+}   
 
-    lua_newtable(ls);
-    lua_pushstring(ls,"__index");
-    lua_pushcfunction(ls,[](lua_State* ls){
-        const char* arg = lua_tostring(ls,-1);
-        lua_pop(ls,2);
-        lua_pushcfunction( ls , LuaEngine::recover_cfunction("Resource",arg) );
-        return 1;
-    });
-    lua_settable(ls,-3);
-    lua_setmetatable(ls,-2);
-}
-template<> void LuaEngine::push( lua_State* ls , ImageResource* r ){
-    if( r ) *(SaucerId*) lua_newuserdata(ls,sizeof(SaucerId)) = r->get_saucer_id();
-    else    *(SaucerId*) lua_newuserdata(ls,sizeof(SaucerId)) = 0;
-
-    lua_newtable(ls);
-    lua_pushstring(ls,"__index");
-    lua_pushcfunction(ls,[](lua_State* ls){
-        const char* arg = lua_tostring(ls,-1);
-        lua_pop(ls,2);
-        lua_pushcfunction( ls , c_function_db["Resource"][arg] ); // Uhhh gotta work around this issue (member inheritance)
-        return 1;
-    });
-    lua_settable(ls,-3);
-    lua_setmetatable(ls,-2);
-}
-template<> void LuaEngine::push( lua_State* ls , LuaScriptResource* r ){
-    lua_pushnumber(ls,666);
-}
-template<> void LuaEngine::push( lua_State* ls , std::vector<SceneNode*> const& v ){
-    lua_newtable(ls);
-    for( size_t i = 1 ; i <= v.size() ; i++ ){
-        lua_pushnumber(ls,i);
-        push(ls,v[i-1]);
-        lua_settable(ls,-3);
-    }
-}
-
-_LUAENGINE_POP_AS_NUMBER(int)
-_LUAENGINE_POP_AS_NUMBER(float)
-_LUAENGINE_POP_AS_NUMBER(short)
-_LUAENGINE_POP_AS_NUMBER(double)
-_LUAENGINE_POP_SAUCER_OBJECT(SceneNode*)   
-_LUAENGINE_POP_SAUCER_OBJECT(Scene*)   
-_LUAENGINE_POP_SAUCER_OBJECT(Resource*)   
-_LUAENGINE_POP_SAUCER_OBJECT(ImageResource*)   
-_LUAENGINE_POP_SAUCER_OBJECT(LuaScriptResource*)                                                         
-_LUAENGINE_POP_USERDATA_AS_VALUE(Vector2)                                                       
-_LUAENGINE_POP_USERDATA_AS_VALUE(Vector3)                                                       
-_LUAENGINE_POP_USERDATA_AS_VALUE(Color)
-
-template<> bool             LuaEngine::pop( lua_State* ls ){ 
+template<> int          LuaEngine::pop( lua_State* ls ){
+    int ret = lua_tonumber(ls,-1);
+    lua_pop(ls,1);
+    return ret;
+} 
+template<> float        LuaEngine::pop( lua_State* ls ){
+    float ret = lua_tonumber(ls,-1);
+    lua_pop(ls,1);
+    return ret;
+} 
+template<> short        LuaEngine::pop( lua_State* ls ){
+    short ret = lua_tonumber(ls,-1);
+    lua_pop(ls,1);
+    return ret;
+} 
+template<> double       LuaEngine::pop( lua_State* ls ){
+    double ret = lua_tonumber(ls,-1);
+    lua_pop(ls,1);
+    return ret;
+} 
+template<> bool         LuaEngine::pop( lua_State* ls ){ 
     bool ret = lua_toboolean(ls,-1);
     lua_pop(ls,1);
     return ret;
 } 
-template<> std::string      LuaEngine::pop( lua_State* ls ){ 
+template<> std::string  LuaEngine::pop( lua_State* ls ){ 
     std::string ret = lua_tostring(ls,-1);
     lua_pop(ls,1);
     return ret; 
 } 
 
-template<> lua_CFunction    LuaEngine::create_lua_constructor<Vector2>( lua_State* ls ){
-    return [](lua_State* ls){
-        float x = lua_tonumber(ls,-2);
-        float y = lua_tonumber(ls,-1);
-        lua_pop( ls , 2 );
-        LuaEngine::push( ls , Vector2(x,y) );
-        return 1;
-    };
-}
-template<> lua_CFunction    LuaEngine::create_lua_constructor<Vector3>( lua_State* ls ){
-    return [](lua_State* ls){
-        float r = lua_tonumber(ls,-4);
-        float g = lua_tonumber(ls,-3);
-        float b = lua_tonumber(ls,-2);
-        float a = lua_tonumber(ls,-1);
-        lua_pop( ls , 4 );
-        LuaEngine::push( ls , Color(r,g,b,a) );
-        return 1;
-    };
-}
-template<> lua_CFunction    LuaEngine::create_lua_constructor<Color>( lua_State* ls ){
-    return [](lua_State* ls){
-        float x = lua_tonumber(ls,-3);
-        float y = lua_tonumber(ls,-2);
-        float z = lua_tonumber(ls,-1);
-        lua_pop( ls , 3 );
-        LuaEngine::push( ls , Vector3(x,y,z) );
-        return 1;
-    };
-}
 
 const char*     LuaEngine::chunk_reader( lua_State* ls , void* data , size_t* size ){
     size_t total_size = strlen((char*)data);

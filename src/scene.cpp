@@ -4,6 +4,11 @@
 #include <queue>
 #include <algorithm>
 
+template<> void LuaEngine::push( lua_State* ls , Scene* r ){
+    lua_pushnumber(ls,666);
+}
+LUAENGINE_POP_SAUCER_OBJECT(Scene*)   
+
 Scene::Scene(){
     root_node = NULL;
 }

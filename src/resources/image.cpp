@@ -1,11 +1,27 @@
 #include "resources/image.h"
-#include "debug.h"
-#include "engine.h" // glfw & glew stuff
+#include "core.h"
 
 #include <png.h>
 #include <string.h>
 #include <iostream>
 
+
+template<> void LuaEngine::push( lua_State* ls , ImageResource* r ){
+    if( r ) *(SaucerId*) lua_newuserdata(ls,sizeof(SaucerId)) = r->get_saucer_id();
+    else    *(SaucerId*) lua_newuserdata(ls,sizeof(SaucerId)) = 0;
+
+    lua_newtable(ls);
+    lua_pushstring(ls,"__index");
+    lua_pushcfunction(ls,[](lua_State* ls){
+        const char* arg = lua_tostring(ls,-1);
+        lua_pop(ls,2);
+        lua_pushcfunction( ls , c_function_db["Resource"][arg] ); // Uhhh gotta work around this issue (member inheritance)
+        return 1;
+    });
+    lua_settable(ls,-3);
+    lua_setmetatable(ls,-2);
+}
+LUAENGINE_POP_SAUCER_OBJECT(ImageResource*)   
 
 ImageResource::ImageResource( std::string filepath ) : Resource(filepath) {
 

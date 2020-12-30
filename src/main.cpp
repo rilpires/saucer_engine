@@ -30,8 +30,8 @@ int main( int argc , char** argv ){
     orbit->set_script_resource( LuaScriptResource::get_resource("res/scripts/test.lua") );
 
 
-    root->add_child_node(center);
-    center->add_child_node(orbit);
+    root->add_child(center);
+    center->add_child(orbit);
 
     root->set_position( Vector2(-125,25) );
     center->set_position( Vector2(125,25) );

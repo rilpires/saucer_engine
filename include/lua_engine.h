@@ -27,6 +27,34 @@ extern "C" {
     LuaEngine::register_function(#C,#F, LuaEngine::to_lua_cfunction< decltype(C::F) >::generate_lambda< function_ret_type<decltype(C::F)>::type ,C::F>() );
 
 
+#define LUAENGINE_POP_SAUCER_OBJECT( T )                                \
+template<> T  LuaEngine::pop( lua_State* ls ){                          \
+    SaucerId saucer_id = *(SaucerId*)lua_touserdata(ls,-1);             \
+    T ret = static_cast<T>( SaucerObject::from_saucer_id(saucer_id) );  \
+    lua_pop(ls,1);                                                      \
+    return ret;                                                         \
+}
+
+#define LUAENGINE_POP_USERDATA_AS_VALUE( T )    \
+template<> T  LuaEngine::pop( lua_State* ls ){  \
+    T ret = *(T*)lua_touserdata(ls,-1);         \
+    lua_pop(ls,1);                              \
+    return ret;                                 \
+}   
+
+
+
+template<typename T>
+struct inherits_vector {
+    static const bool value = false;
+};
+template<typename T , typename T_alloc >
+struct inherits_vector< const std::vector<T,T_alloc>& > {
+    static const bool value = true;
+    using value_type = T;
+};
+
+
 class Scene;
 class LuaEngine {
     friend class SceneNode;
@@ -60,8 +88,19 @@ class LuaEngine {
         template<typename T>
         static lua_CFunction    create_lua_constructor( lua_State* );    
         
-        template<typename T>
+        template<typename T , class = typename std::enable_if< !inherits_vector<T>::value >::type >
         static void             push( lua_State* , T );
+        
+        template< typename T , typename value_type = typename std::enable_if< inherits_vector<T>::value , typename inherits_vector<T>::value_type >::type , class=void >
+        static void             push( lua_State* , T );
+        // static void    push( lua_State* ls , T v ){
+        //     lua_newtable(ls);
+        //     for( size_t i = 1 ; i <= v.size() ; i++ ){
+        //         lua_pushnumber(ls,i);
+        //         push(ls,v[i-1]);
+        //         lua_settable(ls,-3);
+        //     }
+        // }
 
         template<typename T>
         static T                pop( lua_State* );
@@ -72,6 +111,17 @@ class LuaEngine {
 };
 
 
+
+// Pushing a const vector<value_type>&
+template<typename T,typename value_type , typename T3> 
+void    LuaEngine::push( lua_State* ls , T v ){
+    lua_newtable(ls);
+    for( size_t i = 1 ; i <= v.size() ; i++ ){
+        lua_pushnumber(ls,i);
+        push(ls,v[i-1]);
+        lua_settable(ls,-3);
+    }
+}
 
 
 template<typename T> 
@@ -106,9 +156,9 @@ struct function_ret_type<ret_type(args_type ...)>{
 
 
 template<typename T, class = typename std::enable_if< !std::is_pointer<T>::value >::type >
-T* to_pointer( T& obj ){ return &obj; };
+T& to_ref( T& obj ){ return obj; };
 template<typename T, class = typename std::enable_if< !std::is_pointer<T>::value >::type >
-T* to_pointer( T* obj){ return obj; };
+T& to_ref( T* obj){ return *obj; };
 
 template<typename T> struct to_used_type;
 
@@ -178,8 +228,8 @@ struct LuaEngine::to_lua_cfunction<R(C::*)()>{
     static lua_CFunction   generate_lambda( ){
         return []( lua_State* ls ) {
             class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C* obj_pointer = to_pointer<C>(obj);
-            (obj_pointer->*f)();
+            C& obj_ref = to_ref<C>(obj);
+            (obj_ref.*f)();
             return 0;
         };
     }
@@ -187,8 +237,8 @@ struct LuaEngine::to_lua_cfunction<R(C::*)()>{
     static lua_CFunction   generate_lambda( ){
         return []( lua_State* ls ) {
             class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C* obj_pointer = to_pointer<C>(obj);
-            (obj_pointer->*f)();
+            C& obj_ref = to_ref<C>(obj);
+            (obj_ref.*f)();
             return 0;
         };
     }
@@ -196,8 +246,8 @@ struct LuaEngine::to_lua_cfunction<R(C::*)()>{
     static lua_CFunction   generate_lambda( ){
         return []( lua_State* ls ) {
             class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C* obj_pointer = to_pointer<C>(obj);
-            R ret = (obj_pointer->*f)();
+            C& obj_ref = to_ref<C>(obj);
+            R ret = (obj_ref.*f)();
             LuaEngine::push<R>(ls,ret);
             return 1;
         };
@@ -206,8 +256,8 @@ struct LuaEngine::to_lua_cfunction<R(C::*)()>{
     static lua_CFunction   generate_lambda( ){
         return []( lua_State* ls ) {
             class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C* obj_pointer = to_pointer<C>(obj);
-            R ret = (obj_pointer->*f)();
+            C& obj_ref = to_ref<C>(obj);
+            R ret = (obj_ref.*f)();
             LuaEngine::push<R>(ls,ret);
             return 1;
         };
@@ -224,8 +274,8 @@ struct LuaEngine::to_lua_cfunction<R(C::*)(T_arg1)>{
         return []( lua_State* ls ) {
             T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
             class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C* obj_pointer = to_pointer<C>(obj);
-            (obj_pointer->*f)(arg1);
+            C& obj_ref = to_ref<C>(obj);
+            (obj_ref.*f)(arg1);
             return 0;
         };
     }
@@ -234,8 +284,8 @@ struct LuaEngine::to_lua_cfunction<R(C::*)(T_arg1)>{
         return []( lua_State* ls ) {
             T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
             class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C* obj_pointer = to_pointer<C>(obj);
-            (obj_pointer->*f)(arg1);
+            C& obj_ref = to_ref<C>(obj);
+            (obj_ref.*f)(arg1);
             return 0;
         };
     }
@@ -244,8 +294,8 @@ struct LuaEngine::to_lua_cfunction<R(C::*)(T_arg1)>{
         return []( lua_State* ls ) {
             T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
             class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C* obj_pointer = to_pointer<C>(obj);
-            R ret = (obj_pointer->*f)(arg1);
+            C& obj_ref = to_ref<C>(obj);
+            R ret = (obj_ref.*f)(arg1);
             LuaEngine::push<R>(ls,ret);
             return 1;
         };
@@ -255,8 +305,8 @@ struct LuaEngine::to_lua_cfunction<R(C::*)(T_arg1)>{
         return []( lua_State* ls ) {
             T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
             class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C* obj_pointer = to_pointer<C>(obj);
-            R ret = (obj_pointer->*f)(arg1);
+            C& obj_ref = to_ref<C>(obj);
+            R ret = (obj_ref.*f)(arg1);
             LuaEngine::push<R>(ls,ret);
             return 1;
         };
@@ -274,8 +324,8 @@ struct LuaEngine::to_lua_cfunction<R(C::*)(T_arg1,T_arg2)>{
             T_arg2      arg2    = LuaEngine::pop<T_arg2>(ls);
             T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
             class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C* obj_pointer = to_pointer<C>(obj);
-            (obj_pointer->*f)(arg1,arg2);
+            C& obj_ref = to_ref<C>(obj);
+            (obj_ref.*f)(arg1,arg2);
             return 0;
         };
     }
@@ -285,8 +335,8 @@ struct LuaEngine::to_lua_cfunction<R(C::*)(T_arg1,T_arg2)>{
             T_arg2      arg2    = LuaEngine::pop<T_arg2>(ls);
             T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
             class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C* obj_pointer = to_pointer<C>(obj);
-            (obj_pointer->*f)(arg1,arg2);
+            C& obj_ref = to_ref<C>(obj);
+            (obj_ref.*f)(arg1,arg2);
             return 0;
         };
     }
@@ -296,8 +346,8 @@ struct LuaEngine::to_lua_cfunction<R(C::*)(T_arg1,T_arg2)>{
             T_arg2      arg2    = LuaEngine::pop<T_arg2>(ls);
             T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
             class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C* obj_pointer = to_pointer<C>(obj);
-            R ret = (obj_pointer->*f)(arg1);
+            C& obj_ref = to_ref<C>(obj);
+            R ret = (obj_ref.*f)(arg1);
             LuaEngine::push<R>(ls,ret);
             return 1;
         };
@@ -307,8 +357,8 @@ struct LuaEngine::to_lua_cfunction<R(C::*)(T_arg1,T_arg2)>{
         return []( lua_State* ls ) {
             T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
             class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C* obj_pointer = to_pointer<C>(obj);
-            R ret = (obj_pointer->*f)(arg1);
+            C& obj_ref = to_ref<C>(obj);
+            R ret = (obj_ref.*f)(arg1);
             LuaEngine::push<R>(ls,ret);
             return 1;
         };

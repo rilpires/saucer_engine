@@ -50,7 +50,7 @@ class SceneNode : public SaucerObject {
         void                    set_script_resource( LuaScriptResource* ls );
         LuaScriptResource*      get_script_resource() const ;
         void                    get_out();
-        void                    add_child_node( SceneNode* p_child_node );
+        void                    add_child( SceneNode* p_child_node );
         SceneNode*              get_parent( ) const ;
         Scene*                  get_scene() const;
 

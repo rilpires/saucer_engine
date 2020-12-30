@@ -5,6 +5,22 @@
 
 #define SHORT_MAX 0b0111111111111111
 
+template<> void LuaEngine::push( lua_State* ls , SceneNode* obj ){
+    if( obj )   *(SaucerId*) lua_newuserdata(ls,sizeof(SaucerId)) = obj->get_saucer_id();
+    else        *(SaucerId*) lua_newuserdata(ls,sizeof(SaucerId)) = 0;
+        
+    lua_newtable(ls);
+    lua_pushstring(ls,"__index");
+    lua_pushcfunction(ls,[](lua_State* ls){
+        const char* arg = lua_tostring(ls,-1);
+        lua_pop(ls,2);
+        lua_pushcfunction( ls , LuaEngine::recover_cfunction("SceneNode",arg) );
+        return 1;
+    });
+    lua_settable(ls,-3);
+    lua_setmetatable(ls,-2);
+}
+LUAENGINE_POP_SAUCER_OBJECT(SceneNode*)   
 
 SceneNode::SceneNode(){
     position = Vector2(0,0);
@@ -85,7 +101,7 @@ void                SceneNode::get_out(){
     parent_node = nullptr;
     scene = nullptr;
 }
-void                SceneNode::add_child_node( SceneNode* p_child_node ){
+void                SceneNode::add_child( SceneNode* p_child_node ){
     if(p_child_node->parent_node) std::cerr << "Trying to add a node as a child but it already has a parent. " << std::endl; 
     else{
         p_child_node->parent_node = this;
@@ -123,7 +139,7 @@ void        SceneNode::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_script_resource);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_script_resource);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_out);
-    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,add_child_node);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,add_child);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_parent);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_scene);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_children);
