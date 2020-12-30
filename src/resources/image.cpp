@@ -52,3 +52,7 @@ ImageResource*   ImageResource::get_resource(std::string p_resource_path){
     return (ImageResource*)ResourceManager::get_resource(p_resource_path);
 }
 
+
+void ImageResource::bind_methods(){
+    
+}

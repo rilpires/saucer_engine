@@ -72,3 +72,6 @@ Transform Transform::operator* ( const Transform& m2 ){
     return ret;
 }
 
+void Transform::bind_methods(){
+    
+}

@@ -35,6 +35,7 @@ ifeq ($(RELEASE),0)
 	EXEC_NAME := $(EXEC_NAME)_debug
 	OBJ_FILES := $(patsubst %.o, %.debug.o, $(OBJ_FILES) )
 else
+	CXX_FLAGS += -O3
 	EXEC_NAME := $(EXEC_NAME)_release
 	OBJ_FILES := $(patsubst %.o, %.release.o, $(OBJ_FILES) )
 endif

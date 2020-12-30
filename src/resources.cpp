@@ -1,6 +1,7 @@
 #include "resources.h"
 #include "resources/image.h"
 #include "resources/lua_script.h"
+#include "lua_engine.h"
 
 #include <iostream>
 
@@ -15,6 +16,10 @@ Resource::~Resource(){
 }
 
 
+void Resource::bind_methods(){
+    REGISTER_LUA_MEMBER_FUNCTION(Resource,get_path);
+}
+
 Resource*           ResourceManager::get_resource( std::string p_resource_path){
     auto it = id_by_path.find(p_resource_path);
     if( it == id_by_path.end() )
@@ -23,7 +28,7 @@ Resource*           ResourceManager::get_resource( std::string p_resource_path){
         return static_cast<Resource*>(SaucerObject::from_saucer_id(it->second));
 }
 
-void                ResourceManager::set_resource(std::string resource_name , Resource* r ){
+void    ResourceManager::set_resource(std::string resource_name , Resource* r ){
     if( r == NULL )return;
     if( id_by_path.find(resource_name)!= id_by_path.end()){
         if( id_by_path[resource_name]!= r->get_saucer_id() ){
@@ -50,8 +55,11 @@ Resource*           ResourceManager::load_resource(std::string filepath){
     id_by_path.insert(std::pair<std::string,SaucerId>(ret->path ,ret->get_saucer_id()));
     return ret;
 }
-void                ResourceManager::free_resource(Resource* p_resource){
+void    ResourceManager::free_resource(Resource* p_resource){
     id_by_path.erase( p_resource->get_path());
     delete p_resource;
 }
 
+void    ResourceManager::bind_methods(){
+    REGISTER_LUA_STATIC_FUNCTION(ResourceManager,get_resource);    
+}

@@ -3,8 +3,10 @@
 
 #include "input.h"
 #include "window.h"
-#include <vector>
+#include "transform.h"
 #include "saucer_object.h"
+
+#include <vector>
 
 class SceneNode;
 class CameraNode;
@@ -16,7 +18,7 @@ class Scene : public SaucerObject {
     private:
 
         SceneNode*  root_node;
-        CameraNode* current_camera;
+        Transform   camera_transform;
         Window*     current_window;
 
         std::vector<SceneNode*> current_draws;
@@ -34,16 +36,20 @@ class Scene : public SaucerObject {
         Scene();
         ~Scene();
         
-        void        set_root_node(SceneNode* p_root_node);
-        SceneNode*  get_root_node(){return root_node;};
+        static Scene*   lua_new();
 
-        CameraNode* get_current_camera(){return current_camera;}
-        void        set_current_camera(CameraNode* new_cam){current_camera=new_cam;}
+        void            set_root_node(SceneNode* p_root_node);
+        SceneNode*      get_root_node();
 
-        Window*     get_current_window(){return current_window;}
+        Transform       get_camera_transform();
+        void            set_camera_transform(Transform t);
 
-        void        propagate_input_event( Input::InputEvent* input_event );
-        void        loop();
+        Window*         get_current_window();
+
+        void            propagate_input_event( Input::InputEvent* input_event );
+        void            loop();
+
+        static void bind_methods();
 
 };
 

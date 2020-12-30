@@ -23,3 +23,8 @@ Color::operator std::string() const{
     sprintf(buff,"(%d, %d, %d)",r,g,b);
     return std::string(buff);
 }
+
+
+void Color::bind_methods(){
+    
+}

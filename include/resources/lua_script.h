@@ -15,6 +15,8 @@ class LuaScriptResource : public Resource {
 
         static LuaScriptResource*   get_resource( std::string filepath );
 
+        static void                 bind_methods();
+
 
 };
 

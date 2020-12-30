@@ -19,6 +19,8 @@ class ImageResource : public Resource {
         Color                   get_pixel(size_t x , size_t y) const;
         Vector2                 get_size() const {return Vector2(width,height);};
         static ImageResource*   get_resource(std::string p_resource_path);
+
+        static void             bind_methods();
 };
 
 #endif

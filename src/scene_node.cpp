@@ -17,16 +17,18 @@ SceneNode::SceneNode(){
     lua_script = NULL;
 }
 SceneNode::~SceneNode(){
+    get_out();
     for(auto it = children_nodes.begin() ; it != children_nodes.end() ; it++ )
         delete (*it);
+    if( LuaEngine::current_actor == this ){
+        LuaEngine::change_current_actor_env( nullptr );
+    }
 }
-void        SceneNode::set_position( const Vector2 new_pos ){
-    position = new_pos;
-}
-Vector2     SceneNode::get_position( ) const{
-    return position;
-}
-Vector2     SceneNode::get_global_position() const{
+
+SceneNode*          SceneNode::lua_new(){ return new SceneNode(); }
+void                SceneNode::set_position( const Vector2 new_pos ){ position = new_pos; }
+Vector2             SceneNode::get_position( ) const{ return position; }
+Vector2             SceneNode::get_global_position() const{
     if( parent_node == NULL ) return position;
     else {
         Vector2 ret = parent_node->get_global_position();
@@ -34,25 +36,32 @@ Vector2     SceneNode::get_global_position() const{
         return ret;
     }
 }
-float       SceneNode::get_global_rotation_degrees() const{
+void                SceneNode::set_rotation_degrees( float new_rotation_degrees_cw ){rotation_degrees=new_rotation_degrees_cw;}
+float               SceneNode::get_rotation_degrees( ){return rotation_degrees;}
+float               SceneNode::get_global_rotation_degrees() const{
     if(!parent_node) return rotation_degrees;
-    else{
-        return parent_node->get_global_rotation_degrees() + rotation_degrees;
-    }
+    else return parent_node->get_global_rotation_degrees() + rotation_degrees;
 }
-Transform   SceneNode::get_global_transform() const{
+Transform           SceneNode::get_global_transform() const{
     Transform ret;
     Vector2 global_pos = get_global_position();
     return ret.scale(Vector2(1,1))
               .rotate_z( get_global_rotation_degrees() )  
               .translate( Vector3( global_pos.x , global_pos.y , ((float)get_global_z())/SHORT_MAX ) );
 }
-short       SceneNode::get_global_z() const {
+void                SceneNode::set_z( short new_z ){z=new_z;}
+short               SceneNode::get_z( ) const {return z;}
+short               SceneNode::get_global_z() const {
     if( relative_z && parent_node )
         return parent_node->get_global_z()+z;
     return z;
 }
-void        SceneNode::set_script_resource( LuaScriptResource* ls ){
+void                SceneNode::set_relative_z(bool new_val){relative_z=new_val;}
+bool                SceneNode::is_z_relative() const {return relative_z;}
+void                SceneNode::set_image_texture( ImageResource* img ){image_texture=img;}
+ImageResource*      SceneNode::get_image_texture() const {return image_texture;}
+LuaScriptResource*  SceneNode::get_script_resource() const { return lua_script;};
+void                SceneNode::set_script_resource( LuaScriptResource* ls ){
     if( lua_script ){
         std::cerr << "Hmm you shouldn't change scripts attached in a node once set..." << std::endl;
     } else {
@@ -60,7 +69,10 @@ void        SceneNode::set_script_resource( LuaScriptResource* ls ){
         LuaEngine::create_actor_env( this );
     }
 }
-void        SceneNode::get_out(){
+void                SceneNode::get_out(){
+    if( get_scene()->get_root_node() == this ){
+        get_scene()->set_root_node(nullptr);
+    }
     if( parent_node ){
         std::vector<SceneNode*>& parent_chidren = parent_node->children_nodes;
         for( auto it = parent_chidren.begin() ; it != parent_chidren.end() ; it++ ){
@@ -73,7 +85,7 @@ void        SceneNode::get_out(){
     parent_node = nullptr;
     scene = nullptr;
 }
-void        SceneNode::add_child_node( SceneNode* p_child_node ){
+void                SceneNode::add_child_node( SceneNode* p_child_node ){
     if(p_child_node->parent_node) std::cerr << "Trying to add a node as a child but it already has a parent. " << std::endl; 
     else{
         p_child_node->parent_node = this;
@@ -81,50 +93,41 @@ void        SceneNode::add_child_node( SceneNode* p_child_node ){
     }
 
 }
-std::vector<SceneNode*> const&  SceneNode::get_children() const {
-    return std::forward<std::vector<SceneNode*> const&&>(children_nodes);
-}
-Scene*      SceneNode::get_scene() const{
+SceneNode*          SceneNode::get_parent( ) const { return parent_node;};
+Scene*              SceneNode::get_scene() const{
     if(parent_node) return parent_node->get_scene();
     else return scene;
 }
+std::vector<SceneNode*> const&  SceneNode::get_children() const { return children_nodes; }
+
+int f(){ return 2; }
 
 void        SceneNode::bind_methods(){
     
-    // LuaEngine::register_function("SceneNode","get_position", LuaEngine::to_lua_cfunction<pointer_without_const<decltype(&SceneNode::get_position)>::type>::generate_lambda<(&SceneNode::get_position)>() );
-
-    REGISTER_LUA_FUNCTION(SceneNode,get_position);
-    REGISTER_LUA_FUNCTION(SceneNode,set_position);
-    REGISTER_LUA_FUNCTION(SceneNode,get_global_position);
-    REGISTER_LUA_FUNCTION(SceneNode,get_rotation_degrees);
-    REGISTER_LUA_FUNCTION(SceneNode,set_rotation_degrees);
-    REGISTER_LUA_FUNCTION(SceneNode,get_global_rotation_degrees);
-    REGISTER_LUA_FUNCTION(SceneNode,get_z);
-    REGISTER_LUA_FUNCTION(SceneNode,get_global_z);
-    REGISTER_LUA_FUNCTION(SceneNode,is_z_relative);
-    REGISTER_LUA_FUNCTION(SceneNode,get_image_texture);
-    REGISTER_LUA_FUNCTION(SceneNode,get_script_resource);
-    REGISTER_LUA_FUNCTION(SceneNode,get_parent);
-    REGISTER_LUA_FUNCTION(SceneNode,get_children);
-    REGISTER_LUA_FUNCTION(SceneNode,get_scene);
-
+    REGISTER_LUA_STATIC_FUNCTION(SceneNode,lua_new);
     
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_position);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_position);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_global_position);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_rotation_degrees);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_rotation_degrees);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_global_rotation_degrees);
+    // REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_global_transform);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_z);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_z);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_global_z);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_relative_z);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,is_z_relative);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_image_texture);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_image_texture);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_script_resource);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_script_resource);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_out);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,add_child_node);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_parent);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_scene);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_children);
+
 }
 
-CameraNode::~CameraNode(){
-    set_current(false);
-}
-bool        CameraNode::is_current(){
-    return get_scene()->get_current_camera() == this;
-}
-void        CameraNode::set_current( bool current ){
-    if( current ){
-        get_scene()->set_current_camera(this);
-    }
-    else if ( is_current() ) {
-        get_scene()->set_current_camera(NULL);
-    }
-}
-void        CameraNode::entered_scene(){
-}
 
