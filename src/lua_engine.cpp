@@ -86,6 +86,7 @@ void            LuaEngine::initialize(){
     lua_settop(ls,0); // idk why but previous luaopen_[lib] changes the stack so I clean it
     std::cout << "Loading lua binded methods..." << std::endl;
     Engine::bind_methods();
+    Input::bind_methods();
     Scene::bind_methods();
     SceneNode::bind_methods();
     Vector2::bind_methods();
@@ -228,25 +229,56 @@ lua_CFunction   LuaEngine::recover_cfunction( std::string class_name , std::stri
             std::cerr << "Couldn't find any function named " << function_name << " for class " << class_name << std::endl;
             // exit(1);
         } else {
-            return function_find->second;
+            auto ret = (function_find->second);
+            return ret;
         }
     }
     return [](lua_State* ls ){ 
-        // std::cerr << "This function should not be called!" << std::endl ; 
+        std::cerr << "This function should not exist!" << std::endl ; 
         return 0; 
     };
 }
-void            LuaEngine::execute_frame_start( SceneNode* actor ){
+void            LuaEngine::execute_frame_start( SceneNode* actor , float delta_seconds ){
+    if( actor->get_script_resource() == NULL || actor->get_script_resource()->has_frame_start == false )return;
     change_current_actor_env( actor );
-    lua_pushstring(ls,"frame_start");
+    lua_pushstring(ls,"_frame_start");
     lua_gettable(ls,LUA_GLOBALSINDEX);
-    lua_pushnumber(ls,0.15);
+    lua_pushnumber(ls,delta_seconds);
     int err = lua_pcall(ls,1,0,0);
-
     print_error(err,actor->get_script_resource());
 }
-void            LuaEngine::execute_input_event( SceneNode* actor ){
-
+void            LuaEngine::execute_input( SceneNode* actor , Input::InputEvent* input_event ){
+    if( actor->get_script_resource() == NULL || actor->get_script_resource()->has_input == false )return;
+    change_current_actor_env( actor );
+    lua_pushstring(ls,"_input");
+    lua_gettable(ls,LUA_GLOBALSINDEX);
+    push(ls,input_event);
+    int err = lua_pcall(ls,1,0,0);
+    print_error(err,actor->get_script_resource());
+}
+void            LuaEngine::execute_entered_scene( SceneNode* actor ){
+    if( actor->get_script_resource() == NULL || actor->get_script_resource()->has_entered_scene == false )return;
+    change_current_actor_env( actor );
+    lua_pushstring(ls,"_entered_scene");
+    lua_gettable(ls,LUA_GLOBALSINDEX);
+    int err = lua_pcall(ls,0,0,0);
+    print_error(err,actor->get_script_resource());
+}
+void            LuaEngine::execute_exited_scene( SceneNode* actor ){
+    if( actor->get_script_resource() == NULL || actor->get_script_resource()->has_exited_scene == false )return;
+    change_current_actor_env( actor );
+    lua_pushstring(ls,"_exited_scene");
+    lua_gettable(ls,LUA_GLOBALSINDEX);
+    int err = lua_pcall(ls,0,0,0);
+    print_error(err,actor->get_script_resource());
+}
+void            LuaEngine::execute_init( SceneNode* actor ){
+    if( actor->get_script_resource() == NULL || actor->get_script_resource()->has_init == false )return;
+    change_current_actor_env( actor );
+    lua_pushstring(ls,"_init");
+    lua_gettable(ls,LUA_GLOBALSINDEX);
+    int err = lua_pcall(ls,0,0,0);
+    print_error(err,actor->get_script_resource());
 }
 void            LuaEngine::create_actor_env( SceneNode* new_actor ){
     SceneNode* old_actor = current_actor;
@@ -282,6 +314,18 @@ void            LuaEngine::create_actor_env( SceneNode* new_actor ){
             std::cerr << "Oops? table key isn't string, it is: " << lua_typename(ls,lua_type(ls,-2)) << "\t"
             << "converted to string: " << lua_tostring(ls,-2) << std::endl;
         } else if( old_names.find( lua_tostring(ls,-2) ) == old_names.end() ) {
+            
+            std::string key = lua_tostring(ls,-2);
+
+            // Saves in this script resource if it has any definition of functions "_frame_start","_input", etc
+            // So we don't need to access it's actor's table every time for it 
+            if( key == "_frame_start" )         script->has_frame_start = true;
+            else if( key == "_input" )          script->has_input = true;
+            else if( key == "_entered_scene" )  script->has_entered_scene = true;
+            else if( key == "_exited_scene" )   script->has_exited_scene = true;
+            else if( key == "_init" )           script->has_init = true;
+            
+
             lua_pushvalue(ls,-2);
             lua_pushvalue(ls,-2);
             lua_settable(ls,-5);
@@ -295,7 +339,6 @@ void            LuaEngine::create_actor_env( SceneNode* new_actor ){
 
     // Creating the userdata (that holds only the node id) and it's metatable
     lua_pushstring(ls,"this");
-    //push( ls , std::forward<SceneNode*&&>(new_actor) );
     push( ls , new_actor );
     lua_settable(ls,-3);
 

@@ -80,37 +80,26 @@ void        Scene::loop_draw(){
     }
 }
 void        Scene::loop_input(){
-    Input* input = Input::instance();
-    Input::InputEvent* next_input_event = input->pop_event_queue();
+    Input::InputEvent* next_input_event = Input::pop_event_queue();
     while(next_input_event){
-        propagate_input_event( next_input_event );
+        for( auto it = current_script_actors.begin() ; 
+             it != current_script_actors.end() && !next_input_event->is_solved() ;
+             it++ )
+        {
+            SceneNode* node_actor = *it;
+            LuaEngine::execute_input( node_actor , next_input_event );
+        }
         delete next_input_event;   
-        next_input_event = input->pop_event_queue();
+        next_input_event = Input::pop_event_queue();
     }
 }
 void        Scene::loop_script(){
-    std::cout << "starting new loop: " << std::endl;
     for( auto it = current_script_actors.begin() ; it != current_script_actors.end() ; it++ ){
-        LuaEngine::execute_frame_start( *it );
+        LuaEngine::execute_frame_start( *it , Engine::get_last_frame_duration() );
     }
 }
 void        Scene::loop_physics(){
 
-}
-void        Scene::propagate_input_event( Input::InputEvent* input_event ){
-    if(root_node){
-        std::queue<SceneNode*> input_processors;
-        input_processors.push(root_node);
-        // Cascading down
-        while( !input_processors.empty() && !input_event->input_event_key.is_solved ){
-            SceneNode* next = input_processors.front();
-            input_processors.pop();
-            next->process_input_event( input_event );
-            for( auto child : next->get_children() ){
-                input_processors.push(child);
-            }
-        }
-    }
 }
 void        Scene::loop(){
     update_current_actors();

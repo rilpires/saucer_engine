@@ -155,6 +155,14 @@ double      Engine::get_fps(){
         return (number_of_frames-1) / elapsed_time; 
     } else return 0;
 }
+double      Engine::get_last_frame_duration(){
+    if( last_uptimes.size() >= 2 ){
+        auto begin = last_uptimes.begin();
+        double ret = *(begin) - *(begin++);
+        return ret;
+    }
+    else return 0.0;
+}
 void        Engine::set_current_scene(Scene* scene){
     current_scene = scene;
 }

@@ -80,8 +80,13 @@ class LuaEngine {
         static void             initialize();
         static void             finish();
 
-        static void             execute_frame_start( SceneNode* actor );
-        static void             execute_input_event( SceneNode* actor );
+        static void             execute_frame_start( SceneNode* actor , float delta_seconds );
+        static void             execute_input( SceneNode* actor , Input::InputEvent* input_event );
+        static void             execute_entered_scene( SceneNode* actor );
+        static void             execute_exited_scene( SceneNode* actor );
+        static void             execute_init( SceneNode* actor );
+
+
         static void             create_actor_env( SceneNode* new_actor );
         static void             register_function( std::string class_name , std::string function_name , lua_CFunction f );
 
@@ -93,14 +98,6 @@ class LuaEngine {
         
         template< typename T , typename value_type = typename std::enable_if< inherits_vector<T>::value , typename inherits_vector<T>::value_type >::type , class=void >
         static void             push( lua_State* , T );
-        // static void    push( lua_State* ls , T v ){
-        //     lua_newtable(ls);
-        //     for( size_t i = 1 ; i <= v.size() ; i++ ){
-        //         lua_pushnumber(ls,i);
-        //         push(ls,v[i-1]);
-        //         lua_settable(ls,-3);
-        //     }
-        // }
 
         template<typename T>
         static T                pop( lua_State* );
@@ -180,6 +177,7 @@ SAUCER_USE_BY_REFERENCE(Scene);
 SAUCER_USE_BY_REFERENCE(Resource);
 SAUCER_USE_BY_REFERENCE(ImageResource);
 SAUCER_USE_BY_REFERENCE(LuaScriptResource);
+SAUCER_USE_BY_REFERENCE(Input::InputEvent);
 
 template< typename R >
 struct LuaEngine::to_lua_cfunction<R()>{

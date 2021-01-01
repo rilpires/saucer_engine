@@ -16,7 +16,7 @@ template<> void LuaEngine::push( lua_State* ls , Resource* r ){
     lua_pushcfunction(ls,[](lua_State* ls){
         const char* arg = lua_tostring(ls,-1);
         lua_pop(ls,2);
-        lua_pushcfunction( ls , LuaEngine::recover_cfunction("Resource",arg) );
+        lua_pushcfunction( ls , LuaEngine::LuaEngine::recover_cfunction("Resource",arg) );
         return 1;
     });
     lua_settable(ls,-3);

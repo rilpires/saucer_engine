@@ -42,7 +42,6 @@ class Scene : public SaucerObject {
         Transform       get_camera_transform();
         void            set_camera_transform(Transform t);
 
-        void            propagate_input_event( Input::InputEvent* input_event );
         void            loop();
 
         static void bind_methods();

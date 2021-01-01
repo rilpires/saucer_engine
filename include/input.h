@@ -48,37 +48,46 @@ class Input {
             InputEventMouseMotion   input_event_mouse_motion;
             
             INPUT_EVENT_TYPE    get_type(){return input_event_key.type;}
-            operator    InputEventKey(){ return input_event_key;}
-            operator    InputEventMouseButton(){ return input_event_mouse_button;}
-            operator    InputEventMouseMotion(){ return input_event_mouse_motion;}
+            std::string         get_type_str() const { 
+                switch(input_event_key.type){
+                    case INPUT_EVENT_TYPE_KEY: return "key";
+                    case INPUT_EVENT_TYPE_MOUSE_BUTTON: return "mouse_button";
+                    case INPUT_EVENT_TYPE_MOUSE_MOTION: return "mouse_motion";
+                } return "call the cops";
+            }
+            void                solve(){ input_event_key.is_solved = true; }
+            bool                is_solved() const { return input_event_key.is_solved; }
+            Vector2             get_mouse_position() const {return Vector2(input_event_mouse_motion.window_x,input_event_mouse_motion.window_y);};
+            
+            operator            InputEventKey(){ return input_event_key;}
+            operator            InputEventMouseButton(){ return input_event_mouse_button;}
+            operator            InputEventMouseMotion(){ return input_event_mouse_motion;}
+        
         };
 
 
     private:
-        // Singleton ---------------------------
-        Input();
-        Input( const Input& other );
-        void operator= (const Input& other);
-        static      Input* input_singleton;
-        // -------------------------------------
 
-        bool        key_pressed[GLFW_KEY_LAST+1];
-        bool        mouse_pressed[ 3 ];
-        Vector2     window_mouse_position;
-        std::vector<Input::InputEvent*> event_queue;
+        static bool         key_pressed[GLFW_KEY_LAST+1];
+        static bool         mouse_pressed[ 3 ];
+        static Vector2      window_mouse_position;
+        static std::list<Input::InputEvent*> event_queue;
     
     public:
-        static      Input*  instance();
-
-        bool        is_key_pressed( int key_unicode ) const {return key_pressed[key_unicode];};
-        bool        is_mouse_button_pressed( INPUT_EVENT_MOUSE_BUTTON mouse_button ) const{return mouse_pressed[mouse_button];};
-        Vector2     get_window_mouse_position() const {return window_mouse_position;};
-
-        InputEvent* pop_event_queue();    
         
-        static void mouse_pos_callback( GLFWwindow* glfw_window , double x_pos , double y_pos );
-        static void key_callback( GLFWwindow* glfw_window , int key, int scancode, int action, int mods );
-        static void mouse_button_callback( GLFWwindow* glfw_window , int button , int action , int mods );
+        static bool         is_key_pressed( int key_unicode ) {return key_pressed[key_unicode];};
+        static bool         is_mouse_button_pressed( INPUT_EVENT_MOUSE_BUTTON mouse_button ){return mouse_pressed[mouse_button];};
+        static Vector2      get_window_mouse_position() {return window_mouse_position;};
+
+        static InputEvent*  pop_event_queue();    
+        
+        static void         mouse_pos_callback( GLFWwindow* glfw_window , double x_pos , double y_pos );
+        static void         key_callback( GLFWwindow* glfw_window , int key, int scancode, int action, int mods );
+        static void         mouse_button_callback( GLFWwindow* glfw_window , int button , int action , int mods );
+
+
+        static void         bind_methods();
+
 };
 
 #endif

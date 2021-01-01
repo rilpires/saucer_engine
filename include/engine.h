@@ -29,6 +29,7 @@ class Engine : public SaucerObject{
         static void         update();
         static double       get_uptime();
         static double       get_fps();
+        static double       get_last_frame_duration();
         static void         set_current_scene(Scene* scene);
         static Scene*       get_current_scene();
         static void         set_window_size( Vector2 new_size );
