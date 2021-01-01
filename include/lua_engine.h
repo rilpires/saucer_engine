@@ -23,8 +23,12 @@ extern "C" {
 
 #define REGISTER_LUA_MEMBER_FUNCTION(C,F)\
     LuaEngine::register_function(#C,#F, LuaEngine::to_lua_cfunction< function_member_unconstantizer<decltype(&C::F)>::type >::generate_lambda< function_ret_type<decltype(&C::F)>::type ,&C::F>() );
-#define REGISTER_LUA_STATIC_FUNCTION(C,F)\
+#define REGISTER_LUA_NESTED_STATIC_FUNCTION(C,F)\
     LuaEngine::register_function(#C,#F, LuaEngine::to_lua_cfunction< decltype(C::F) >::generate_lambda< function_ret_type<decltype(C::F)>::type ,C::F>() );
+#define REGISTER_LUA_GLOBAL_FUNCTION(F)\
+    LuaEngine::register_function(#F, LuaEngine::to_lua_cfunction< decltype(C::F) >::generate_lambda< function_ret_type<decltype(C::F)>::type ,C::F>() );
+#define REGISTER_LUA_CONSTANT(ENUM_NAME,INDEX_NAME,VALUE)\
+    LuaEngine::register_constant(#ENUM_NAME,#INDEX_NAME,VALUE)
 
 
 #define LUAENGINE_POP_SAUCER_OBJECT( T )                                \
@@ -64,14 +68,17 @@ class LuaEngine {
         static int              kb_memory_threshold;
         static size_t           chunk_reader_offset;
 
-        static std::unordered_map< std::string , std::unordered_map< std::string , lua_CFunction > > c_function_db;
-
+        static std::unordered_map< std::string , std::unordered_map< std::string , lua_CFunction > > nested_functions_db;
+        static std::unordered_map< std::string , std::unordered_map< std::string , int > > constants;
+        static std::unordered_map< std::string , lua_CFunction > global_functions_db;
+        
         static const char*      chunk_reader( lua_State* ls , void* data , size_t* size );
         static void             create_global_env();
         static void             change_current_actor_env( SceneNode* new_actor );
         static void             describe_stack();
         static void             print_error( int err , LuaScriptResource* script );
-        static lua_CFunction    recover_cfunction( std::string class_name , std::string function_name );
+        static lua_CFunction    recover_nested_function( std::string class_name , std::string function_name );
+        static lua_CFunction    recover_global_function( std::string function_name );
 
     protected:
         static SceneNode*       current_actor;
@@ -88,6 +95,8 @@ class LuaEngine {
 
 
         static void             create_actor_env( SceneNode* new_actor );
+        static void             register_constant( std::string enum_name , std::string index_name , int i );
+        static void             register_function( std::string global_function_name , lua_CFunction f );
         static void             register_function( std::string class_name , std::string function_name , lua_CFunction f );
 
         template<typename T>
@@ -96,8 +105,16 @@ class LuaEngine {
         template<typename T , class = typename std::enable_if< !inherits_vector<T>::value >::type >
         static void             push( lua_State* , T );
         
+        // Pushing a const vector<value_type>&
         template< typename T , typename value_type = typename std::enable_if< inherits_vector<T>::value , typename inherits_vector<T>::value_type >::type , class=void >
-        static void             push( lua_State* , T );
+        static void             push( lua_State* ls , T v ){
+            lua_newtable(ls);
+            for( size_t i = 1 ; i <= v.size() ; i++ ){
+                lua_pushnumber(ls,i);
+                push(ls,v[i-1]);
+                lua_settable(ls,-3);
+            }
+        }
 
         template<typename T>
         static T                pop( lua_State* );
@@ -106,20 +123,6 @@ class LuaEngine {
         struct to_lua_cfunction;
 
 };
-
-
-
-// Pushing a const vector<value_type>&
-template<typename T,typename value_type , typename T3> 
-void    LuaEngine::push( lua_State* ls , T v ){
-    lua_newtable(ls);
-    for( size_t i = 1 ; i <= v.size() ; i++ ){
-        lua_pushnumber(ls,i);
-        push(ls,v[i-1]);
-        lua_settable(ls,-3);
-    }
-}
-
 
 template<typename T> 
 struct function_member_unconstantizer;

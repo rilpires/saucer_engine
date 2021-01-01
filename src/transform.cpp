@@ -59,10 +59,10 @@ Transform&    Transform::scale( const Vector3& v ){
     return *this;
 }
 
-Transform Transform::operator* ( const Transform& m2 ){
-    Transform& m1 = *this ;
+Transform Transform::operator* ( const Transform& m2 ) const {
+    const Transform& m1 = *this ;
     Transform ret;
-    // m1*m2 = m1.m2
+    
     for( int i = 0 ; i < 4 ; i++ )
     for( int j = 0 ; j < 4 ; j++ )
         ret.m[j+4*i] =   m1.m[4*i + 0] * m2.m[4*0 + j] 
@@ -70,6 +70,23 @@ Transform Transform::operator* ( const Transform& m2 ){
                        + m1.m[4*i + 2] * m2.m[4*2 + j] 
                        + m1.m[4*i + 3] * m2.m[4*3 + j] ;
     return ret;
+}
+
+Vector2     Transform::operator* ( const Vector2& v ) const {
+    Vector3 fake_v = Vector3( v.x , v.y , 1 );
+    Vector3 ret = (*this)*fake_v;
+    return Vector2(ret.x,ret.y);
+}
+Vector3     Transform::operator* ( const Vector3& v ) const {
+    //  [ m0   m1   m2   m3   ] [ v0 ]   
+    //  [ m4   m5   m6   m7   ] [ v1 ]   
+    //  [ m8   m9   m10  m11  ] [ v2 ]  
+    //  [ m12  m13  m14  m15  ] [ v3 ]  
+    Vector3 ret;
+    ret.x = m[0]*v.x + m[1]*v.y + m[2]*v.z  + m[3]*1;
+    ret.y = m[4]*v.x + m[5]*v.y + m[6]*v.z  + m[7]*1;
+    ret.z = m[8]*v.x + m[9]*v.y + m[10]*v.z + m[11]*1;
+    return ret; 
 }
 
 void Transform::bind_methods(){

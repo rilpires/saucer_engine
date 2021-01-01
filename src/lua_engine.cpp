@@ -10,7 +10,9 @@ int         LuaEngine::kb_memory_threshold = 0;
 size_t      LuaEngine::chunk_reader_offset = 0;
 SceneNode*  LuaEngine::current_actor = NULL;
 
-std::unordered_map< std::string , std::unordered_map< std::string , lua_CFunction > > LuaEngine::c_function_db;
+std::unordered_map< std::string , std::unordered_map< std::string , lua_CFunction > > LuaEngine::nested_functions_db;
+std::unordered_map< std::string , std::unordered_map< std::string , int > > LuaEngine::constants;
+std::unordered_map< std::string , lua_CFunction > LuaEngine::global_functions_db;
 
 
 template<> void     LuaEngine::push( lua_State* ls , bool b ){
@@ -116,14 +118,8 @@ void            LuaEngine::create_global_env( ){
     lua_settable(ls,2);
     lua_settable(ls,LUA_GLOBALSINDEX);
 
-    // Pushing global functions: constructors(for every type) and destructors (for SaucerObjects)
-    #define LUAENGINE_VALUE_CONSTRUCTOR(T)                              \
-    lua_pushstring( ls , #T );                                          \
-    lua_pushcfunction( ls , LuaEngine::create_lua_constructor<T>(ls) ); \
-    lua_settable(ls,LUA_GLOBALSINDEX);                                          
-
-
-    for( auto it1 : c_function_db ){
+    // Pushing nested functions
+    for( auto it1 : nested_functions_db ){
         const std::string& class_name = it1.first;
         lua_pushstring(ls,class_name.c_str());
         lua_newtable(ls);
@@ -140,6 +136,37 @@ void            LuaEngine::create_global_env( ){
         }
         lua_settable(ls,LUA_GLOBALSINDEX);
     }
+    // Pushing global functions
+    for( auto global_function : global_functions_db ){
+        lua_pushstring( ls , global_function.first.c_str() );
+        lua_pushcfunction( ls , global_function.second );
+        lua_settable( ls , LUA_GLOBALSINDEX );
+    }
+    // Pushing constants
+    for( auto it1 : constants ){
+        const std::string& class_name = it1.first;
+        lua_pushstring(ls,class_name.c_str());
+        lua_newtable(ls);
+        for( auto it2 : it1.second ){
+            const std::string& index_name = it2.first;
+            lua_pushstring(ls,index_name.c_str());
+            lua_pushnumber( ls , it2.second );
+            lua_settable(ls,-3);
+        }
+        lua_settable(ls,LUA_GLOBALSINDEX);
+    }
+
+    // Pushing global functions constructors(for every type) and destructors (for SaucerObjects)
+    // These types can not have static member functions
+    // for example, in lua script: 
+    //      my_vec = Vector2(50,0)  
+    // Vector2 is a function that returns a Vector2 userdata, it can't be
+    // used to index any static functions, like "new", used by
+    // "by-reference" objects like SceneNode ( my_new_node = SceneNode.new() )
+    #define LUAENGINE_VALUE_CONSTRUCTOR(T)                              \
+    lua_pushstring( ls , #T );                                          \
+    lua_pushcfunction( ls , LuaEngine::create_lua_constructor<T>(ls) ); \
+    lua_settable(ls,LUA_GLOBALSINDEX);                                          
 
     LUAENGINE_VALUE_CONSTRUCTOR(Color);
     LUAENGINE_VALUE_CONSTRUCTOR(Vector2);
@@ -218,9 +245,9 @@ void            LuaEngine::print_error( int err , LuaScriptResource* script ){
         exit(1);
     }
 }
-lua_CFunction   LuaEngine::recover_cfunction( std::string class_name , std::string function_name ){
-    auto class_find = c_function_db.find( class_name );
-    if( class_find == c_function_db.end() ){
+lua_CFunction   LuaEngine::recover_nested_function( std::string class_name , std::string function_name ){
+    auto class_find = nested_functions_db.find( class_name );
+    if( class_find == nested_functions_db.end() ){
         std::cerr << "Couldn't find any function for class " << class_name << std::endl;
         // exit(1);
     } else {
@@ -237,6 +264,17 @@ lua_CFunction   LuaEngine::recover_cfunction( std::string class_name , std::stri
         std::cerr << "This function should not exist!" << std::endl ; 
         return 0; 
     };
+}
+lua_CFunction   LuaEngine::recover_global_function( std::string function_name ){
+    auto function_find = global_functions_db.find( function_name );
+    if( function_find == global_functions_db.end() ){
+        std::cerr << "Couldn't find any global function named " << function_name << std::endl;
+        // exit(1);
+        return [](lua_State* ls ){ 
+            std::cerr << "This function should not exist!" << std::endl ; 
+            return 0; 
+        };
+    } else return (function_find->second);
 }
 void            LuaEngine::execute_frame_start( SceneNode* actor , float delta_seconds ){
     if( actor->get_script_resource() == NULL || actor->get_script_resource()->has_frame_start == false )return;
@@ -354,6 +392,12 @@ void            LuaEngine::create_actor_env( SceneNode* new_actor ){
 
     change_current_actor_env(old_actor);
 }
-void            LuaEngine::register_function( std::string class_name , std::string function_name , lua_CFunction f ){
-    c_function_db[class_name][function_name] = f;
+void    LuaEngine::register_constant( std::string enum_name , std::string index_name , int i ){
+    constants[enum_name][index_name] = i;
+}
+void    LuaEngine::register_function( std::string global_function_name , lua_CFunction f ){
+    global_functions_db[global_function_name] = f;
+}
+void    LuaEngine::register_function( std::string class_name , std::string function_name , lua_CFunction f ){
+    nested_functions_db[class_name][function_name] = f;
 }

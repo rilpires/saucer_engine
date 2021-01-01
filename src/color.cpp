@@ -18,7 +18,7 @@ template<> void LuaEngine::push( lua_State* ls , Color v ){
         else    if(!strcmp(arg,"g"))   lua_pushnumber(ls,v->g);
         else    if(!strcmp(arg,"b"))   lua_pushnumber(ls,v->b);
         else    if(!strcmp(arg,"a"))   lua_pushnumber(ls,v->a);
-        else    if(!strcmp(arg,"rotated"))   lua_pushcfunction(ls,c_function_db["Color"]["rotated"]);
+        else    if(!strcmp(arg,"rotated"))   lua_pushcfunction(ls,nested_functions_db["Color"]["rotated"]);
         return 1;
     });
     lua_settable(ls,-3);

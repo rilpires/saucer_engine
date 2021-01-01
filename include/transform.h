@@ -15,8 +15,11 @@ struct Transform {
     Transform&  scale( const Vector2& v );
     Transform&  scale( const Vector3& v );
 
-    Transform   operator* ( const Transform& m2 );
+    Transform   operator* ( const Transform& m2 ) const ;
     
+    Vector2     operator* ( const Vector2& v ) const ;
+    Vector3     operator* ( const Vector3& v ) const ;
+
     static void bind_methods();
 };
 

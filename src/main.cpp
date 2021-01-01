@@ -10,36 +10,12 @@ int main( int argc , char** argv ){
 
     Scene* scene = new Scene();
     SceneNode* root = new SceneNode();
-    SceneNode* center = new SceneNode();
-    SceneNode* orbit = new SceneNode();
     Engine::set_current_scene( scene );
     scene->set_root_node(root);
-
-    root->set_z  (-1);
-    center->set_z(-2);
-    orbit->set_z (-3);
-    
-    root->set_relative_z(false);
-    center->set_relative_z(false);
-    orbit->set_relative_z(false);
-
     root->set_image_texture( ImageResource::get_resource("res/gold.png") );
-    center->set_image_texture( ImageResource::get_resource("res/gold.png") );
-    orbit->set_image_texture( ImageResource::get_resource("res/gold.png") );
-    //center->set_script_resource( LuaScriptResource::get_resource("res/scripts/test.lua") );
-    orbit->set_script_resource( LuaScriptResource::get_resource("res/scripts/test.lua") );
-
-
-    root->add_child(center);
-    center->add_child(orbit);
-
-    root->set_position( Vector2(-125,25) );
-    center->set_position( Vector2(125,25) );
-    // center->set_rotation_degrees( 45 );
-    orbit->set_position( Vector2(50,50) );
+    root->set_script_resource( LuaScriptResource::get_resource("res/scripts/test.lua") );
 
     
-
     while( !Engine::should_close() ){
         Engine::update();
     }

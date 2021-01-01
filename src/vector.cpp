@@ -18,7 +18,7 @@ template<> void LuaEngine::push( lua_State* ls , Vector2 v ){
         lua_pop(ls,2);
                 if(!strcmp(arg,"x"))   lua_pushnumber(ls,v->x);
         else    if(!strcmp(arg,"y"))   lua_pushnumber(ls,v->y);
-        else    lua_pushcfunction(ls, LuaEngine::recover_cfunction("Vector2",arg) );
+        else    lua_pushcfunction(ls, LuaEngine::recover_nested_function("Vector2",arg) );
         return 1;
     });
     lua_settable(ls,-3);
@@ -120,7 +120,7 @@ template<> void LuaEngine::push( lua_State* ls , Vector3 v ){
         lua_pop(ls,2);
                 if(!strcmp(arg,"x"))   lua_pushnumber(ls,v->x);
         else    if(!strcmp(arg,"y"))   lua_pushnumber(ls,v->y);
-        else    if(!strcmp(arg,"rotated"))   lua_pushcfunction(ls,c_function_db["Vector3"]["rotated"]);
+        else    if(!strcmp(arg,"rotated"))   lua_pushcfunction(ls,nested_functions_db["Vector3"]["rotated"]);
         return 1;
     });
     lua_settable(ls,-3);

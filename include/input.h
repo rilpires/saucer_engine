@@ -76,9 +76,10 @@ class Input {
     public:
         
         static bool         is_key_pressed( int key_unicode ) {return key_pressed[key_unicode];};
-        static bool         is_mouse_button_pressed( INPUT_EVENT_MOUSE_BUTTON mouse_button ){return mouse_pressed[mouse_button];};
-        static Vector2      get_window_mouse_position() {return window_mouse_position;};
-
+        static bool         is_mouse_button_pressed( int mouse_button ){return mouse_pressed[mouse_button];};
+        static Vector2      get_screen_mouse_position() {return window_mouse_position;};
+        static Vector2      get_world_mouse_position();
+        
         static InputEvent*  pop_event_queue();    
         
         static void         mouse_pos_callback( GLFWwindow* glfw_window , double x_pos , double y_pos );

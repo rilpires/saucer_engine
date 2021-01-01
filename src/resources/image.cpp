@@ -15,7 +15,7 @@ template<> void LuaEngine::push( lua_State* ls , ImageResource* r ){
     lua_pushcfunction(ls,[](lua_State* ls){
         const char* arg = lua_tostring(ls,-1);
         lua_pop(ls,2);
-        lua_pushcfunction( ls , c_function_db["Resource"][arg] ); // Uhhh gotta work around this issue (member inheritance)
+        lua_pushcfunction( ls , nested_functions_db["Resource"][arg] ); // Uhhh gotta work around this issue (member inheritance)
         return 1;
     });
     lua_settable(ls,-3);

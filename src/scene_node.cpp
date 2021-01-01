@@ -14,7 +14,7 @@ template<> void LuaEngine::push( lua_State* ls , SceneNode* obj ){
     lua_pushcfunction(ls,[](lua_State* ls){
         const char* arg = lua_tostring(ls,-1);
         lua_pop(ls,2);
-        lua_pushcfunction( ls , LuaEngine::recover_cfunction("SceneNode",arg) );
+        lua_pushcfunction( ls , LuaEngine::recover_nested_function("SceneNode",arg) );
         return 1;
     });
     lua_settable(ls,-3);
@@ -120,7 +120,7 @@ int f(){ return 2; }
 
 void        SceneNode::bind_methods(){
     
-    REGISTER_LUA_STATIC_FUNCTION(SceneNode,lua_new);
+    REGISTER_LUA_NESTED_STATIC_FUNCTION(SceneNode,lua_new);
     
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_position);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_position);

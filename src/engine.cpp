@@ -203,14 +203,14 @@ bool        Engine::should_close() {
     return glfwWindowShouldClose(glfw_window);
 }
 void        Engine::bind_methods(){
-    REGISTER_LUA_STATIC_FUNCTION( Engine , get_uptime );
-    REGISTER_LUA_STATIC_FUNCTION( Engine , get_fps );
-    REGISTER_LUA_STATIC_FUNCTION( Engine , set_current_scene );
-    REGISTER_LUA_STATIC_FUNCTION( Engine , get_current_scene );
-    REGISTER_LUA_STATIC_FUNCTION( Engine , set_window_size );
-    REGISTER_LUA_STATIC_FUNCTION( Engine , get_window_size );
-    REGISTER_LUA_STATIC_FUNCTION( Engine , set_window_pos );
-    REGISTER_LUA_STATIC_FUNCTION( Engine , get_window_pos );
-    REGISTER_LUA_STATIC_FUNCTION( Engine , set_fullscreen );
-    REGISTER_LUA_STATIC_FUNCTION( Engine , is_fullscreen );
+    REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_uptime );
+    REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_fps );
+    REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , set_current_scene );
+    REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_current_scene );
+    REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , set_window_size );
+    REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_window_size );
+    REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , set_window_pos );
+    REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_window_pos );
+    REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , set_fullscreen );
+    REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , is_fullscreen );
 }
