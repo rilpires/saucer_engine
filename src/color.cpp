@@ -40,7 +40,7 @@ template<> void LuaEngine::push( lua_State* ls , Color v ){
     
     lua_setmetatable(ls,-2);
 }
-LUAENGINE_POP_USERDATA_AS_VALUE(Color)
+
 template<> lua_CFunction    LuaEngine::create_lua_constructor<Color>( lua_State* ls ){
     return [](lua_State* ls){
         float x = lua_tonumber(ls,-3);

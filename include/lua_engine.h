@@ -5,6 +5,7 @@
 #include <vector>
 #include <string.h>
 #include "saucer_object.h"
+#include "saucer_type_traits.h"
 
 extern "C" {
     #include <lua.h>
@@ -31,34 +32,9 @@ extern "C" {
     LuaEngine::register_constant(#ENUM_NAME,#INDEX_NAME,VALUE)
 
 
-#define LUAENGINE_POP_SAUCER_OBJECT( T )                                \
-template<> T  LuaEngine::pop( lua_State* ls ){                          \
-    SaucerId saucer_id = *(SaucerId*)lua_touserdata(ls,-1);             \
-    T ret = static_cast<T>( SaucerObject::from_saucer_id(saucer_id) );  \
-    lua_pop(ls,1);                                                      \
-    return ret;                                                         \
-}
-
-#define LUAENGINE_POP_USERDATA_AS_VALUE( T )    \
-template<> T  LuaEngine::pop( lua_State* ls ){  \
-    T ret = *(T*)lua_touserdata(ls,-1);         \
-    lua_pop(ls,1);                              \
-    return ret;                                 \
-}   
 
 
-
-template<typename T>
-struct inherits_vector {
-    static const bool value = false;
-};
-template<typename T , typename T_alloc >
-struct inherits_vector< const std::vector<T,T_alloc>& > {
-    static const bool value = true;
-    using value_type = T;
-};
-
-
+class Sprite;
 class Scene;
 class LuaEngine {
     friend class SceneNode;
@@ -99,271 +75,41 @@ class LuaEngine {
         static void             register_function( std::string global_function_name , lua_CFunction f );
         static void             register_function( std::string class_name , std::string function_name , lua_CFunction f );
 
-        template<typename T>
+        template< typename T >
         static lua_CFunction    create_lua_constructor( lua_State* );    
         
-        template<typename T , class = typename std::enable_if< !inherits_vector<T>::value >::type >
-        static void             push( lua_State* , T );
-        
-        // Pushing a const vector<value_type>&
-        template< typename T , typename value_type = typename std::enable_if< inherits_vector<T>::value , typename inherits_vector<T>::value_type >::type , class=void >
-        static void             push( lua_State* ls , T v ){
-            lua_newtable(ls);
-            for( size_t i = 1 ; i <= v.size() ; i++ ){
-                lua_pushnumber(ls,i);
-                push(ls,v[i-1]);
-                lua_settable(ls,-3);
-            }
-        }
 
-        template<typename T>
+        // push signature for std::vectors (const vector& only!)
+        //template< typename T , typename value_type = std::enable_if< is_vector<T>::value , is_vector<T>::value_type >::type >
+        template< typename T , typename value_type = typename std::enable_if< is_vector<T>::value , typename is_vector<T>::value_type >::type >
+        static void             push( lua_State* ls , T v );
+
+        // push signature for SaucerObject's inherited classes
+        template< typename T , class = typename std::enable_if< !is_vector<T>::value && std::is_base_of<SaucerObject, typename std::remove_pointer<T>::type >::value >::type , typename = void >
+        static void             push( lua_State* , T obj );
+
+        // push signature for non SaucerObject's inherited classes
+        template< typename T , class = typename std::enable_if< !is_vector<T>::value && !std::is_base_of<SaucerObject, typename std::remove_pointer<T>::type >::value >::type  , typename = void , typename = void >
+        static void             push( lua_State* , T obj );
+
+
+        // pop signature for saucer objects , a.k.a pointers... (except for inputevent, they should be specialized)
+        template< typename T , class = typename std::enable_if< std::is_pointer<T>::value >::type >
         static T                pop( lua_State* );
+
+        // pop signature for types that is passed by value
+        template< typename T , class = typename std::enable_if< !std::is_pointer<T>::value >::type , typename=void  >
+        static T                pop( lua_State* );
+        
+        // By default, the metatable of a type will only have it's functions members, in __index
+        template< typename T >
+        static void             push_metatable( lua_State* ls );
         
         template< typename F > 
         struct to_lua_cfunction;
 
 };
 
-template<typename T> 
-struct function_member_unconstantizer;
-template<typename ret_type , typename class_type , typename ... args_type> 
-struct function_member_unconstantizer<ret_type(class_type::*)(args_type ...)>{
-    using type = ret_type(class_type::*)(args_type ...);
-};
-template<typename ret_type , typename class_type , typename ... args_type> 
-struct function_member_unconstantizer<ret_type(class_type::*)(args_type ...) const>{
-    using type = ret_type(class_type::*)(args_type ...);
-};
-template<typename ret_type , typename ... args_type> 
-struct function_member_unconstantizer<ret_type(args_type ...)>{
-    using type = ret_type(args_type ...);
-};
-
-template<typename T> 
-struct function_ret_type;
-template<typename ret_type , typename class_type , typename ... args_type> 
-struct function_ret_type<ret_type(class_type::*)(args_type ...)>{
-    using type = ret_type;
-};
-template<typename ret_type , typename class_type , typename ... args_type> 
-struct function_ret_type<ret_type(class_type::*)(args_type ...) const>{
-    using type = ret_type;
-};
-template<typename ret_type , typename ... args_type> 
-struct function_ret_type<ret_type(args_type ...)>{
-    using type = ret_type;
-};
-
-
-template<typename T, class = typename std::enable_if< !std::is_pointer<T>::value >::type >
-T& to_ref( T& obj ){ return obj; };
-template<typename T, class = typename std::enable_if< !std::is_pointer<T>::value >::type >
-T& to_ref( T* obj){ return *obj; };
-
-template<typename T> struct to_used_type;
-
-#define SAUCER_USE_BY_VALUE(T)\
-template<> struct to_used_type<T>{ using type = T; };
-#define SAUCER_USE_BY_REFERENCE(T)\
-template<> struct to_used_type<T>{ using type = T*; }
-
-SAUCER_USE_BY_VALUE(int);
-SAUCER_USE_BY_VALUE(size_t);
-SAUCER_USE_BY_VALUE(short);
-SAUCER_USE_BY_VALUE(Color);
-SAUCER_USE_BY_VALUE(Vector2);
-SAUCER_USE_BY_VALUE(Vector3);
-SAUCER_USE_BY_VALUE(Transform);
-
-SAUCER_USE_BY_REFERENCE(SceneNode);
-SAUCER_USE_BY_REFERENCE(Scene);
-SAUCER_USE_BY_REFERENCE(Resource);
-SAUCER_USE_BY_REFERENCE(ImageResource);
-SAUCER_USE_BY_REFERENCE(LuaScriptResource);
-SAUCER_USE_BY_REFERENCE(Input::InputEvent);
-
-template< typename R >
-struct LuaEngine::to_lua_cfunction<R()>{
-    using function_type = R();
-    
-    template< typename ret_type , function_type f , class = typename std::enable_if< !std::is_same<ret_type,void>::value >::type >
-    static lua_CFunction generate_lambda(){
-        return []( lua_State* ls ){
-            LuaEngine::push<R>( ls , f() ); return 1;
-        };
-    }
-    template< typename ret_type , function_type f , class = typename std::enable_if< std::is_same<ret_type,void>::value >::type , class = int >
-    static lua_CFunction generate_lambda(){
-        return []( lua_State* ls ){
-            f(); return 0;
-        };
-    }
-};
-template< typename R , typename T_arg1 >
-struct LuaEngine::to_lua_cfunction<R(T_arg1)>{
-    using function_type = R(T_arg1);
-    
-    template< typename ret_type , function_type f , class = typename std::enable_if< !std::is_same<ret_type,void>::value >::type >
-    static lua_CFunction generate_lambda(){
-        return []( lua_State* ls ){
-            T_arg1 arg1 = LuaEngine::pop<T_arg1>(ls);
-            LuaEngine::push<R>( ls , f(arg1) ); return 1;
-        };
-    }
-    template< typename ret_type , function_type f , class = typename std::enable_if< std::is_same<ret_type,void>::value >::type , class=int >
-    static lua_CFunction generate_lambda(){
-        return []( lua_State* ls ){
-            T_arg1 arg1 = LuaEngine::pop<T_arg1>(ls);
-            f( arg1 ); return 0;
-        };
-    }
-};
-
-template< typename R , typename C >
-struct LuaEngine::to_lua_cfunction<R(C::*)()>{
-    using function_type = R(C::*)();
-    using const_function_type = R(C::*)() const;
-    using class_type = typename to_used_type<C>::type;
-
-    template< typename ret_type , function_type f , class = typename std::enable_if<std::is_same< ret_type ,void>::value>::type >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            (obj_ref.*f)();
-            return 0;
-        };
-    }
-    template< typename ret_type , const_function_type f , class = typename std::enable_if<std::is_same< ret_type ,void>::value>::type >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            (obj_ref.*f)();
-            return 0;
-        };
-    }
-    template< typename ret_type , function_type f , class = typename std::enable_if<!std::is_same< ret_type ,void>::value>::type , class=int >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            R ret = (obj_ref.*f)();
-            LuaEngine::push<R>(ls,ret);
-            return 1;
-        };
-    }
-    template< typename ret_type , const_function_type f , class = typename std::enable_if<!std::is_same< ret_type ,void>::value>::type , class=int >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            R ret = (obj_ref.*f)();
-            LuaEngine::push<R>(ls,ret);
-            return 1;
-        };
-    }
-};
-template< typename R , typename C , typename T_arg1 >
-struct LuaEngine::to_lua_cfunction<R(C::*)(T_arg1)>{
-    using function_type = R(C::*)(T_arg1);
-    using const_function_type = R(C::*)(T_arg1) const;
-    using class_type = typename to_used_type<C>::type;
-
-    template< typename ret_type , function_type f , class = typename std::enable_if<std::is_same< ret_type ,void>::value>::type >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            (obj_ref.*f)(arg1);
-            return 0;
-        };
-    }
-    template< typename ret_type , const_function_type f , class = typename std::enable_if<std::is_same< ret_type ,void>::value>::type >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            (obj_ref.*f)(arg1);
-            return 0;
-        };
-    }
-    template< typename ret_type , function_type f , class = typename std::enable_if<!std::is_same< ret_type ,void>::value>::type , class=int >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            R ret = (obj_ref.*f)(arg1);
-            LuaEngine::push<R>(ls,ret);
-            return 1;
-        };
-    }
-    template< typename ret_type , const_function_type f , class = typename std::enable_if<!std::is_same< ret_type ,void>::value>::type , class=int >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            R ret = (obj_ref.*f)(arg1);
-            LuaEngine::push<R>(ls,ret);
-            return 1;
-        };
-    }
-};
-template< typename R , typename C , typename T_arg1, typename T_arg2 >
-struct LuaEngine::to_lua_cfunction<R(C::*)(T_arg1,T_arg2)>{
-    using function_type = R(C::*)(T_arg1,T_arg2);
-    using const_function_type = R(C::*)(T_arg1,T_arg2) const;
-    using class_type = typename to_used_type<C>::type;
-
-    template< typename ret_type , function_type f , class = typename std::enable_if<std::is_same< ret_type ,void>::value>::type >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            T_arg2      arg2    = LuaEngine::pop<T_arg2>(ls);
-            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            (obj_ref.*f)(arg1,arg2);
-            return 0;
-        };
-    }
-    template< typename ret_type , const_function_type f , class = typename std::enable_if<std::is_same< ret_type ,void>::value>::type >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            T_arg2      arg2    = LuaEngine::pop<T_arg2>(ls);
-            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            (obj_ref.*f)(arg1,arg2);
-            return 0;
-        };
-    }
-    template< typename ret_type , function_type f , class = typename std::enable_if<!std::is_same< ret_type ,void>::value>::type , class=int >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            T_arg2      arg2    = LuaEngine::pop<T_arg2>(ls);
-            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            R ret = (obj_ref.*f)(arg1);
-            LuaEngine::push<R>(ls,ret);
-            return 1;
-        };
-    }
-    template< typename ret_type , const_function_type f , class = typename std::enable_if<!std::is_same< ret_type ,void>::value>::type , class=int >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            R ret = (obj_ref.*f)(arg1);
-            LuaEngine::push<R>(ls,ret);
-            return 1;
-        };
-    }
-};
+#include "lua_engine.tpp"
 
 #endif

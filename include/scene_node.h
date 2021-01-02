@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <list>
 #include <unordered_map>
 
 #include "input.h"
@@ -13,9 +14,12 @@
 
 class Scene;
 class LuaScriptResource;
+class Component;
 
 class SceneNode : public SaucerObject {
+
     friend class Scene;
+    REGISTER_SAUCER_OBJECT(SceneNode);
 
     protected:
         Vector2                     position;
@@ -25,8 +29,8 @@ class SceneNode : public SaucerObject {
         SceneNode*                  parent_node;
         std::vector<SceneNode*>     children_nodes;
         Scene*                      scene;
-        ImageResource*              image_texture;
         LuaScriptResource*          lua_script;
+        std::list<Component*>       attached_components;
 
     public:
         SceneNode();
@@ -45,8 +49,6 @@ class SceneNode : public SaucerObject {
         short                   get_global_z() const ;
         void                    set_relative_z(bool new_val);
         bool                    is_z_relative() const ;
-        void                    set_image_texture( ImageResource* img );
-        ImageResource*          get_image_texture() const ;
         void                    set_script_resource( LuaScriptResource* ls );
         LuaScriptResource*      get_script_resource() const ;
         void                    get_out();
@@ -54,9 +56,16 @@ class SceneNode : public SaucerObject {
         SceneNode*              get_parent( ) const ;
         Scene*                  get_scene() const;
 
+
         std::vector<SceneNode*> const&  get_children() const;
 
-
+        template<typename T> 
+        T*                      get_component() const;
+        template<typename T> 
+        T*                      create_component( );
+        template<typename T> 
+        void                    destroy_component( );
+        
         inline virtual void     entered_scene(){};
         inline virtual void     process_input_event( Input::InputEvent* input_event ){};
 

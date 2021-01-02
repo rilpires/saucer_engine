@@ -7,7 +7,6 @@
 template<> void LuaEngine::push( lua_State* ls , Scene* r ){
     lua_pushnumber(ls,666);
 }
-LUAENGINE_POP_SAUCER_OBJECT(Scene*)   
 
 Scene::Scene(){
     root_node = NULL;
@@ -35,7 +34,7 @@ void        Scene::update_current_actors(){
     
     while( nodes_queue.size() ){
         SceneNode* scene_node = nodes_queue.front();
-        if( scene_node->get_image_texture() ) 
+        if( scene_node->get_component<Sprite>() ) 
             current_draws.push_back( scene_node );
         if( scene_node->get_script_resource() )
             current_script_actors.push_back( scene_node );
@@ -74,7 +73,7 @@ void        Scene::loop_draw(){
         Transform model_transform = scene_node->get_global_transform();
         model_transform.scale(Vector3(1,1,-1));
 
-        GL_CALL( glBindTexture( GL_TEXTURE_2D , scene_node->get_image_texture()->get_texture_id() ) );
+        GL_CALL( glBindTexture( GL_TEXTURE_2D , scene_node->get_component<Sprite>()->get_texture()->get_texture_id() ) );
         GL_CALL( glUniformMatrix4fv( model_transf_attrib_location , 1 , GL_FALSE , model_transform.m ) );
         GL_CALL( glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,NULL) );
     }

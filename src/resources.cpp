@@ -22,7 +22,7 @@ template<> void LuaEngine::push( lua_State* ls , Resource* r ){
     lua_settable(ls,-3);
     lua_setmetatable(ls,-2);
 }
-LUAENGINE_POP_SAUCER_OBJECT(Resource*)   
+
 
 Resource::Resource(){
 }

@@ -8,13 +8,12 @@ function _frame_start( dt_seconds )
     if (Input.is_key_pressed(KEY.UP))       then vel.y = vel.y + 1.0 end;
     if (Input.is_key_pressed(KEY.DOWN))     then vel.y = vel.y - 1.0 end;
 
-    this:set_position( this:get_position() + vel )
+    this:set_position( this:get_position() + vel*5.0 )
 end
 
 
 function _input( input_event )
-    if( input_event:get_type_str() == "mouse_motion" ) then
-        -- print( input_event:get_mouse_position().x )
-        this:set_position( Input.get_world_mouse_position() )
+    if( input_event:get_type_str() == "key" ) then
+        this:get_sprite():set_texture( ResourceManager.get_resource("res/troll.png") )
     end
 end

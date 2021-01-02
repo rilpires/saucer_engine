@@ -3,10 +3,9 @@
 #include <math.h>
 
 
-template<> void LuaEngine::push( lua_State* ls , Vector2 v ){
+template<> void LuaEngine::push<Vector2>( lua_State* ls , Vector2 v ){
     void* userdata = lua_newuserdata( ls , sizeof(Vector2) );
     (*(Vector2*)userdata) = v;
-
     // Pushing a vector2 metatable:
     lua_newtable(ls);
     
@@ -68,7 +67,7 @@ template<> void LuaEngine::push( lua_State* ls , Vector2 v ){
     lua_setmetatable(ls,-2);
 
 }
-LUAENGINE_POP_USERDATA_AS_VALUE(Vector2)   
+
 template<> lua_CFunction    LuaEngine::create_lua_constructor<Vector2>( lua_State* ls ){
     return [](lua_State* ls){
         float x = lua_tonumber(ls,-2);
@@ -170,7 +169,6 @@ template<> void LuaEngine::push( lua_State* ls , Vector3 v ){
     lua_setmetatable(ls,-2);
 
 }
-LUAENGINE_POP_USERDATA_AS_VALUE(Vector3)   
 template<> lua_CFunction    LuaEngine::create_lua_constructor<Vector3>( lua_State* ls ){
     return [](lua_State* ls){
         float r = lua_tonumber(ls,-4);

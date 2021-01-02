@@ -6,6 +6,9 @@
 class Transform;
 
 struct Vector2 {
+
+    static constexpr const char* class_name = "Vector2";
+
     float x,y;
     
     Vector2( float p_x=0 , float p_y=0 ) : x(p_x) , y(p_y) {}
@@ -37,6 +40,9 @@ struct Vector2 {
 };
 
 struct Vector3 {
+    
+    static constexpr const char* class_name = "Vector3";
+
     float x,y,z;
     
     Vector3( float p_x=0 , float p_y=0 , float p_z=0 ) : x(p_x) , y(p_y) , z(p_z){};

@@ -87,18 +87,19 @@ void            LuaEngine::initialize(){
     luaopen_table(ls);
     lua_settop(ls,0); // idk why but previous luaopen_[lib] changes the stack so I clean it
     std::cout << "Loading lua binded methods..." << std::endl;
-    Engine::bind_methods();
+    Color::bind_methods();
     Input::bind_methods();
     Scene::bind_methods();
-    SceneNode::bind_methods();
+    Engine::bind_methods();
+    Sprite::bind_methods();
     Vector2::bind_methods();
     Vector3::bind_methods();
-    Transform::bind_methods();
-    Color::bind_methods();
     Resource::bind_methods();
+    SceneNode::bind_methods();
+    Transform::bind_methods();
     ImageResource::bind_methods();
-    LuaScriptResource::bind_methods();
     ResourceManager::bind_methods();
+    LuaScriptResource::bind_methods();
     kb_memory_threshold = lua_getgcthreshold(ls);
     kb_memory_used = lua_getgccount(ls);
     std::cout << "Creating lua enviroment..." << std::endl;

@@ -17,6 +17,8 @@ class Scene;
 
 
 class Engine : public SaucerObject{
+    REGISTER_SAUCER_OBJECT(Engine);
+    
     private:
         static GLFWwindow*          glfw_window;
         static Scene*               current_scene;

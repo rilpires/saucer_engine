@@ -43,6 +43,7 @@ class Input {
         };
 
         union InputEvent {
+            static constexpr const char* class_name = "InputEvent";
             InputEventKey           input_event_key;
             InputEventMouseButton   input_event_mouse_button;
             InputEventMouseMotion   input_event_mouse_motion;

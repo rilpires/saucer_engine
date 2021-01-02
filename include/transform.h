@@ -4,6 +4,9 @@
 #include "vector.h"
 
 struct Transform {
+    
+    static constexpr const char* class_name = "Transform";
+
     float   m[16];
 
     Transform();

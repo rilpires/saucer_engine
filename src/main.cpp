@@ -12,7 +12,7 @@ int main( int argc , char** argv ){
     SceneNode* root = new SceneNode();
     Engine::set_current_scene( scene );
     scene->set_root_node(root);
-    root->set_image_texture( ImageResource::get_resource("res/gold.png") );
+    root->create_component<Sprite>()->set_texture( ImageResource::get_resource("res/gold.png") );
     root->set_script_resource( LuaScriptResource::get_resource("res/scripts/test.lua") );
 
     

@@ -5,23 +5,6 @@
 
 #define SHORT_MAX 0b0111111111111111
 
-template<> void LuaEngine::push( lua_State* ls , SceneNode* obj ){
-    if( obj )   *(SaucerId*) lua_newuserdata(ls,sizeof(SaucerId)) = obj->get_saucer_id();
-    else        *(SaucerId*) lua_newuserdata(ls,sizeof(SaucerId)) = 0;
-        
-    lua_newtable(ls);
-    lua_pushstring(ls,"__index");
-    lua_pushcfunction(ls,[](lua_State* ls){
-        const char* arg = lua_tostring(ls,-1);
-        lua_pop(ls,2);
-        lua_pushcfunction( ls , LuaEngine::recover_nested_function("SceneNode",arg) );
-        return 1;
-    });
-    lua_settable(ls,-3);
-    lua_setmetatable(ls,-2);
-}
-LUAENGINE_POP_SAUCER_OBJECT(SceneNode*)   
-
 SceneNode::SceneNode(){
     position = Vector2(0,0);
     rotation_degrees = 0.0f;
@@ -29,7 +12,6 @@ SceneNode::SceneNode(){
     relative_z = true;
     parent_node = NULL;
     scene = NULL;
-    image_texture = NULL;
     lua_script = NULL;
 }
 SceneNode::~SceneNode(){
@@ -74,8 +56,6 @@ short               SceneNode::get_global_z() const {
 }
 void                SceneNode::set_relative_z(bool new_val){relative_z=new_val;}
 bool                SceneNode::is_z_relative() const {return relative_z;}
-void                SceneNode::set_image_texture( ImageResource* img ){image_texture=img;}
-ImageResource*      SceneNode::get_image_texture() const {return image_texture;}
 LuaScriptResource*  SceneNode::get_script_resource() const { return lua_script;};
 void                SceneNode::set_script_resource( LuaScriptResource* ls ){
     if( lua_script ){
@@ -116,7 +96,34 @@ Scene*              SceneNode::get_scene() const{
 }
 std::vector<SceneNode*> const&  SceneNode::get_children() const { return children_nodes; }
 
-int f(){ return 2; }
+template<typename T> T*     SceneNode::get_component() const {
+    return T::recover_from_node(this);
+}
+template<typename T> 
+T*                          SceneNode::create_component( ){
+    if( get_component<T>() ){
+        std::cout << "Warning: trying to create a component of a type that already exists" << std::endl;
+        return nullptr;
+    }
+    else{
+        T* new_comp = new T();
+        attached_components.push_back(new_comp);
+        new_comp->attach_node(this);
+        return new_comp;
+    }
+}
+template<typename T> 
+void                          SceneNode::destroy_component( ){
+    T* current_comp = get_component<T>();
+    if( !current_comp ){
+        std::cout << "Warning: trying to destroy a unexistent component " << std::endl;
+    } else {
+        auto it = attached_components.begin();
+        while( *it != (Component*)current_comp ) it++;
+        attached_components.erase(it);
+        delete current_comp;
+    }
+}
 
 void        SceneNode::bind_methods(){
     
@@ -134,8 +141,6 @@ void        SceneNode::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_global_z);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_relative_z);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,is_z_relative);
-    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_image_texture);
-    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_image_texture);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_script_resource);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_script_resource);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_out);
@@ -143,6 +148,9 @@ void        SceneNode::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_parent);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_scene);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_children);
+                                                                       
+
+    REGISTER_COMPONENT_HELPERS(Sprite,"sprite");
 
 }
 

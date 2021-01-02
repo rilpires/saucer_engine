@@ -5,8 +5,17 @@
 
 
 class SaucerObject {
+
+
+    #define REGISTER_SAUCER_OBJECT(C)                   \
+    public:                                             \
+        static constexpr const char* class_name = #C;   \
+    ;
+ 
+    REGISTER_SAUCER_OBJECT(SaucerObject);
+
     public:
-    using SaucerId = unsigned int ; 
+    using SaucerId = uint32_t ; 
 
     private:
 
