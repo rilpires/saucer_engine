@@ -14,7 +14,7 @@ class CameraNode;
 class Scene : public SaucerObject {
     
     friend class Window; // access current_window
-    REGISTER_SAUCER_OBJECT(Scene);
+    REGISTER_SAUCER_OBJECT(Scene,SaucerObject);
 
     private:
 

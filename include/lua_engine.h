@@ -56,6 +56,9 @@ class LuaEngine {
         static lua_CFunction    recover_nested_function( std::string class_name , std::string function_name );
         static lua_CFunction    recover_global_function( std::string function_name );
 
+        template< typename C >
+        static lua_CFunction    recover_nested_function( std::string function_name );
+
     protected:
         static SceneNode*       current_actor;
     
@@ -63,6 +66,8 @@ class LuaEngine {
         static void             initialize();
         static void             finish();
 
+        static void             execute_collision_start( SceneNode* actor , SceneNode* other );
+        static void             execute_collision_end( SceneNode* actor , SceneNode* other );
         static void             execute_frame_start( SceneNode* actor , float delta_seconds );
         static void             execute_input( SceneNode* actor , Input::InputEvent* input_event );
         static void             execute_entered_tree( SceneNode* actor );
@@ -80,7 +85,6 @@ class LuaEngine {
         
 
         // push signature for std::vectors (const vector& only!)
-        //template< typename T , typename value_type = std::enable_if< is_vector<T>::value , is_vector<T>::value_type >::type >
         template< typename T , typename value_type = typename std::enable_if< is_vector<T>::value , typename is_vector<T>::value_type >::type >
         static void             push( lua_State* ls , T v );
 

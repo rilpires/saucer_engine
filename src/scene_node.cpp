@@ -40,11 +40,21 @@ Vector2             SceneNode::get_global_position() const{
         return ret;
     }
 }
-void                SceneNode::set_rotation_degrees( float new_rotation_degrees_cw ){rotation_degrees=new_rotation_degrees_cw;}
-float               SceneNode::get_rotation_degrees( ){return rotation_degrees;}
+void                SceneNode::set_rotation_degrees( float new_rotation_degrees_cw ){
+    rotation_degrees=new_rotation_degrees_cw;
+}
+float               SceneNode::get_rotation_degrees( ) const {
+    return rotation_degrees;
+}
 float               SceneNode::get_global_rotation_degrees() const{
     if(!parent_node) return rotation_degrees;
     else return parent_node->get_global_rotation_degrees() + rotation_degrees;
+}
+Transform           SceneNode::get_transform() const{
+    Transform ret;
+    return ret.scale(Vector2(1,1))
+              .rotate_z( get_rotation_degrees() )  
+              .translate( Vector3( position.x , position.y , ((float)z)/SHORT_MAX ) );
 }
 Transform           SceneNode::get_global_transform() const{
     Transform ret;
@@ -62,8 +72,8 @@ short               SceneNode::get_global_z() const {
 }
 void                SceneNode::set_relative_z(bool new_val){relative_z=new_val;}
 bool                SceneNode::is_z_relative() const {return relative_z;}
-LuaScriptResource*  SceneNode::get_script_resource() const { return lua_script;};
-void                SceneNode::set_script_resource( LuaScriptResource* ls ){
+LuaScriptResource*  SceneNode::get_script() const { return lua_script;};
+void                SceneNode::set_script( LuaScriptResource* ls ){
     if( lua_script ){
         std::cerr << "Hmm you shouldn't change scripts attached in a node once set..." << std::endl;
     } else {
@@ -174,8 +184,8 @@ void        SceneNode::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_global_z);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_relative_z);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,is_z_relative);
-    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_script_resource);
-    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_script_resource);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_script);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_script);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_out);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,add_child);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_parent);

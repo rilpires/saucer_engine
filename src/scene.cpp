@@ -46,7 +46,7 @@ void        Scene::update_current_actors(){
             current_draws.push_back( scene_node );
         if( scene_node->get_component<CollisionBody>() )
             current_physics_actors.push_back( scene_node );
-        if( scene_node->get_script_resource() )
+        if( scene_node->get_script() )
             current_script_actors.push_back( scene_node );
         nodes_queue.pop();
         
@@ -81,10 +81,12 @@ void        Scene::loop_draw(){
     for( auto it = current_draws.begin() ; it != current_draws.end() ; it ++ ){
         SceneNode* scene_node = *it;
         Sprite* sprite_component = scene_node->get_component<Sprite>();
-        if( scene_node->get_scene() && sprite_component->get_texture() ){
-            Transform model_transform = scene_node->get_global_transform();
-            model_transform.scale(Vector3(1,1,-1));
+        if( scene_node->get_scene() && sprite_component->get_texture() ) {
 
+            Transform model_transform;
+            model_transform =   (scene_node->get_component<CollisionBody>() )   ?   scene_node->get_transform() 
+                                                                                :   scene_node->get_global_transform()  ;
+            
             GL_CALL( glBindTexture( GL_TEXTURE_2D , sprite_component->get_texture()->get_texture_id() ) );
             GL_CALL( glUniformMatrix4fv( model_transf_attrib_location , 1 , GL_FALSE , model_transform.m ) );
             GL_CALL( glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,NULL) );
@@ -113,12 +115,15 @@ void        Scene::loop_script(){
 void        Scene::loop_physics(){
     collision_world->step();
     for( SceneNode*& node : current_physics_actors ){
-        CollisionBody* body = node->get_component<CollisionBody>();
-        if( body ){
-            node->set_global_position( body->get_position() );
-            node->set_rotation_degrees( body->get_rotation_degrees() );
+        if( node->get_scene() ){
+            CollisionBody* body = node->get_component<CollisionBody>();
+            if( body ){
+                node->set_position( body->get_position() );
+                node->set_rotation_degrees( body->get_rotation_degrees() );
+            }
         }
     }
+    collision_world->delete_disableds();   
 }
 void        Scene::loop(){
     update_current_actors();

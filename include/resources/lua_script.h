@@ -10,6 +10,8 @@ class LuaScriptResource : public Resource {
 
     private:
         std::string src;
+        bool        has_collision_start = false;
+        bool        has_collision_end = false;
         bool        has_entered_tree = false;
         bool        has_exited_tree = false;
         bool        has_init = false;

@@ -13,27 +13,38 @@ function _entered_tree()
 end
 
 function _frame_start( dt_seconds )
-    -- vel = Vector2(0,0);
-    -- if (Input.is_key_pressed(KEY.LEFT))     then vel.x = vel.x - 1.0 end;
-    -- if (Input.is_key_pressed(KEY.RIGHT))    then vel.x = vel.x + 1.0 end;
-    -- if (Input.is_key_pressed(KEY.UP))       then vel.y = vel.y + 1.0 end;
-    -- if (Input.is_key_pressed(KEY.DOWN))     then vel.y = vel.y - 1.0 end;
-    -- this:set_position( this:get_position() + vel*5.0 )
-    print("FPS: " , Engine.get_fps() )
+    if not this:get_sprite() then
+        this:create_sprite():set_texture( load("res/gold.png") )
+    end
+    vel = Vector2(0,0);
+    if (Input.is_key_pressed(KEY.LEFT))     then vel.x = vel.x - 1.0 end;
+    if (Input.is_key_pressed(KEY.RIGHT))    then vel.x = vel.x + 1.0 end;
+    if (Input.is_key_pressed(KEY.UP))       then vel.y = vel.y + 1.0 end;
+    if (Input.is_key_pressed(KEY.DOWN))     then vel.y = vel.y - 1.0 end;
+    this:set_position( this:get_position() + vel*5.0 )
+    -- print("FPS: " , Engine.get_fps() )
 end
 
+current_spawn = nil
 
 function _input( input_event )
-    if( input_event:get_type() == InputEventType.MOUSE_BUTTON and input_event:is_pressed() and not input_event:is_echo() ) then
-        new_spawn = SceneNode.new()
-        this:add_child(new_spawn)
-
-        new_spawn:set_global_position( Input.get_world_mouse_position() )
-        new_spawn:create_sprite()
-        new_spawn:get_sprite():set_texture( load("res/gold.png") )
-        new_spawn:create_body()
-        new_spawn:get_body():set_body_type( BodyType.DYNAMIC )
-        new_spawn:get_body():create_rectangle_shape( Vector2(25,25)*0.9 , Vector2(0,0) )
-
+    if( input_event:get_type() == InputEventType.MOUSE_BUTTON and input_event:is_pressed() ) then
+        current_spawn = SceneNode.new()
+        this:add_child(current_spawn)
+        current_spawn:set_global_position( Input.get_world_mouse_position() )
+        current_spawn:create_sprite()
+        current_spawn:get_sprite():set_texture( load("res/gold.png") ) 
+        current_spawn:set_script( load("res/scripts/spawn.lua") )
+    elseif ( input_event:get_type() == InputEventType.MOUSE_BUTTON and not input_event:is_pressed() ) then 
+        local body = current_spawn:create_body()
+        body:set_body_type( BodyType.DYNAMIC )
+        body:set_restitution( 0.15 )
+        body:set_sensor( false )
+        body:set_fixed_rotation( math.random(0,1)>0.5 )
+        body:create_rectangle_shape( Vector2(22,224) , Vector2(0,0) )
+        current_spawn = nil
+    elseif ( input_event:get_type() == InputEventType.MOUSE_MOTION and current_spawn ) then
+        current_spawn:set_global_position( Input.get_world_mouse_position() )
     end
+
 end

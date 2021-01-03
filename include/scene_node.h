@@ -19,7 +19,7 @@ class Component;
 class SceneNode : public SaucerObject {
 
     friend class Scene;
-    REGISTER_SAUCER_OBJECT(SceneNode);
+    REGISTER_SAUCER_OBJECT(SceneNode,SaucerObject);
 
     protected:
         Vector2                     position;
@@ -42,16 +42,17 @@ class SceneNode : public SaucerObject {
         void                    set_global_position( const Vector2 new_pos );
         Vector2                 get_global_position() const;
         void                    set_rotation_degrees( float new_rotation_degrees_cw );
-        float                   get_rotation_degrees( );
+        float                   get_rotation_degrees( ) const ;
         float                   get_global_rotation_degrees() const;
+        Transform               get_transform() const ;
         Transform               get_global_transform() const ;
         void                    set_z( short new_z );
         short                   get_z( ) const;
         short                   get_global_z() const ;
         void                    set_relative_z(bool new_val);
         bool                    is_z_relative() const ;
-        void                    set_script_resource( LuaScriptResource* ls );
-        LuaScriptResource*      get_script_resource() const ;
+        void                    set_script( LuaScriptResource* ls );
+        LuaScriptResource*      get_script() const ;
         void                    get_out();
         void                    add_child( SceneNode* p_child_node );
         SceneNode*              get_parent( ) const ;

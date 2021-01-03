@@ -4,8 +4,15 @@
 #include "lua_engine.h"
 
 
+template< typename C >
+lua_CFunction    LuaEngine::recover_nested_function( std::string function_name ){
+    lua_CFunction ret = recover_nested_function( C::class_name , function_name );
+    if (!ret) ret = recover_nested_function< typename C::parent_type>( function_name );
+    if (!ret) std::cerr << "Couldn't find function \"" << function_name << "\" in class \"" << C::class_name << "\"." << std::endl;
+    return ret;
+}
 
-// push signature for std::vectors (const vector& only!)
+// push signature for std::vectors
 template< typename T , typename C1  >
 void    LuaEngine::push( lua_State* ls , T v ){
     lua_newtable(ls);
@@ -16,7 +23,7 @@ void    LuaEngine::push( lua_State* ls , T v ){
     }
 }
 
-// push signature for SaucerObject's inherited classes
+// push signature for saucer objects , (a.k.a pointers... except for inputevents, these should be specialized)
 template< typename T , class C1  , class C2 >
 void    LuaEngine::push( lua_State* ls , T obj ){
     if(!obj){
@@ -36,7 +43,7 @@ void    LuaEngine::push( lua_State* ls , T obj ){
     exit(1);
 }
 
-// pop signature for saucer objects , a.k.a pointers... except for inputevent, this one should be specialized
+// pop signature for saucer objects , (a.k.a pointers... except for inputevents, these should be specialized)
  template< typename T , class C1  >
 T       LuaEngine::pop( lua_State* ls ){
     SaucerId saucer_id = *(SaucerId*)lua_touserdata(ls,-1);
@@ -61,7 +68,7 @@ void    LuaEngine::push_metatable( lua_State* ls ){
     lua_pushcfunction(ls,[](lua_State* ls){
         const char* arg = lua_tostring(ls,-1);
         lua_pop(ls,2);
-        lua_pushcfunction( ls , LuaEngine::recover_nested_function(T::class_name,arg) );
+        lua_pushcfunction( ls , LuaEngine::recover_nested_function<T>(arg) );
         return 1;
     });
     lua_settable(ls,-3);

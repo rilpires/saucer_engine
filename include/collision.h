@@ -13,13 +13,19 @@ enum {
 };
 
 class CollisionWorld : public SaucerObject {
-    REGISTER_SAUCER_OBJECT(CollisionWorld);
+    REGISTER_SAUCER_OBJECT(CollisionWorld , SaucerObject);
+
+    class CollisionListener : public b2ContactListener {
+        void BeginContact(b2Contact* contact);
+        void EndContact(b2Contact* contact);
+    };
 
     private:
         int         velocity_iterations = 6;
         int         position_iterations = 2;
         b2World*    b2_world;
         Vector2     gravity;
+        CollisionWorld::CollisionListener* listener;
     public:
         CollisionWorld();
         ~CollisionWorld();
@@ -29,6 +35,7 @@ class CollisionWorld : public SaucerObject {
         void        set_gravity( Vector2 v );
 
         void        step();
+        void        delete_disableds();
 
 };
 
@@ -45,6 +52,7 @@ class CollisionBody : public Component {
         float                       friction;
         float                       density;
         bool                        sensor;
+        bool                        fixed_rotation;
         b2Body*                     b2_body;
         uint32_t                    present_mask;
         uint32_t                    observer_mask;
@@ -68,8 +76,14 @@ class CollisionBody : public Component {
         float               get_density() const ;
         void                set_sensor( bool new_val );
         bool                is_sensor() const ;
+        void                set_fixed_rotation( bool new_val );
+        bool                has_fixed_rotation() const ;
+        
+        const std::vector<CollisionBody*> get_current_collisions() const ;
 
         // these below should not be exposed to scripting
+        virtual void        collision_start( CollisionBody* other );
+        virtual void        collision_end( CollisionBody* other );
         void                tree_changed();
         Vector2             get_position() const;
         float               get_rotation_degrees() const;

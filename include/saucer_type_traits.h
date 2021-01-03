@@ -14,6 +14,16 @@ struct is_vector< const std::vector<T,T_alloc>& > {
     static const bool value = true;
     using value_type = T;
 };
+template<typename T , typename T_alloc >
+struct is_vector< const std::vector<T,T_alloc> > {
+    static const bool value = true;
+    using value_type = T;
+};
+template<typename T , typename T_alloc >
+struct is_vector< std::vector<T,T_alloc> > {
+    static const bool value = true;
+    using value_type = T;
+};
 
 
 template<typename T> 

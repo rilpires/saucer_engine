@@ -15,6 +15,17 @@ std::unordered_map< std::string , std::unordered_map< std::string , int > > LuaE
 std::unordered_map< std::string , lua_CFunction > LuaEngine::global_functions_db;
 
 
+
+template<>
+lua_CFunction    LuaEngine::recover_nested_function<SaucerObject>( std::string function_name ){
+    auto ret = recover_nested_function( "SaucerObject" , function_name );
+    if(!ret){
+        std::cerr << "Couldn't find function \""<<function_name<<"\" for class SaucerObject." << std::endl;
+        return [](lua_State* ls ){return 0;};
+    }
+    else return ret;
+}
+
 template<> void     LuaEngine::push( lua_State* ls , bool b ){
     lua_pushboolean(ls,b);
 }
@@ -95,6 +106,7 @@ void            LuaEngine::initialize(){
     Vector2::bind_methods();
     Vector3::bind_methods();
     Resource::bind_methods();
+    Component::bind_methods();
     SceneNode::bind_methods();
     Transform::bind_methods();
     CollisionBody::bind_methods();
@@ -249,23 +261,14 @@ void            LuaEngine::print_error( int err , LuaScriptResource* script ){
 }
 lua_CFunction   LuaEngine::recover_nested_function( std::string class_name , std::string function_name ){
     auto class_find = nested_functions_db.find( class_name );
-    if( class_find == nested_functions_db.end() ){
-        std::cerr << "Couldn't find any function for class " << class_name << std::endl;
-        // exit(1);
-    } else {
+    lua_CFunction ret = nullptr;
+    if( class_find != nested_functions_db.end() ){
         auto function_find = class_find->second.find( function_name );
-        if( function_find == class_find->second.end() ){
-            std::cerr << "Couldn't find any function named " << function_name << " for class " << class_name << std::endl;
-            // exit(1);
-        } else {
-            auto ret = (function_find->second);
-            return ret;
+        if( function_find != class_find->second.end() ){
+            ret = (function_find->second);
         }
     }
-    return [](lua_State* ls ){ 
-        std::cerr << "This function should not exist!" << std::endl ; 
-        return 0; 
-    };
+    return ret;
 }
 lua_CFunction   LuaEngine::recover_global_function( std::string function_name ){
     auto function_find = global_functions_db.find( function_name );
@@ -278,47 +281,65 @@ lua_CFunction   LuaEngine::recover_global_function( std::string function_name ){
         };
     } else return (function_find->second);
 }
+void            LuaEngine::execute_collision_start( SceneNode* actor , SceneNode* other ){
+    if( actor->get_script() == NULL || actor->get_script()->has_collision_start == false )return;
+    change_current_actor_env( actor );
+    lua_pushstring(ls,"_collision_start");
+    lua_gettable(ls,LUA_GLOBALSINDEX);
+    push(ls,other);
+    int err = lua_pcall(ls,1,0,0);
+    print_error(err,actor->get_script());
+}
+void            LuaEngine::execute_collision_end( SceneNode* actor , SceneNode* other ){
+    if( actor->get_script() == NULL || actor->get_script()->has_collision_end == false )return;
+    change_current_actor_env( actor );
+    lua_pushstring(ls,"_collision_end");
+    lua_gettable(ls,LUA_GLOBALSINDEX);
+    push(ls,other);
+    int err = lua_pcall(ls,1,0,0);
+    print_error(err,actor->get_script());
+}
 void            LuaEngine::execute_frame_start( SceneNode* actor , float delta_seconds ){
-    if( actor->get_script_resource() == NULL || actor->get_script_resource()->has_frame_start == false )return;
+    if( actor->get_script() == NULL || actor->get_script()->has_frame_start == false )return;
     change_current_actor_env( actor );
     lua_pushstring(ls,"_frame_start");
     lua_gettable(ls,LUA_GLOBALSINDEX);
     lua_pushnumber(ls,delta_seconds);
     int err = lua_pcall(ls,1,0,0);
-    print_error(err,actor->get_script_resource());
+    print_error(err,actor->get_script());
 }
 void            LuaEngine::execute_input( SceneNode* actor , Input::InputEvent* input_event ){
-    if( actor->get_script_resource() == NULL || actor->get_script_resource()->has_input == false )return;
+    if( actor->get_script() == NULL || actor->get_script()->has_input == false )return;
     change_current_actor_env( actor );
     lua_pushstring(ls,"_input");
     lua_gettable(ls,LUA_GLOBALSINDEX);
     push(ls,input_event);
     int err = lua_pcall(ls,1,0,0);
-    print_error(err,actor->get_script_resource());
+    print_error(err,actor->get_script());
 }
 void            LuaEngine::execute_entered_tree( SceneNode* actor ){
-    if( actor->get_script_resource() == NULL || actor->get_script_resource()->has_entered_tree == false )return;
+    if( actor->get_script() == NULL || actor->get_script()->has_entered_tree == false )return;
     change_current_actor_env( actor );
     lua_pushstring(ls,"_entered_tree");
     lua_gettable(ls,LUA_GLOBALSINDEX);
     int err = lua_pcall(ls,0,0,0);
-    print_error(err,actor->get_script_resource());
+    print_error(err,actor->get_script());
 }
 void            LuaEngine::execute_exited_tree( SceneNode* actor ){
-    if( actor->get_script_resource() == NULL || actor->get_script_resource()->has_exited_tree == false )return;
+    if( actor->get_script() == NULL || actor->get_script()->has_exited_tree == false )return;
     change_current_actor_env( actor );
     lua_pushstring(ls,"_exited_tree");
     lua_gettable(ls,LUA_GLOBALSINDEX);
     int err = lua_pcall(ls,0,0,0);
-    print_error(err,actor->get_script_resource());
+    print_error(err,actor->get_script());
 }
 void            LuaEngine::execute_init( SceneNode* actor ){
-    if( actor->get_script_resource() == NULL || actor->get_script_resource()->has_init == false )return;
+    if( actor->get_script() == NULL || actor->get_script()->has_init == false )return;
     change_current_actor_env( actor );
     lua_pushstring(ls,"_init");
     lua_gettable(ls,LUA_GLOBALSINDEX);
     int err = lua_pcall(ls,0,0,0);
-    print_error(err,actor->get_script_resource());
+    print_error(err,actor->get_script());
 }
 void            LuaEngine::create_actor_env( SceneNode* new_actor ){
     SceneNode* old_actor = current_actor;
@@ -337,7 +358,7 @@ void            LuaEngine::create_actor_env( SceneNode* new_actor ){
     }
 
     chunk_reader_offset = 0;
-    LuaScriptResource* script = new_actor->get_script_resource();
+    LuaScriptResource* script = new_actor->get_script();
     int err = lua_load( ls , chunk_reader , (void*)(script->get_src().c_str()) , "." ) || lua_pcall(ls,0,0,0) ;
     print_error(err,script);
 
@@ -359,11 +380,13 @@ void            LuaEngine::create_actor_env( SceneNode* new_actor ){
 
             // Saves in this script resource if it has any definition of functions "_frame_start","_input", etc
             // So we don't need to access it's actor's table every time for it 
-            if( key == "_frame_start" )         script->has_frame_start = true;
-            else if( key == "_input" )          script->has_input = true;
-            else if( key == "_entered_tree" )  script->has_entered_tree = true;
-            else if( key == "_exited_tree" )   script->has_exited_tree = true;
-            else if( key == "_init" )           script->has_init = true;
+            if( key == "_frame_start" )          script->has_frame_start = true;
+            else if( key == "_input" )           script->has_input = true;
+            else if( key == "_entered_tree" )    script->has_entered_tree = true;
+            else if( key == "_exited_tree" )     script->has_exited_tree = true;
+            else if( key == "_collision_start" ) script->has_collision_start = true;
+            else if( key == "_collision_end" )   script->has_collision_end = true;
+            else if( key == "_init" )            script->has_init = true;
             
 
             lua_pushvalue(ls,-2);
