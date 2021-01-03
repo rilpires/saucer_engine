@@ -11,6 +11,7 @@
 #include "component.h"
 #include "sprite.h"
 #include "transform.h"
+#include "collision.h"
 #include "color.h"
 #include "vector.h"
 #include "resources.h"

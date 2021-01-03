@@ -78,5 +78,5 @@ void    ResourceManager::free_resource(Resource* p_resource){
 }
 
 void    ResourceManager::bind_methods(){
-    REGISTER_LUA_NESTED_STATIC_FUNCTION(ResourceManager,get_resource);    
+    REGISTER_LUA_GLOBAL_FUNCTION( "load" , ResourceManager::get_resource );
 }

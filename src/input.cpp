@@ -89,6 +89,9 @@ void Input::mouse_button_callback( GLFWwindow* glfw_window , int button , int ac
 void    Input::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION( InputEvent , solve );
     REGISTER_LUA_MEMBER_FUNCTION( InputEvent , is_solved );
+    REGISTER_LUA_MEMBER_FUNCTION( InputEvent , is_pressed );
+    REGISTER_LUA_MEMBER_FUNCTION( InputEvent , is_echo );
+    REGISTER_LUA_MEMBER_FUNCTION( InputEvent , get_type );
     REGISTER_LUA_MEMBER_FUNCTION( InputEvent , get_type_str );
     REGISTER_LUA_MEMBER_FUNCTION( InputEvent , get_mouse_position );
 
@@ -97,7 +100,9 @@ void    Input::bind_methods(){
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Input , get_screen_mouse_position );
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Input , get_world_mouse_position );
     
-
+    REGISTER_LUA_CONSTANT(InputEventType,KEY,INPUT_EVENT_TYPE_KEY);
+    REGISTER_LUA_CONSTANT(InputEventType,MOUSE_BUTTON,INPUT_EVENT_TYPE_MOUSE_BUTTON);
+    REGISTER_LUA_CONSTANT(InputEventType,MOUSE_MOTION,INPUT_EVENT_TYPE_MOUSE_MOTION);
 
     #define REGISTER_GLFW_KEY_INTO_LUA( k )\
         REGISTER_LUA_CONSTANT( KEY , k , GLFW_KEY_##k );

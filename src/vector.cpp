@@ -58,10 +58,10 @@ template<> void LuaEngine::push<Vector2>( lua_State* ls , Vector2 v ){
     });                                                                 \
     lua_settable(ls,-3);
     
-    PUSH_VECTOR2_METATABLE_OPERATION("__add",+);
-    PUSH_VECTOR2_METATABLE_OPERATION("__sub",-);
-    PUSH_VECTOR2_METATABLE_OPERATION_SCALAR("__mul",*);
-    PUSH_VECTOR2_METATABLE_OPERATION_SCALAR("__div",/);
+    PUSH_VECTOR2_METATABLE_OPERATION( "__add" , + );
+    PUSH_VECTOR2_METATABLE_OPERATION( "__sub" , - );
+    PUSH_VECTOR2_METATABLE_OPERATION_SCALAR( "__mul" , * );
+    PUSH_VECTOR2_METATABLE_OPERATION_SCALAR( "__div" , / );
     
 
     lua_setmetatable(ls,-2);
@@ -103,6 +103,7 @@ void     Vector2::operator/= (const float    div   )      { x/=div;y/=div; }
 void Vector2::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(Vector2,rotated);
 }
+
 
 template<> void LuaEngine::push( lua_State* ls , Vector3 v ){
     void* userdata = lua_newuserdata( ls , sizeof(Vector3) );

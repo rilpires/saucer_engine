@@ -26,6 +26,12 @@ SceneNode::~SceneNode(){
 SceneNode*          SceneNode::lua_new(){ return new SceneNode(); }
 void                SceneNode::set_position( const Vector2 new_pos ){ position = new_pos; }
 Vector2             SceneNode::get_position( ) const{ return position; }
+void                SceneNode::set_global_position( const Vector2 new_pos ){
+    if( get_parent() ){
+        Transform parent_transform = get_parent()->get_global_transform();
+        set_position( parent_transform.inverted() * new_pos );
+    } else set_position( new_pos );
+}
 Vector2             SceneNode::get_global_position() const{
     if( parent_node == NULL ) return position;
     else {
@@ -68,24 +74,27 @@ void                SceneNode::set_script_resource( LuaScriptResource* ls ){
 void                SceneNode::get_out(){
     if( get_scene()->get_root_node() == this ){
         get_scene()->set_root_node(nullptr);
+        exited_tree();
     }
     if( parent_node ){
         std::vector<SceneNode*>& parent_chidren = parent_node->children_nodes;
         for( auto it = parent_chidren.begin() ; it != parent_chidren.end() ; it++ ){
             if( *it == this ){
                 parent_chidren.erase( it );
+                parent_node = nullptr;
+                scene = nullptr;
+                exited_tree();
                 break; 
             }
         }
     }
-    parent_node = nullptr;
-    scene = nullptr;
 }
 void                SceneNode::add_child( SceneNode* p_child_node ){
     if(p_child_node->parent_node) std::cerr << "Trying to add a node as a child but it already has a parent. " << std::endl; 
     else{
         p_child_node->parent_node = this;
         children_nodes.push_back( p_child_node );
+        p_child_node->entered_tree();
     }
 
 }
@@ -105,10 +114,24 @@ T*                          SceneNode::create_component( ){
         std::cout << "Warning: trying to create a component of a type that already exists" << std::endl;
         return nullptr;
     }
-    else{
+    else {
         T* new_comp = new T();
         attached_components.push_back(new_comp);
-        new_comp->attach_node(this);
+        ((Component*)new_comp)->attach_node(this);
+        return new_comp;
+    }
+}
+template<> 
+CollisionBody*              SceneNode::create_component( ){
+    if( get_component<CollisionBody>() ){
+        std::cout << "Warning: trying to create a component of a type that already exists" << std::endl;
+        return nullptr;
+    }
+    else {
+        CollisionBody* new_comp = new CollisionBody();
+        attached_components.push_back(new_comp);
+        ((Component*)new_comp)->attach_node(this);
+        new_comp->tree_changed();
         return new_comp;
     }
 }
@@ -116,7 +139,7 @@ template<typename T>
 void                          SceneNode::destroy_component( ){
     T* current_comp = get_component<T>();
     if( !current_comp ){
-        std::cout << "Warning: trying to destroy a unexistent component " << std::endl;
+        std::cout << "Warning: trying to destroy an unexistent component " << std::endl;
     } else {
         auto it = attached_components.begin();
         while( *it != (Component*)current_comp ) it++;
@@ -124,13 +147,23 @@ void                          SceneNode::destroy_component( ){
         delete current_comp;
     }
 }
-
+void        SceneNode::entered_tree(){
+    LuaEngine::execute_entered_tree( this );
+    CollisionBody* body = get_component<CollisionBody>();
+    if( body ) body->tree_changed();
+}
+void        SceneNode::exited_tree(){
+    LuaEngine::execute_exited_tree( this );
+    CollisionBody* body = get_component<CollisionBody>();
+    if( body ) body->tree_changed();
+}
 void        SceneNode::bind_methods(){
     
     REGISTER_LUA_NESTED_STATIC_FUNCTION(SceneNode,lua_new);
     
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_position);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_position);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_global_position);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_global_position);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_rotation_degrees);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_rotation_degrees);
@@ -150,7 +183,8 @@ void        SceneNode::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_children);
                                                                        
 
-    REGISTER_COMPONENT_HELPERS(Sprite,"sprite");
+    REGISTER_COMPONENT_HELPERS(Sprite,"sprite");                  
+    REGISTER_COMPONENT_HELPERS(CollisionBody,"body");
 
 }
 

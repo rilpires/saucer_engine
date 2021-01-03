@@ -97,6 +97,7 @@ void            LuaEngine::initialize(){
     Resource::bind_methods();
     SceneNode::bind_methods();
     Transform::bind_methods();
+    CollisionBody::bind_methods();
     ImageResource::bind_methods();
     ResourceManager::bind_methods();
     LuaScriptResource::bind_methods();
@@ -295,18 +296,18 @@ void            LuaEngine::execute_input( SceneNode* actor , Input::InputEvent* 
     int err = lua_pcall(ls,1,0,0);
     print_error(err,actor->get_script_resource());
 }
-void            LuaEngine::execute_entered_scene( SceneNode* actor ){
-    if( actor->get_script_resource() == NULL || actor->get_script_resource()->has_entered_scene == false )return;
+void            LuaEngine::execute_entered_tree( SceneNode* actor ){
+    if( actor->get_script_resource() == NULL || actor->get_script_resource()->has_entered_tree == false )return;
     change_current_actor_env( actor );
-    lua_pushstring(ls,"_entered_scene");
+    lua_pushstring(ls,"_entered_tree");
     lua_gettable(ls,LUA_GLOBALSINDEX);
     int err = lua_pcall(ls,0,0,0);
     print_error(err,actor->get_script_resource());
 }
-void            LuaEngine::execute_exited_scene( SceneNode* actor ){
-    if( actor->get_script_resource() == NULL || actor->get_script_resource()->has_exited_scene == false )return;
+void            LuaEngine::execute_exited_tree( SceneNode* actor ){
+    if( actor->get_script_resource() == NULL || actor->get_script_resource()->has_exited_tree == false )return;
     change_current_actor_env( actor );
-    lua_pushstring(ls,"_exited_scene");
+    lua_pushstring(ls,"_exited_tree");
     lua_gettable(ls,LUA_GLOBALSINDEX);
     int err = lua_pcall(ls,0,0,0);
     print_error(err,actor->get_script_resource());
@@ -360,8 +361,8 @@ void            LuaEngine::create_actor_env( SceneNode* new_actor ){
             // So we don't need to access it's actor's table every time for it 
             if( key == "_frame_start" )         script->has_frame_start = true;
             else if( key == "_input" )          script->has_input = true;
-            else if( key == "_entered_scene" )  script->has_entered_scene = true;
-            else if( key == "_exited_scene" )   script->has_exited_scene = true;
+            else if( key == "_entered_tree" )  script->has_entered_tree = true;
+            else if( key == "_exited_tree" )   script->has_exited_tree = true;
             else if( key == "_init" )           script->has_init = true;
             
 

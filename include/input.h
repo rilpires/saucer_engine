@@ -27,14 +27,14 @@ class Input {
         struct InputEventKey {
             INPUT_EVENT_TYPE            type;
             bool                        is_solved;
-            short                       key_unicode;
             INPUT_EVENT_ACTION          action;
+            short                       key_unicode;
         };
         struct InputEventMouseButton {
             INPUT_EVENT_TYPE            type;
             bool                        is_solved;
-            INPUT_EVENT_MOUSE_BUTTON    mouse_button;
             INPUT_EVENT_ACTION          action;
+            INPUT_EVENT_MOUSE_BUTTON    mouse_button;
         };
         struct InputEventMouseMotion {
             INPUT_EVENT_TYPE            type;
@@ -48,7 +48,7 @@ class Input {
             InputEventMouseButton   input_event_mouse_button;
             InputEventMouseMotion   input_event_mouse_motion;
             
-            INPUT_EVENT_TYPE    get_type(){return input_event_key.type;}
+            int                 get_type(){return input_event_key.type;}
             std::string         get_type_str() const { 
                 switch(input_event_key.type){
                     case INPUT_EVENT_TYPE_KEY: return "key";
@@ -59,6 +59,8 @@ class Input {
             void                solve(){ input_event_key.is_solved = true; }
             bool                is_solved() const { return input_event_key.is_solved; }
             Vector2             get_mouse_position() const {return Vector2(input_event_mouse_motion.window_x,input_event_mouse_motion.window_y);};
+            bool                is_pressed() const { return input_event_key.action==PRESSED || input_event_key.action==ECHO; }
+            bool                is_echo() const { return input_event_key.action==ECHO; }
             
             operator            InputEventKey(){ return input_event_key;}
             operator            InputEventMouseButton(){ return input_event_mouse_button;}

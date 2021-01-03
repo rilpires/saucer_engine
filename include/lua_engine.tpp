@@ -19,10 +19,13 @@ void    LuaEngine::push( lua_State* ls , T v ){
 // push signature for SaucerObject's inherited classes
 template< typename T , class C1  , class C2 >
 void    LuaEngine::push( lua_State* ls , T obj ){
-    if( obj )   *(SaucerId*) lua_newuserdata(ls,sizeof(SaucerId)) = obj->get_saucer_id();
-    else        *(SaucerId*) lua_newuserdata(ls,sizeof(SaucerId)) = 0;
-    push_metatable< typename std::remove_pointer<T>::type >(ls);
-    lua_setmetatable(ls,-2);
+    if(!obj){
+        lua_pushnil(ls);
+    } else {
+        *(SaucerId*) lua_newuserdata(ls,sizeof(SaucerId)) = obj->get_saucer_id();
+        push_metatable< typename std::remove_pointer<T>::type >(ls);
+        lua_setmetatable(ls,-2);
+    }
 }
 
 // push signature for non SaucerObject's inherited classes
@@ -231,7 +234,7 @@ struct LuaEngine::to_lua_cfunction<R(C::*)(T_arg1,T_arg2)>{
             T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
             class_type  obj     = LuaEngine::pop<class_type>(ls);
             C& obj_ref = to_ref<C>(obj);
-            R ret = (obj_ref.*f)(arg1);
+            R ret = (obj_ref.*f)(arg1,arg2);
             LuaEngine::push<R>(ls,ret);
             return 1;
         };
@@ -239,10 +242,11 @@ struct LuaEngine::to_lua_cfunction<R(C::*)(T_arg1,T_arg2)>{
     template< typename ret_type , const_function_type f , class = typename std::enable_if<!std::is_same< ret_type ,void>::value>::type , class=int >
     static lua_CFunction   generate_lambda( ){
         return []( lua_State* ls ) {
+            T_arg2      arg2    = LuaEngine::pop<T_arg2>(ls);
             T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
             class_type  obj     = LuaEngine::pop<class_type>(ls);
             C& obj_ref = to_ref<C>(obj);
-            R ret = (obj_ref.*f)(arg1);
+            R ret = (obj_ref.*f)(arg1,arg2);
             LuaEngine::push<R>(ls,ret);
             return 1;
         };

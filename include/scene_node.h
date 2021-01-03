@@ -39,6 +39,7 @@ class SceneNode : public SaucerObject {
         static SceneNode*       lua_new();
         void                    set_position( const Vector2 new_pos );
         Vector2                 get_position( ) const;
+        void                    set_global_position( const Vector2 new_pos );
         Vector2                 get_global_position() const;
         void                    set_rotation_degrees( float new_rotation_degrees_cw );
         float                   get_rotation_degrees( );
@@ -68,6 +69,10 @@ class SceneNode : public SaucerObject {
         
         inline virtual void     entered_scene(){};
         inline virtual void     process_input_event( Input::InputEvent* input_event ){};
+
+    private:
+        void                exited_tree();
+        void                entered_tree();
 
     public:
         static void         bind_methods();

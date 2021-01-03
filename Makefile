@@ -4,7 +4,8 @@ LINKER_FOLDERS := 	\
 	deps/lua/lib \
 	deps/libpng/lib \
 	deps/glfw/src \
-	deps/glew/lib 
+	deps/glew/lib \
+	deps/box2d/build/bin \
 
 LIBS := \
 	png \
@@ -13,14 +14,16 @@ LIBS := \
 	dl \
 	GL \
 	GLEW \
-	lua lualib\
+	lua lualib \
+	box2d \
 
 INCLUDE_PATHS := \
 	include \
 	deps/lua/include \
 	deps/libpng/include \
 	deps/glfw/include \
-	deps/glew/include
+	deps/glew/include \
+	deps/box2d/include \
 
 RELEASE ?= 0
 

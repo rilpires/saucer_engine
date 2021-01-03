@@ -10,8 +10,8 @@ class LuaScriptResource : public Resource {
 
     private:
         std::string src;
-        bool        has_entered_scene = false;
-        bool        has_exited_scene = false;
+        bool        has_entered_tree = false;
+        bool        has_exited_tree = false;
         bool        has_init = false;
         bool        has_frame_start = false;
         bool        has_input = false;

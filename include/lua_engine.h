@@ -26,8 +26,8 @@ extern "C" {
     LuaEngine::register_function(#C,#F, LuaEngine::to_lua_cfunction< function_member_unconstantizer<decltype(&C::F)>::type >::generate_lambda< function_ret_type<decltype(&C::F)>::type ,&C::F>() );
 #define REGISTER_LUA_NESTED_STATIC_FUNCTION(C,F)\
     LuaEngine::register_function(#C,#F, LuaEngine::to_lua_cfunction< decltype(C::F) >::generate_lambda< function_ret_type<decltype(C::F)>::type ,C::F>() );
-#define REGISTER_LUA_GLOBAL_FUNCTION(F)\
-    LuaEngine::register_function(#F, LuaEngine::to_lua_cfunction< decltype(C::F) >::generate_lambda< function_ret_type<decltype(C::F)>::type ,C::F>() );
+#define REGISTER_LUA_GLOBAL_FUNCTION(F_NAME,F)\
+    LuaEngine::register_function(F_NAME, LuaEngine::to_lua_cfunction< decltype(F) >::generate_lambda< function_ret_type<decltype(F)>::type ,F>() );
 #define REGISTER_LUA_CONSTANT(ENUM_NAME,INDEX_NAME,VALUE)\
     LuaEngine::register_constant(#ENUM_NAME,#INDEX_NAME,VALUE)
 
@@ -65,8 +65,8 @@ class LuaEngine {
 
         static void             execute_frame_start( SceneNode* actor , float delta_seconds );
         static void             execute_input( SceneNode* actor , Input::InputEvent* input_event );
-        static void             execute_entered_scene( SceneNode* actor );
-        static void             execute_exited_scene( SceneNode* actor );
+        static void             execute_entered_tree( SceneNode* actor );
+        static void             execute_exited_tree( SceneNode* actor );
         static void             execute_init( SceneNode* actor );
 
 

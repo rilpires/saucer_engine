@@ -11,6 +11,8 @@ struct Transform {
 
     Transform();
 
+    Transform   inverted();
+
     Transform&  translate( const Vector2& v );
     Transform&  translate( const Vector3& v );
     Transform&  rotate( const float& r_degrees , Vector3 axis );

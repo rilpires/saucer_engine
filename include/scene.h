@@ -5,7 +5,7 @@
 #include "engine.h"
 #include "transform.h"
 #include "saucer_object.h"
-
+#include "collision.h"
 #include <vector>
 
 class SceneNode;
@@ -18,6 +18,7 @@ class Scene : public SaucerObject {
 
     private:
 
+        CollisionWorld* collision_world;
         SceneNode*  root_node;
         Transform   camera_transform;
         std::vector<SceneNode*> current_draws;
@@ -39,10 +40,9 @@ class Scene : public SaucerObject {
 
         void            set_root_node(SceneNode* p_root_node);
         SceneNode*      get_root_node();
-
         Transform       get_camera_transform();
         void            set_camera_transform(Transform t);
-
+        CollisionWorld* get_collision_world() const ;
         void            loop();
 
         static void bind_methods();

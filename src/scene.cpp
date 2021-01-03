@@ -4,25 +4,33 @@
 #include <queue>
 #include <algorithm>
 
-template<> void LuaEngine::push( lua_State* ls , Scene* r ){
-    lua_pushnumber(ls,666);
-}
-
 Scene::Scene(){
     root_node = NULL;
+    collision_world = new CollisionWorld();
 }
 Scene::~Scene(){
     if(root_node) delete root_node;
     if( Engine::get_current_scene()==this ) Engine::set_current_scene(nullptr);
+    delete collision_world;
 }
 Scene*      Scene::lua_new(){ return new Scene(); }
 void        Scene::set_root_node(SceneNode* p_root_node){
-    root_node = p_root_node;
-    root_node->scene = this;
+    if( !root_node && p_root_node ){
+        root_node = p_root_node;
+        root_node->scene = this;
+        root_node->entered_tree();
+    }
+    else if ( root_node && p_root_node == nullptr ){
+        root_node->exited_tree();
+        root_node = nullptr;
+    }
 }
 SceneNode*  Scene::get_root_node(){return root_node;}
 Transform   Scene::get_camera_transform(){return camera_transform;}
 void        Scene::set_camera_transform(Transform t){camera_transform=t;}
+CollisionWorld*  Scene::get_collision_world() const{
+    return collision_world;
+}
 void        Scene::update_current_actors(){
     current_draws.clear();
     current_input_handlers.clear();
@@ -36,6 +44,8 @@ void        Scene::update_current_actors(){
         SceneNode* scene_node = nodes_queue.front();
         if( scene_node->get_component<Sprite>() ) 
             current_draws.push_back( scene_node );
+        if( scene_node->get_component<CollisionBody>() )
+            current_physics_actors.push_back( scene_node );
         if( scene_node->get_script_resource() )
             current_script_actors.push_back( scene_node );
         nodes_queue.pop();
@@ -70,12 +80,15 @@ void        Scene::loop_draw(){
 
     for( auto it = current_draws.begin() ; it != current_draws.end() ; it ++ ){
         SceneNode* scene_node = *it;
-        Transform model_transform = scene_node->get_global_transform();
-        model_transform.scale(Vector3(1,1,-1));
+        Sprite* sprite_component = scene_node->get_component<Sprite>();
+        if( scene_node->get_scene() && sprite_component->get_texture() ){
+            Transform model_transform = scene_node->get_global_transform();
+            model_transform.scale(Vector3(1,1,-1));
 
-        GL_CALL( glBindTexture( GL_TEXTURE_2D , scene_node->get_component<Sprite>()->get_texture()->get_texture_id() ) );
-        GL_CALL( glUniformMatrix4fv( model_transf_attrib_location , 1 , GL_FALSE , model_transform.m ) );
-        GL_CALL( glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,NULL) );
+            GL_CALL( glBindTexture( GL_TEXTURE_2D , sprite_component->get_texture()->get_texture_id() ) );
+            GL_CALL( glUniformMatrix4fv( model_transf_attrib_location , 1 , GL_FALSE , model_transform.m ) );
+            GL_CALL( glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,NULL) );
+        }
     }
 }
 void        Scene::loop_input(){
@@ -98,7 +111,14 @@ void        Scene::loop_script(){
     }
 }
 void        Scene::loop_physics(){
-
+    collision_world->step();
+    for( SceneNode*& node : current_physics_actors ){
+        CollisionBody* body = node->get_component<CollisionBody>();
+        if( body ){
+            node->set_global_position( body->get_position() );
+            node->set_rotation_degrees( body->get_rotation_degrees() );
+        }
+    }
 }
 void        Scene::loop(){
     update_current_actors();
@@ -108,5 +128,6 @@ void        Scene::loop(){
     loop_draw();
 }
 void        Scene::bind_methods(){
-
+    REGISTER_LUA_MEMBER_FUNCTION( Scene , get_root_node );
+    REGISTER_LUA_MEMBER_FUNCTION( Scene , set_root_node );
 }

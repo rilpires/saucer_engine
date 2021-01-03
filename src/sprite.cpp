@@ -1,23 +1,6 @@
 #include "sprite.h"
 #include "core.h"
 
-
-template<> void LuaEngine::push( lua_State* ls , Sprite* obj ){
-    if( obj )   *(SaucerId*) lua_newuserdata(ls,sizeof(SaucerId)) = obj->get_saucer_id();
-    else        *(SaucerId*) lua_newuserdata(ls,sizeof(SaucerId)) = 0;
-        
-    lua_newtable(ls);
-    lua_pushstring(ls,"__index");
-    lua_pushcfunction(ls,[](lua_State* ls){
-        const char* arg = lua_tostring(ls,-1);
-        lua_pop(ls,2);
-        lua_pushcfunction( ls , LuaEngine::recover_nested_function("Sprite",arg) );
-        return 1;
-    });
-    lua_settable(ls,-3);
-    lua_setmetatable(ls,-2);
-}
-
 std::unordered_map< SaucerId , Sprite* > Sprite::component_from_node;
 
 Sprite::Sprite(){
