@@ -54,8 +54,8 @@ class CollisionBody : public Component {
         bool                        sensor;
         bool                        fixed_rotation;
         b2Body*                     b2_body;
-        uint32_t                    present_mask;
-        uint32_t                    observer_mask;
+        uint16_t                    collision_layer;
+        uint16_t                    collision_mask;
         unsigned char               body_type;
 
     public:
@@ -78,6 +78,10 @@ class CollisionBody : public Component {
         bool                is_sensor() const ;
         void                set_fixed_rotation( bool new_val );
         bool                has_fixed_rotation() const ;
+        bool                get_collision_layer_bit( int bit );
+        bool                get_collision_mask_bit( int bit );
+        void                set_collision_layer_bit( int bit , bool new_val );
+        void                set_collision_mask_bit( int bit , bool new_val );
         
         const std::vector<CollisionBody*> get_current_collisions() const ;
 

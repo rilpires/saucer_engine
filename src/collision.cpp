@@ -69,6 +69,8 @@ CollisionBody::CollisionBody(){
     sensor = false;
     fixed_rotation = true;
     body_type = SAUCER_BODY_TYPE_STATIC;
+    collision_layer = 0x0001;
+    collision_mask  = 0xFFFF;
 }
 CollisionBody::~CollisionBody(){
     if(b2_body){
@@ -116,6 +118,8 @@ void    CollisionBody::create_circle_shape( float radius , Vector2 offset ){
     def.restitution = restitution;
     def.friction = friction;
     def.isSensor = sensor;
+    def.filter.maskBits = collision_mask;
+    def.filter.categoryBits = collision_layer;
     fixture_defs.push_back( std::make_pair(def , shape) );
     if( b2_body ) b2_body->CreateFixture( &def );
 }
@@ -168,6 +172,48 @@ void    CollisionBody::set_fixed_rotation( bool new_val ){
 }
 bool    CollisionBody::has_fixed_rotation() const {
     return fixed_rotation;
+}
+bool    CollisionBody::get_collision_layer_bit( int bit ){
+    if( bit < 0 || bit > 16 ){
+        std::cerr << "get_collision_layer_bit  only accepts values for \"bit\" such that 1 <= bit <= 16 " << std::endl;
+        return false;
+    }
+    return collision_layer & (1 << (bit-1) ); 
+}
+bool    CollisionBody::get_collision_mask_bit( int bit ){
+    if( bit < 0 || bit > 16 ){
+        std::cerr << "get_collision_mask_bit  only accepts values for \"bit\" such that 1 <= bit <= 16 " << std::endl;
+        return false;
+    }
+    return collision_mask & (1 << (bit-1) ); 
+}
+void    CollisionBody::set_collision_layer_bit( int bit , bool new_val ){
+    if( bit < 0 || bit > 16 ){
+        std::cerr << "set_collision_layer_bit only accepts values for \"bit\" such that 1 <= bit <= 16 " << std::endl;
+    } else 
+    collision_layer = (new_val) ?   ( collision_layer |  (1<<(bit-1))) 
+                                :   ( collision_layer & ~(1<<(bit-1)));
+
+    for( auto& p : fixture_defs ) p.first.filter.categoryBits = collision_layer;
+    if(b2_body) for( b2Fixture* fixture = b2_body->GetFixtureList() ; fixture ; fixture = fixture->GetNext() ){
+        b2Filter new_filter = fixture->GetFilterData();
+        new_filter.categoryBits = collision_layer;
+        fixture->SetFilterData( new_filter );
+    }
+}
+void    CollisionBody::set_collision_mask_bit( int bit , bool new_val ){
+    if( bit < 0 || bit > 16 ){
+        std::cerr << "set_collision_mask_bit only accepts values for \"bit\" such that 1 <= bit <= 16 " << std::endl;
+    } else
+    collision_mask = (new_val) ?    ( collision_mask |  (1<<(bit-1))) 
+                                :   ( collision_mask & ~(1<<(bit-1)));
+
+    for( auto& p : fixture_defs ) p.first.filter.categoryBits = collision_mask;
+    if(b2_body) for( b2Fixture* fixture = b2_body->GetFixtureList() ; fixture ; fixture = fixture->GetNext() ){
+        b2Filter new_filter = fixture->GetFilterData();
+        new_filter.categoryBits = collision_mask;
+        fixture->SetFilterData( new_filter );
+    }
 }
 const   std::vector<CollisionBody*> CollisionBody::get_current_collisions() const {
     std::vector<CollisionBody*> ret;
@@ -244,5 +290,9 @@ void    CollisionBody::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION( CollisionBody , set_fixed_rotation );
     REGISTER_LUA_MEMBER_FUNCTION( CollisionBody , has_fixed_rotation );
     REGISTER_LUA_MEMBER_FUNCTION( CollisionBody , get_current_collisions );
+    REGISTER_LUA_MEMBER_FUNCTION( CollisionBody , get_collision_layer_bit );
+    REGISTER_LUA_MEMBER_FUNCTION( CollisionBody , get_collision_mask_bit );
+    REGISTER_LUA_MEMBER_FUNCTION( CollisionBody , set_collision_layer_bit );
+    REGISTER_LUA_MEMBER_FUNCTION( CollisionBody , set_collision_mask_bit );
 
 }
