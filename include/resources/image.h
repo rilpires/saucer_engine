@@ -7,6 +7,8 @@
 typedef unsigned int TextureId;
 
 class ImageResource : public Resource {
+    REGISTER_SAUCER_OBJECT(ImageResource,Resource)
+    
     friend class ResourceManager;
     private:
         unsigned char*          data;

@@ -109,6 +109,7 @@ void            LuaEngine::initialize(){
     Component::bind_methods();
     SceneNode::bind_methods();
     Transform::bind_methods();
+    AudioEmitter::bind_methods();
     CollisionBody::bind_methods();
     ImageResource::bind_methods();
     ResourceManager::bind_methods();

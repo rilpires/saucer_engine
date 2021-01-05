@@ -61,7 +61,7 @@ T       LuaEngine::pop( lua_State* ls ){
 }
 
 // The default metatable that is created...
-template<typename T>
+template< typename T>
 void    LuaEngine::push_metatable( lua_State* ls ){
     lua_newtable(ls);
     lua_pushstring(ls,"__index");

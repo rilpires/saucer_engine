@@ -2,8 +2,8 @@
 #define COLLISION_H
 
 #include <vector>
+
 #include "component.h"
-#include "scene_node.h"
 #include "box2d/box2d.h"
 
 enum {
@@ -36,10 +36,8 @@ class CollisionWorld : public SaucerObject {
 
         void        step();
         void        delete_disableds();
-
+    
 };
-
-struct Shape;
 
 class CollisionBody : public Component {
     

@@ -1,28 +1,12 @@
 #include "resources.h"
 #include "resources/image.h"
 #include "resources/lua_script.h"
+#include "resources/audiofile.h"
 #include "lua_engine.h"
 
 #include <iostream>
 
 std::unordered_map<std::string,SaucerId> ResourceManager::id_by_path;
-
-template<> void LuaEngine::push( lua_State* ls , Resource* r ){
-    if( r ) *(SaucerId*) lua_newuserdata(ls,sizeof(SaucerId)) = r->get_saucer_id();
-    else    *(SaucerId*) lua_newuserdata(ls,sizeof(SaucerId)) = 0;
-
-    lua_newtable(ls);
-    lua_pushstring(ls,"__index");
-    lua_pushcfunction(ls,[](lua_State* ls){
-        const char* arg = lua_tostring(ls,-1);
-        lua_pop(ls,2);
-        lua_pushcfunction( ls , LuaEngine::LuaEngine::recover_nested_function("Resource",arg) );
-        return 1;
-    });
-    lua_settable(ls,-3);
-    lua_setmetatable(ls,-2);
-}
-
 
 Resource::Resource(){
 }
@@ -60,9 +44,12 @@ Resource*           ResourceManager::load_resource(std::string filepath){
     std::string str_filepath = filepath;
     Resource* ret = NULL;
     std::string extension = str_filepath.substr( str_filepath.find_last_of('.') );
-
+    
     if( extension == ".png" ){
         ret = new ImageResource( filepath );
+    }
+    else if (extension == ".wav"){
+        ret = new WavAudioResource( filepath.c_str() );
     }
     else if (extension == ".lua"){
         ret = new LuaScriptResource( filepath );

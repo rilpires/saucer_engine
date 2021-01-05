@@ -3,17 +3,18 @@
 #define WINDOW_H
 
 #define GLFW_INCLUDE_NONE
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 #include <iostream>
 #include <list>
+
 #include "saucer_object.h"
+#include "vector.h"
 
-
-class Vector2;
-class Input;
 class Scene;
+class AudioEngine;
 
 
 class Engine : public SaucerObject{
@@ -21,9 +22,11 @@ class Engine : public SaucerObject{
     
     private:
         static GLFWwindow*          glfw_window;
+        static AudioEngine*         audio_engine;
         static Scene*               current_scene;
         static std::list<double>    last_uptimes;
-        static void                 setup_renderer();
+        static void                 setup_renderer( Vector2 p_size , Vector2 p_pos , const char* title );
+        static void                 setup_audio();
 
     public:
         static void         initialize( Vector2 p_size , Vector2 p_pos , const char* title );
@@ -40,10 +43,10 @@ class Engine : public SaucerObject{
         static Vector2      get_window_pos();
         static void         set_fullscreen( bool fs );
         static bool         is_fullscreen();
+        static AudioEngine* get_audio_engine();
         static bool         should_close();
 
         static void         bind_methods();
-
 
 };
 

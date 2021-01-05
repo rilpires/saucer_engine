@@ -4,9 +4,11 @@
 #define FPS_FRAMES_TO_ACCOUNT 30
 
 GLFWwindow*         Engine::glfw_window     = nullptr;
+AudioEngine*        Engine::audio_engine    = nullptr;
 Scene*              Engine::current_scene   = nullptr;
 std::list<double>   Engine::last_uptimes;
 
+// Gotta pass it to a proper resource type later
 void setupShader( unsigned int program , GLenum shader_type , std::string src ){
 
     int src_size = src.size();
@@ -32,7 +34,36 @@ void setupShader( unsigned int program , GLenum shader_type , std::string src ){
 }
 
 
-void    Engine::setup_renderer(){
+
+void        Engine::setup_renderer(Vector2 p_size , Vector2 p_pos , const char* title){
+    
+    if( !glfwInit() ) std::cerr << "Failed to glfwInit()" << std::endl;
+    
+    glfw_window = glfwCreateWindow( p_size.x , p_size.y , title , NULL , NULL );
+    
+    // Positioning
+    glfwSetWindowPos( glfw_window , p_pos.x , p_pos.y );
+
+    // Defining context variables & other stuffs
+    glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR , 3 );
+    glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR , 0 );
+    // glfwWindowHint( GLFW_OPENGL_COMPAT_PROFILE , 0 );
+
+    // Setting context
+    glfwMakeContextCurrent(glfw_window);
+    
+    // Initializing GLEW
+    glewExperimental = true;
+    GLenum ret_glewInit = glewInit();
+    if( ret_glewInit != GLEW_OK ) std::cerr << "Failed to glewInit() :" << glewGetErrorString(ret_glewInit) << std::endl;
+    
+    // Logging stuffs
+    const GLubyte* renderer = glGetString( GL_RENDERER );
+    const GLubyte* version = glGetString( GL_VERSION );
+    std::cout << "Renderer: " << renderer << std::endl;
+    std::cout << "Version: " << version << std::endl;
+
+    
     // Compiling & Linking shaders
     std::string vs = read_file_as_string( "res/shaders/basic_vertex.vs" );
     std::string fs = read_file_as_string( "res/shaders/basic_fragment.fs" );
@@ -83,39 +114,13 @@ void    Engine::setup_renderer(){
     GL_CALL( glEnableVertexAttribArray(  0 ) );
     GL_CALL( glEnableVertexAttribArray( 1 ) );
 }
-
-
-void Engine::initialize( Vector2 p_size , Vector2 p_pos , const char* title ){
-    
-    if( !glfwInit() ) std::cerr << "Failed to glfwInit()" << std::endl;
-    
-    glfw_window = glfwCreateWindow( p_size.x , p_size.y , title , NULL , NULL );
-    
-    // Positioning
-    glfwSetWindowPos( glfw_window , p_pos.x , p_pos.y );
-
-    // Defining context variables & other stuffs
-    glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR , 3 );
-    glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR , 0 );
-    // glfwWindowHint( GLFW_OPENGL_COMPAT_PROFILE , 0 );
-
-    // Setting context
-    glfwMakeContextCurrent(glfw_window);
-    
-    // Initializing GLEW
-    glewExperimental = true;
-    GLenum ret_glewInit = glewInit();
-    if( ret_glewInit != GLEW_OK ) std::cerr << "Failed to glewInit() :" << glewGetErrorString(ret_glewInit) << std::endl;
-    
-    // Logging stuffs
-    const GLubyte* renderer = glGetString( GL_RENDERER );
-    const GLubyte* version = glGetString( GL_VERSION );
-    std::cout << "Renderer: " << renderer << std::endl;
-    std::cout << "Version: " << version << std::endl;
-
-
+void        Engine::setup_audio(){
+    audio_engine = new AudioEngine();
+}
+void        Engine::initialize( Vector2 p_size , Vector2 p_pos , const char* title ){
     // Setting up initial stuffs for OpenGL state:
-    setup_renderer();
+    setup_renderer( p_size , p_pos , title );
+    setup_audio();
 
     // Setting input callbacks
     glfwSetCursorPosCallback( glfw_window , Input::mouse_pos_callback );
@@ -124,16 +129,16 @@ void Engine::initialize( Vector2 p_size , Vector2 p_pos , const char* title ){
 
     // Initial scene is Null
     current_scene = NULL;
-
 }
 
-void Engine::close(){
+void        Engine::close(){
     std::cout << "Closing window" << std::endl;
     glfwDestroyWindow(glfw_window);
     glfwTerminate();
+    delete audio_engine;
 }
 
-void        Engine::update(){
+void            Engine::update(){
     last_uptimes.push_front( get_uptime() );
     if( last_uptimes.size() > FPS_FRAMES_TO_ACCOUNT ) {
         last_uptimes.pop_back();
@@ -145,17 +150,17 @@ void        Engine::update(){
     }
     glfwSwapBuffers(glfw_window);
 }
-double      Engine::get_uptime(){
+double          Engine::get_uptime(){
     return glfwGetTime();
 }
-double      Engine::get_fps(){
+double          Engine::get_fps(){
     size_t number_of_frames = last_uptimes.size();
     double elapsed_time = last_uptimes.front() - last_uptimes.back();
     if( number_of_frames > 1 && elapsed_time > 0 ){
         return (number_of_frames-1) / elapsed_time; 
     } else return 0;
 }
-double      Engine::get_last_frame_duration(){
+double          Engine::get_last_frame_duration(){
     if( last_uptimes.size() >= 2 ){
         auto begin = last_uptimes.begin();
         double ret = *(begin) - *(begin++);
@@ -163,29 +168,29 @@ double      Engine::get_last_frame_duration(){
     }
     else return 0.0;
 }
-void        Engine::set_current_scene(Scene* scene){
+void            Engine::set_current_scene(Scene* scene){
     current_scene = scene;
 }
-Scene*      Engine::get_current_scene(){ 
+Scene*          Engine::get_current_scene(){ 
     return current_scene;
 }
-void        Engine::set_window_size( Vector2 new_size ){
+void            Engine::set_window_size( Vector2 new_size ){
     glfwSetWindowSize( glfw_window , new_size.x , new_size.y );
 }
-Vector2     Engine::get_window_size(){
+Vector2         Engine::get_window_size(){
     int w,h;
     glfwGetWindowSize( glfw_window , &w , &h );
     return Vector2( w,h );
 }
-void        Engine::set_window_pos( Vector2 new_pos ){
+void            Engine::set_window_pos( Vector2 new_pos ){
     glfwSetWindowPos( glfw_window , new_pos.x , new_pos.y );
 }
-Vector2     Engine::get_window_pos() {
+Vector2         Engine::get_window_pos() {
     int x,y;
     glfwGetWindowPos( glfw_window , &x , &y );
     return Vector2(x,y);
 }
-void        Engine::set_fullscreen( bool fs ){
+void            Engine::set_fullscreen( bool fs ){
     if( !is_fullscreen() && fs ){
         int w,h;
         glfwGetWindowSize( glfw_window , &w , &h );
@@ -196,13 +201,16 @@ void        Engine::set_fullscreen( bool fs ){
         glfwSetWindowMonitor( glfw_window , NULL , 0 , 0 , w , h , 60 );
     }
 }
-bool        Engine::is_fullscreen(){
+bool            Engine::is_fullscreen(){
     return glfwGetWindowMonitor(glfw_window) != NULL;
 }
-bool        Engine::should_close() {
+AudioEngine*    Engine::get_audio_engine(){
+    return audio_engine;
+}
+bool            Engine::should_close() {
     return glfwWindowShouldClose(glfw_window);
 }
-void        Engine::bind_methods(){
+void            Engine::bind_methods(){
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_uptime );
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_fps );
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , set_current_scene );
@@ -213,4 +221,5 @@ void        Engine::bind_methods(){
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_window_pos );
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , set_fullscreen );
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , is_fullscreen );
+    REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_audio_engine );
 }

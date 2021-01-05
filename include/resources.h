@@ -8,6 +8,8 @@
 
 class ResourceManager;
 class Resource : public SaucerObject {
+    REGISTER_SAUCER_OBJECT(Resource,SaucerObject)
+    
     friend class ResourceManager;
     protected:
         std::string         path;

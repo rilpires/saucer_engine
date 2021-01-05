@@ -6,6 +6,8 @@
 #include <string>
 
 class LuaScriptResource : public Resource {
+    REGISTER_SAUCER_OBJECT(LuaScriptResource,Resource)
+    
     friend class LuaEngine;
 
     private:

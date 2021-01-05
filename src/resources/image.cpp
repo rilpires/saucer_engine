@@ -6,22 +6,6 @@
 #include <iostream>
 
 
-template<> void LuaEngine::push( lua_State* ls , ImageResource* r ){
-    if( r ) *(SaucerId*) lua_newuserdata(ls,sizeof(SaucerId)) = r->get_saucer_id();
-    else    *(SaucerId*) lua_newuserdata(ls,sizeof(SaucerId)) = 0;
-
-    lua_newtable(ls);
-    lua_pushstring(ls,"__index");
-    lua_pushcfunction(ls,[](lua_State* ls){
-        const char* arg = lua_tostring(ls,-1);
-        lua_pop(ls,2);
-        lua_pushcfunction( ls , nested_functions_db["Resource"][arg] ); // Uhhh gotta work around this issue (member inheritance)
-        return 1;
-    });
-    lua_settable(ls,-3);
-    lua_setmetatable(ls,-2);
-}
-
 ImageResource::ImageResource( std::string filepath ) : Resource(filepath) {
 
     png_image image; /* The control structure used by libpng */

@@ -4,7 +4,7 @@
 #include <unordered_map>
 
 #include "component.h"
-#include "scene_node.h"
+
 #include "resources/image.h"
 
 class Sprite : public Component {

@@ -3,10 +3,6 @@
 #include "core.h"
 
 
-template<> void LuaEngine::push( lua_State* ls , LuaScriptResource* r ){
-    lua_pushnumber(ls,666);
-}
-
 LuaScriptResource::LuaScriptResource( std::string filepath ) : Resource( filepath ){
     src = read_file_as_string(filepath.c_str());
 }

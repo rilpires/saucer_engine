@@ -1,5 +1,7 @@
 #include "collision.h"
-#include "core.h"
+#include "lua_engine.h"
+#include "scene_node.h"
+#include "scene.h"
 #include "math.h"
 
 #define METERS_PER_PIXEL 0.01f
@@ -226,6 +228,9 @@ const   std::vector<CollisionBody*> CollisionBody::get_current_collisions() cons
     }
     return ret;
 }
+
+
+
 void    CollisionBody::collision_start( CollisionBody* other ){
     LuaEngine::execute_collision_start( get_node() , other->get_node() );
 }
@@ -271,6 +276,8 @@ float   CollisionBody::get_rotation_degrees() const{
 }
 
 void    CollisionBody::bind_methods(){
+
+
     REGISTER_LUA_CONSTANT( BodyType , DYNAMIC   , SAUCER_BODY_TYPE_DYNAMIC );
     REGISTER_LUA_CONSTANT( BodyType , STATIC    , SAUCER_BODY_TYPE_STATIC );
     REGISTER_LUA_CONSTANT( BodyType , KINEMATIC , SAUCER_BODY_TYPE_KINEMATIC );

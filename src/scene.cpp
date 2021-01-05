@@ -71,10 +71,8 @@ void        Scene::loop_draw(){
     GL_CALL( glUniform2f( viewport_size_attrib_location , window_size.x , window_size.y ) );
     GL_CALL( glUniformMatrix4fv( camera_transf_attrib_location , 1 , GL_FALSE , camera_transform.m ) );
 
-    
-    
-    // Z-sorting
-    std::sort( current_draws.begin() , current_draws.end() , [](const SceneNode* n1 , const SceneNode* n2)->bool{
+    // Z-sorting. Must be stable_sort or else unexpected "z flips" can occur between same z-level sprites sometimes...
+    std::stable_sort( current_draws.begin() , current_draws.end() , [](const SceneNode* n1 , const SceneNode* n2)->bool{
         return n2->get_global_z() > n1->get_global_z();
     });
 

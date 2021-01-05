@@ -12,9 +12,9 @@
 #include "resources/image.h"
 #include "saucer_object.h"
 
+class Component;
 class Scene;
 class LuaScriptResource;
-class Component;
 
 class SceneNode : public SaucerObject {
 
@@ -61,13 +61,12 @@ class SceneNode : public SaucerObject {
 
         std::vector<SceneNode*> const&  get_children() const;
 
-        template<typename T> 
+        template< typename T> 
         T*                      get_component() const;
-        template<typename T> 
+        template< typename T> 
         T*                      create_component( );
-        template<typename T> 
+        template< typename T> 
         void                    destroy_component( );
-        
         inline virtual void     entered_scene(){};
         inline virtual void     process_input_event( Input::InputEvent* input_event ){};
 
@@ -80,5 +79,6 @@ class SceneNode : public SaucerObject {
 
 };
 
+#include "scene_node.tpp"
 
 #endif

@@ -1,10 +1,9 @@
 #ifndef COMPONENT_H
 #define COMPONENT_H
 
-#include "saucer_object.h"
-
 class SceneNode;
 
+#include "saucer_object.h"
 
 class Component : public SaucerObject {
     
@@ -63,6 +62,8 @@ class Component : public SaucerObject {
         static  void        bind_methods();
     
 };
+
+#include "scene_node.h"
 
 
 // Registering "per-component" get_component/set_component functions, since we can't use get_component<Sprite>() in Lua!

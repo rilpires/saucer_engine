@@ -1,7 +1,5 @@
 #include "scene_node.h"
 #include "core.h"
-#include <iostream>
-#include <type_traits>
 
 #define SHORT_MAX 0b0111111111111111
 
@@ -114,23 +112,6 @@ Scene*              SceneNode::get_scene() const{
     else return scene;
 }
 std::vector<SceneNode*> const&  SceneNode::get_children() const { return children_nodes; }
-
-template<typename T> T*     SceneNode::get_component() const {
-    return T::recover_from_node(this);
-}
-template<typename T> 
-T*                          SceneNode::create_component( ){
-    if( get_component<T>() ){
-        std::cout << "Warning: trying to create a component of a type that already exists" << std::endl;
-        return nullptr;
-    }
-    else {
-        T* new_comp = new T();
-        attached_components.push_back(new_comp);
-        ((Component*)new_comp)->attach_node(this);
-        return new_comp;
-    }
-}
 template<> 
 CollisionBody*              SceneNode::create_component( ){
     if( get_component<CollisionBody>() ){
@@ -143,18 +124,6 @@ CollisionBody*              SceneNode::create_component( ){
         ((Component*)new_comp)->attach_node(this);
         new_comp->tree_changed();
         return new_comp;
-    }
-}
-template<typename T> 
-void                          SceneNode::destroy_component( ){
-    T* current_comp = get_component<T>();
-    if( !current_comp ){
-        std::cout << "Warning: trying to destroy an unexistent component " << std::endl;
-    } else {
-        auto it = attached_components.begin();
-        while( *it != (Component*)current_comp ) it++;
-        attached_components.erase(it);
-        delete current_comp;
     }
 }
 void        SceneNode::entered_tree(){
@@ -194,7 +163,8 @@ void        SceneNode::bind_methods(){
                                                                        
 
     REGISTER_COMPONENT_HELPERS(Sprite,"sprite");                  
-    REGISTER_COMPONENT_HELPERS(CollisionBody,"body");
+    REGISTER_COMPONENT_HELPERS(CollisionBody,"body");         
+    REGISTER_COMPONENT_HELPERS(AudioEmitter,"audio_emitter");
 
 }
 
