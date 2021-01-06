@@ -202,9 +202,14 @@ Transform Transform::operator* ( const Transform& m2 ) const {
 }
 
 Vector2     Transform::operator* ( const Vector2& v ) const {
-    Vector3 fake_v = Vector3( v.x , v.y , 1 );
-    Vector3 ret = (*this)*fake_v;
-    return Vector2(ret.x,ret.y);
+    //  [ m0   m1   m2   m3   ] [ v0 ]   
+    //  [ m4   m5   m6   m7   ] [ v1 ]   
+    //  [ m8   m9   m10  m11  ] [ v2 ]  -> v2 will be ignored
+    //  [ m12  m13  m14  m15  ] [ v3 ]  
+    Vector2 ret;
+    ret.x = m[0]*v.x + m[1]*v.y + m[3]*1;
+    ret.y = m[4]*v.x + m[5]*v.y + m[7]*1;
+    return ret; 
 }
 Vector3     Transform::operator* ( const Vector3& v ) const {
     //  [ m0   m1   m2   m3   ] [ v0 ]   

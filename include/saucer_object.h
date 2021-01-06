@@ -31,7 +31,7 @@ class SaucerObject {
         SaucerObject();
         SaucerId                get_saucer_id() const ;
         static SaucerObject*    from_saucer_id( const SaucerId& ); 
-        
+        static void             bind_methods();        
 
     protected:
         virtual ~SaucerObject();

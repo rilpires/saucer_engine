@@ -15,6 +15,7 @@
 #include "collision.h"
 #include "color.h"
 #include "vector.h"
+#include "render_engine.h"
 #include "resources.h"
 #include "resources/image.h"
 #include "resources/lua_script.h"
@@ -23,7 +24,6 @@
 #include "debug.h"
 #include "scene.h"
 #include "scene_node.h"
-#include "file_io.h"
 
 
 #endif

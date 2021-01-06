@@ -19,6 +19,8 @@ class Resource : public SaucerObject {
         ~Resource();
         std::string         get_path() const {return path;};
 
+
+        static std::string  read_file_as_str( std::string filename );
         static void         bind_methods();   
 };
 

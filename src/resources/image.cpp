@@ -47,11 +47,8 @@ Color           ImageResource::get_pixel(size_t x , size_t y) const{
     size_t r_pointer = 4*( x + y*width );
     return Color( data[r_pointer] , data[r_pointer+1] , data[r_pointer+2] , data[r_pointer+3] );
 }
-ImageResource*   ImageResource::get_resource(std::string p_resource_path){
-    return (ImageResource*)ResourceManager::get_resource(p_resource_path);
-}
-
 
 void ImageResource::bind_methods(){
-    
+    REGISTER_LUA_MEMBER_FUNCTION( ImageResource , get_size );
+    REGISTER_LUA_MEMBER_FUNCTION( ImageResource , get_pixel );
 }

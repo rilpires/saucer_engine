@@ -1,5 +1,6 @@
 #include "color.h"
 #include "core.h"
+#include <algorithm>
 
 template<> void LuaEngine::push( lua_State* ls , Color v ){
     void* userdata = lua_newuserdata( ls , sizeof(Color) );
@@ -14,11 +15,10 @@ template<> void LuaEngine::push( lua_State* ls , Color v ){
         Color* v = (Color*)lua_touserdata(ls,-2);
         const char* arg = lua_tostring(ls,-1);
         lua_pop(ls,2);
-                if(!strcmp(arg,"r"))   lua_pushnumber(ls,v->r);
-        else    if(!strcmp(arg,"g"))   lua_pushnumber(ls,v->g);
-        else    if(!strcmp(arg,"b"))   lua_pushnumber(ls,v->b);
-        else    if(!strcmp(arg,"a"))   lua_pushnumber(ls,v->a);
-        else    if(!strcmp(arg,"rotated"))   lua_pushcfunction(ls,nested_functions_db["Color"]["rotated"]);
+                if(!strcmp(arg,"r"))   lua_pushnumber(ls, (float)(v->r)/255 );
+        else    if(!strcmp(arg,"g"))   lua_pushnumber(ls, (float)(v->g)/255 );
+        else    if(!strcmp(arg,"b"))   lua_pushnumber(ls, (float)(v->b)/255 );
+        else    if(!strcmp(arg,"a"))   lua_pushnumber(ls, (float)(v->a)/255 );
         return 1;
     });
     lua_settable(ls,-3);
@@ -29,11 +29,12 @@ template<> void LuaEngine::push( lua_State* ls , Color v ){
         Color* v = (Color*)lua_touserdata(ls,-3);
         const char* arg = lua_tostring(ls,-2);
         float new_val = lua_tonumber(ls,-1);
+        new_val = std::min( 1.0f , std::max( 0.0f , new_val ));
         lua_pop(ls,3);
-                if(!strcmp(arg,"r"))    v->r=new_val;
-        else    if(!strcmp(arg,"g"))    v->g=new_val;
-        else    if(!strcmp(arg,"b"))    v->b=new_val;
-        else    if(!strcmp(arg,"a"))    v->a=new_val;
+                if(!strcmp(arg,"r"))    v->r = (unsigned char)( new_val * 255.0 ) ;
+        else    if(!strcmp(arg,"g"))    v->g = (unsigned char)( new_val * 255.0 ) ;
+        else    if(!strcmp(arg,"b"))    v->b = (unsigned char)( new_val * 255.0 ) ;
+        else    if(!strcmp(arg,"a"))    v->a = (unsigned char)( new_val * 255.0 ) ;
         return 0;
     });
     lua_settable(ls,-3);
@@ -43,11 +44,12 @@ template<> void LuaEngine::push( lua_State* ls , Color v ){
 
 template<> lua_CFunction    LuaEngine::create_lua_constructor<Color>( lua_State* ls ){
     return [](lua_State* ls){
-        float x = lua_tonumber(ls,-3);
-        float y = lua_tonumber(ls,-2);
-        float z = lua_tonumber(ls,-1);
+        unsigned char r = 255.0 * std::min( 1.0f , std::max( 0.0f , (float)lua_tonumber(ls,-4) ) );
+        unsigned char g = 255.0 * std::min( 1.0f , std::max( 0.0f , (float)lua_tonumber(ls,-3) ) );
+        unsigned char b = 255.0 * std::min( 1.0f , std::max( 0.0f , (float)lua_tonumber(ls,-2) ) );
+        unsigned char a = 255.0 * std::min( 1.0f , std::max( 0.0f , (float)lua_tonumber(ls,-1) ) );
         lua_pop( ls , 3 );
-        LuaEngine::push( ls , Vector3(x,y,z) );
+        LuaEngine::push( ls , Color(  r,g,b,a) );
         return 1;
     };
 }
@@ -69,6 +71,18 @@ Color::Color( int color ){
     this->g = (color >> 16) | 255;
     this->b = (color >> 8)  | 255;
     this->a = (color >> 0)  | 255;
+}
+Color   Color::operator*   (const Color  c     ) const {
+    return Color( r*c.r / (65025.0f) ,
+                  g*c.g / (65025.0f) ,
+                  b*c.b / (65025.0f) ,
+                  a*c.a / (65025.0f) );
+}
+void    Color::operator*=  (const Color  c     ){
+    r *= (float)(c.r)/(255.0f);
+    g *= (float)(c.g)/(255.0f);
+    b *= (float)(c.b)/(255.0f);
+    a *= (float)(c.a)/(255.0f);
 }
 Color::operator std::string() const{
     char buff[32];

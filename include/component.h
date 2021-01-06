@@ -7,27 +7,9 @@ class SceneNode;
 
 class Component : public SaucerObject {
     
-    #define REGISTER_AS_COMPONENT(C)\
-    REGISTER_SAUCER_OBJECT(C,Component);                       \
-    private:                                                                \
-        static std::unordered_map< SaucerId , C* > component_from_node;     \
-    public:                                                                 \
-        static C*  recover_from_node( const SceneNode* node ){              \
-            if(!node) return nullptr;                                       \
-            auto find = component_from_node.find( node->get_saucer_id() );  \
-            if( find == component_from_node.end() ) return nullptr;         \
-            else return find->second;                                       \
-        }                                                                   \
-    private:                                                                \
-        void        attach_node( SceneNode* node ){                         \
-            if( attached_node==nullptr && node ){                           \
-                attached_node = node;                                       \
-                component_from_node[node->get_saucer_id()] = this;          \
-            }                                                               \
-        }
-    
     #define REGISTER_AS_INHERITED_COMPONENT(C,ParentComponent)\
     REGISTER_SAUCER_OBJECT(C,ParentComponent);                              \
+    friend class Scene;                                                     \
     private:                                                                \
         static std::unordered_map< SaucerId , C* > component_from_node;     \
     public:                                                                 \
@@ -37,19 +19,21 @@ class Component : public SaucerObject {
             if( find == component_from_node.end() ) return nullptr;         \
             else return find->second;                                       \
         }                                                                   \
-    private:                                                                \
+    protected:                                                              \
         void        attach_node( SceneNode* node ){                         \
-            if( attached_node==nullptr && node ){                           \
-                attached_node = node;                                       \
-                component_from_node[node->get_saucer_id()] = this;          \
-            }                                                               \
+            attached_node = node;                                           \
+            component_from_node[node->get_saucer_id()] = this;              \
+            ParentComponent::attach_node(node);                             \
         }
+    
+    #define REGISTER_AS_COMPONENT(C) REGISTER_AS_INHERITED_COMPONENT(C,Component);
+    
     
     
     REGISTER_SAUCER_OBJECT(Component,SaucerObject);
 
     friend class SceneNode;
-    private:
+    protected:
         virtual void        attach_node( SceneNode* node );    
 
     protected:

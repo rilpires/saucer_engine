@@ -261,6 +261,4 @@ struct LuaEngine::to_lua_cfunction<R(C::*)(T_arg1,T_arg2)>{
 };
 
 
-
-
 #endif

@@ -44,6 +44,9 @@ template<> void     LuaEngine::push( lua_State* ls , int n ){
 template<> void     LuaEngine::push( lua_State* ls , short n ){
     lua_pushnumber(ls,n);
 }   
+template<> void     LuaEngine::push( lua_State* ls , SaucerId n ){
+    lua_pushnumber(ls,n);
+}   
 
 template<> int          LuaEngine::pop( lua_State* ls ){
     int ret = lua_tonumber(ls,-1);
@@ -109,6 +112,8 @@ void            LuaEngine::initialize(){
     Component::bind_methods();
     SceneNode::bind_methods();
     Transform::bind_methods();
+    SaucerObject::bind_methods();
+    RenderObject::bind_methods();
     AudioEmitter::bind_methods();
     CollisionBody::bind_methods();
     ImageResource::bind_methods();

@@ -47,21 +47,27 @@ template<> void LuaEngine::push<Vector2>( lua_State* ls , Vector2 v ){
     });                                                              \
     lua_settable(ls,-3);
 
-    #define PUSH_VECTOR2_METATABLE_OPERATION_SCALAR(index_str,operator) \
-    lua_pushstring(ls,index_str);                                       \
-    lua_pushcfunction(ls, [](lua_State* ls)->int{                       \
-        Vector2 v1 = *(Vector2*)lua_touserdata(ls,-2);                  \
-        float f = lua_tonumber(ls,-1);                                  \
-        lua_pop(ls,2);                                                  \
-        LuaEngine::push(ls,v1 operator f);                              \
-        return 1;                                                       \
-    });                                                                 \
+    #define PUSH_VECTOR2_METATABLE_OPERATION_MAYBE_SCALAR(index_str,operator) \
+    lua_pushstring(ls,index_str);                       \
+    lua_pushcfunction(ls, [](lua_State* ls)->int{       \
+        Vector2 v1 = *(Vector2*)lua_touserdata(ls,-2);  \
+        if( lua_isuserdata(ls,-1) ){                    \
+            Vector2 v2 = LuaEngine::pop<Vector2>(ls);   \
+            lua_pop(ls,2);                              \
+            LuaEngine::push(ls,v1 operator v2);         \
+        } else {                                        \
+            float f = lua_tonumber(ls,-1);              \
+            lua_pop(ls,2);                              \
+            LuaEngine::push(ls,v1 operator f);          \
+        }                                               \
+        return 1;                                       \
+    });                                                 \
     lua_settable(ls,-3);
     
     PUSH_VECTOR2_METATABLE_OPERATION( "__add" , + );
     PUSH_VECTOR2_METATABLE_OPERATION( "__sub" , - );
-    PUSH_VECTOR2_METATABLE_OPERATION_SCALAR( "__mul" , * );
-    PUSH_VECTOR2_METATABLE_OPERATION_SCALAR( "__div" , / );
+    PUSH_VECTOR2_METATABLE_OPERATION_MAYBE_SCALAR( "__mul" , * );
+    PUSH_VECTOR2_METATABLE_OPERATION_MAYBE_SCALAR( "__div" , / );
     
 
     lua_setmetatable(ls,-2);

@@ -1,6 +1,5 @@
 
 function _entered_tree()
-
     window_size = Engine.get_window_size()
     wall = SceneNode.new()
     wall_body = wall:create_body()
@@ -9,7 +8,6 @@ function _entered_tree()
         wall_body:create_rectangle_shape( window_size , center )
     end
     this:add_child(wall)
-    
 end
 
 function _frame_start( dt_seconds )
@@ -22,10 +20,14 @@ function _frame_start( dt_seconds )
     if (Input.is_key_pressed(KEY.UP))       then vel.y = vel.y + 1.0 end;
     if (Input.is_key_pressed(KEY.DOWN))     then vel.y = vel.y - 1.0 end;
     this:set_position( this:get_position() + vel*5.0 )
+    local s = math.sin(Engine.get_uptime()*5000.0)
+    this:get_sprite():set_modulate( Color(1,0.9+0.2*s,1,1) )
     -- print("FPS: " , Engine.get_fps() )
 end
 
 current_spawn = nil
+h_frames = 4;
+v_frames = 3;
 
 function _input( input_event )
     if( input_event:get_type() == InputEventType.MOUSE_BUTTON and input_event:is_pressed() ) then
@@ -33,15 +35,20 @@ function _input( input_event )
         this:add_child(current_spawn)
         current_spawn:set_global_position( Input.get_world_mouse_position() )
         current_spawn:create_sprite()
-        current_spawn:get_sprite():set_texture( load("res/gold.png") ) 
+        current_spawn:get_sprite():set_texture( load("res/troll.png") ) 
+        current_spawn:get_sprite():set_h_frames(h_frames) 
+        current_spawn:get_sprite():set_v_frames(v_frames) 
+        current_spawn:get_sprite():set_frame_index(8)
         current_spawn:set_script( load("res/scripts/spawn.lua") )
     elseif ( input_event:get_type() == InputEventType.MOUSE_BUTTON and not input_event:is_pressed() ) then 
         local body = current_spawn:create_body()
+        local sprite = current_spawn:get_sprite()
+        current_spawn:set_scale(Vector2(1,1))
         body:set_body_type( BodyType.DYNAMIC )
         body:set_restitution( 0.15 )
         body:set_sensor( false )
         body:set_fixed_rotation( math.random(0,1)>0.5 )
-        body:create_rectangle_shape( Vector2(22,224) , Vector2(0,0) )
+        body:create_rectangle_shape( sprite:get_texture():get_size()/Vector2(h_frames,v_frames) , Vector2(0,0) )
         current_spawn = nil
     elseif ( input_event:get_type() == InputEventType.MOUSE_MOTION and current_spawn ) then
         current_spawn:set_global_position( Input.get_world_mouse_position() )

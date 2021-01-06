@@ -1,37 +1,17 @@
 
 function _frame_start( dt_seconds )
-    -- if not this:get_body() then
-    --     this:set_rotation_degrees( this:get_rotation_degrees() + 3 )
-    -- else
-    --     current_collisions = this:get_body():get_current_collisions();
-    --     if table.getn(current_collisions) > 0 then
-    --         print("current collisions: " )
-    --         for k,v in current_collisions do
-    --             print( k , " ; " , v , " ; " , v:get_node() )
-    --         end     
-    --     end
-    -- end
+    local id = this:get_saucer_id()
+    local r = math.sin( id*123 );
+    this:get_sprite():set_modulate( Color(r,1,1,1) )
+    if not this:get_body() then
+        local s = math.sin( Engine.get_uptime() * 200.0 + id*13 );
+        this:set_rotation_degrees( this:get_rotation_degrees() + 3 )
+        this:set_scale( Vector2( s , 1 ) )
+    end
 end
 
 list_of_sounds = {
-    load("res/sounds/beam-out.wav") ,
-    load("res/sounds/boom.wav") ,
-    load("res/sounds/cursor.wav") ,
-    load("res/sounds/dead.wav") ,
-    load("res/sounds/dink.wav") ,
-    load("res/sounds/enemy-hit.wav") ,
-    load("res/sounds/hurt.wav") ,
-    load("res/sounds/land.wav") ,
-    load("res/sounds/one-up.wav") ,
-    load("res/sounds/pause-close.wav") ,
-    load("res/sounds/pause-open.wav") ,
-    load("res/sounds/refill.wav") ,
-    load("res/sounds/shot.wav") ,
-    load("res/sounds/shutter.wav") ,
-    load("res/sounds/weapon-get.wav") ,
-    load("res/sounds/wily-boom.wav") ,
-    load("res/sounds/wily-crash.wav") ,
-    load("res/sounds/yoku.wav") ,
+    load("res/sounds/boom.wav")
 }
 
 
@@ -44,4 +24,7 @@ function _collision_start( other )
         audio_emitter:set_audio_resource( list_of_sounds[i] )
     end
     audio_emitter:play()
+    sprite = this:get_sprite()
+    sprite:set_frame_index( sprite:get_frame_index()+1 )
+
 end

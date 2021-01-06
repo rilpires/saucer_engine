@@ -5,7 +5,9 @@ int main( int argc , char** argv ){
         std::cout << "argv[" << i << "] = " << argv[i] << std::endl;  
     
 
-    Engine::initialize( Vector2(640,480) , Vector2(100,100) , "SaucerEngine (GLFW+OpenGL)" );
+    Engine::initialize();
+    Engine::set_window_size( Vector2(640,480) );
+    Engine::set_window_title("SaucerEngine");
     LuaEngine::initialize();
 
     Scene* scene = new Scene();
@@ -14,6 +16,7 @@ int main( int argc , char** argv ){
     root->set_script( LuaScriptResource::get_resource("res/scripts/test.lua") );
     scene->set_root_node(root);
 
+    ResourceManager::get_resource("res/shaders/basic.glsl");
     
     while( !Engine::should_close() ) 
     Engine::update(); 

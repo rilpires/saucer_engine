@@ -1,33 +1,35 @@
 #ifndef SPRITE_H
 #define SPRITE_H
 
-#include <unordered_map>
+#include "render_object.h"
 
-#include "component.h"
-
-#include "resources/image.h"
-
-class Sprite : public Component {
+class ImageResource;
+class Sprite : public RenderObject {
     
-    REGISTER_AS_COMPONENT(Sprite);
+    REGISTER_AS_INHERITED_COMPONENT(Sprite,RenderObject);
 
     private:
 
         ImageResource*  texture;
-        Color           modulate;
-        Color           self_modulate;
+        short           h_frames;
+        short           v_frames;
+        short           frame_index;
         bool            centralized;
     
     public:
         Sprite();
         ~Sprite();
 
+        RenderData      get_render_data() const ;
+
         ImageResource*  get_texture() const;
         void            set_texture( ImageResource* tex );
-        Color           get_modulate() const ;
-        void            set_modulate( Color new_col );
-        Color           get_self_modulate() const ;
-        void            set_self_modulate( Color new_col );
+        short           get_h_frames() const;
+        void            set_h_frames( short new_val );
+        short           get_v_frames() const;
+        void            set_v_frames( short new_val );
+        short           get_frame_index() const;
+        void            set_frame_index( short new_val );
         bool            is_centralized() const ;
         void            set_centralized( bool new_val );
 

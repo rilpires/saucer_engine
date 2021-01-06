@@ -5,6 +5,7 @@
 
 SceneNode::SceneNode(){
     position = Vector2(0,0);
+    scale = Vector2(1,1);
     rotation_degrees = 0.0f;
     z = 0;
     relative_z = true;
@@ -20,10 +21,19 @@ SceneNode::~SceneNode(){
         LuaEngine::change_current_actor_env( nullptr );
     }
 }
-
+void                SceneNode::set_scene(Scene* new_scene){
+    scene = new_scene;
+    for( auto& child : children_nodes ) child->set_scene(new_scene);
+}
 SceneNode*          SceneNode::lua_new(){ return new SceneNode(); }
 void                SceneNode::set_position( const Vector2 new_pos ){ position = new_pos; }
 Vector2             SceneNode::get_position( ) const{ return position; }
+void                SceneNode::set_scale( const Vector2 new_scale ){
+    scale = new_scale;
+}
+Vector2             SceneNode::get_scale( ) const{
+    return scale;
+}
 void                SceneNode::set_global_position( const Vector2 new_pos ){
     if( get_parent() ){
         Transform parent_transform = get_parent()->get_global_transform();
@@ -32,11 +42,7 @@ void                SceneNode::set_global_position( const Vector2 new_pos ){
 }
 Vector2             SceneNode::get_global_position() const{
     if( parent_node == NULL ) return position;
-    else {
-        Vector2 ret = parent_node->get_global_position();
-        ret += position.rotated( parent_node->rotation_degrees );
-        return ret;
-    }
+    else return parent_node->get_global_transform() * position;
 }
 void                SceneNode::set_rotation_degrees( float new_rotation_degrees_cw ){
     rotation_degrees=new_rotation_degrees_cw;
@@ -49,17 +55,14 @@ float               SceneNode::get_global_rotation_degrees() const{
     else return parent_node->get_global_rotation_degrees() + rotation_degrees;
 }
 Transform           SceneNode::get_transform() const{
-    Transform ret;
-    return ret.scale(Vector2(1,1))
-              .rotate_z( get_rotation_degrees() )  
-              .translate( Vector3( position.x , position.y , ((float)z)/SHORT_MAX ) );
+    return Transform().scale(scale)
+                      .rotate_z( rotation_degrees )  
+                      .translate( Vector3( position.x , position.y , ((float)z)/SHORT_MAX ) );
 }
 Transform           SceneNode::get_global_transform() const{
-    Transform ret;
-    Vector2 global_pos = get_global_position();
-    return ret.scale(Vector2(1,1))
-              .rotate_z( get_global_rotation_degrees() )  
-              .translate( Vector3( global_pos.x , global_pos.y , ((float)get_global_z())/SHORT_MAX ) );
+    Transform ret = get_transform();
+    if( get_parent() ) return get_parent()->get_global_transform() * ret;
+    else return ret;
 }
 void                SceneNode::set_z( short new_z ){z=new_z;}
 short               SceneNode::get_z( ) const {return z;}
@@ -80,9 +83,9 @@ void                SceneNode::set_script( LuaScriptResource* ls ){
     }
 }
 void                SceneNode::get_out(){
-    if( get_scene()->get_root_node() == this ){
+    bool actually_got_out = get_scene() || parent_node;
+    if( get_scene() && get_scene()->get_root_node() == this ){
         get_scene()->set_root_node(nullptr);
-        exited_tree();
     }
     if( parent_node ){
         std::vector<SceneNode*>& parent_chidren = parent_node->children_nodes;
@@ -90,10 +93,20 @@ void                SceneNode::get_out(){
             if( *it == this ){
                 parent_chidren.erase( it );
                 parent_node = nullptr;
-                scene = nullptr;
-                exited_tree();
                 break; 
             }
+        }
+    }
+    set_scene(nullptr);
+    if( actually_got_out ){
+        std::list<SceneNode*> prop;
+        prop.push_front( this );
+        while( !prop.empty() ){
+            SceneNode* node = prop.back();
+            node->exited_tree();
+            for( auto& child : node->children_nodes )
+                prop.push_front(child);
+            prop.pop_back();
         }
     }
 }
@@ -102,14 +115,16 @@ void                SceneNode::add_child( SceneNode* p_child_node ){
     else{
         p_child_node->parent_node = this;
         children_nodes.push_back( p_child_node );
-        p_child_node->entered_tree();
+        p_child_node->set_scene(scene);
+        if( scene ){
+            p_child_node->entered_tree();
+        }
     }
 
 }
 SceneNode*          SceneNode::get_parent( ) const { return parent_node;};
 Scene*              SceneNode::get_scene() const{
-    if(parent_node) return parent_node->get_scene();
-    else return scene;
+    return scene;
 }
 std::vector<SceneNode*> const&  SceneNode::get_children() const { return children_nodes; }
 template<> 
@@ -127,11 +142,13 @@ CollisionBody*              SceneNode::create_component( ){
     }
 }
 void        SceneNode::entered_tree(){
+    for( auto& child : children_nodes ) child->entered_tree();
     LuaEngine::execute_entered_tree( this );
     CollisionBody* body = get_component<CollisionBody>();
     if( body ) body->tree_changed();
 }
 void        SceneNode::exited_tree(){
+    for( auto& child : children_nodes ) child->exited_tree();
     LuaEngine::execute_exited_tree( this );
     CollisionBody* body = get_component<CollisionBody>();
     if( body ) body->tree_changed();
@@ -142,6 +159,8 @@ void        SceneNode::bind_methods(){
     
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_position);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_position);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_scale);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_scale);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_global_position);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_global_position);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_rotation_degrees);

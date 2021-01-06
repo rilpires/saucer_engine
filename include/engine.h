@@ -2,10 +2,7 @@
 
 #define WINDOW_H
 
-#define GLFW_INCLUDE_NONE
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
 
 #include <iostream>
 #include <list>
@@ -15,36 +12,37 @@
 
 class Scene;
 class AudioEngine;
-
+class RenderEngine;
 
 class Engine : public SaucerObject{
     REGISTER_SAUCER_OBJECT(Engine,SaucerObject);
     
     private:
-        static GLFWwindow*          glfw_window;
+        static RenderEngine*        render_engine;
         static AudioEngine*         audio_engine;
         static Scene*               current_scene;
         static std::list<double>    last_uptimes;
-        static void                 setup_renderer( Vector2 p_size , Vector2 p_pos , const char* title );
-        static void                 setup_audio();
-
+        
     public:
-        static void         initialize( Vector2 p_size , Vector2 p_pos , const char* title );
-        static void         close();
-        static void         update();
-        static double       get_uptime();
-        static double       get_fps();
-        static double       get_last_frame_duration();
-        static void         set_current_scene(Scene* scene);
-        static Scene*       get_current_scene();
-        static void         set_window_size( Vector2 new_size );
-        static Vector2      get_window_size();
-        static void         set_window_pos( Vector2 new_pos );
-        static Vector2      get_window_pos();
-        static void         set_fullscreen( bool fs );
-        static bool         is_fullscreen();
-        static AudioEngine* get_audio_engine();
-        static bool         should_close();
+        static void             initialize( );
+        static void             close();
+        static void             update();
+        static double           get_uptime();
+        static double           get_fps();
+        static double           get_last_frame_duration();
+        static void             set_current_scene(Scene* scene);
+        static Scene*           get_current_scene();
+        static void             set_window_size( Vector2 new_size );
+        static Vector2          get_window_size();
+        static void             set_window_pos( Vector2 new_pos );
+        static Vector2          get_window_pos();
+        static void             set_fullscreen( bool fs );
+        static bool             is_fullscreen();
+        static std::string      get_window_title();
+        static void             set_window_title( std::string new_title );
+        static RenderEngine*    get_render_engine();
+        static AudioEngine*     get_audio_engine();
+        static bool             should_close();
 
         static void         bind_methods();
 

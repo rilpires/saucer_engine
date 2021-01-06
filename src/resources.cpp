@@ -2,9 +2,13 @@
 #include "resources/image.h"
 #include "resources/lua_script.h"
 #include "resources/audiofile.h"
+#include "resources/shader.h"
 #include "lua_engine.h"
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
+
 
 std::unordered_map<std::string,SaucerId> ResourceManager::id_by_path;
 
@@ -15,8 +19,17 @@ Resource::Resource( std::string filepath ){
 }
 Resource::~Resource(){
 }
-
-
+std::string Resource::read_file_as_str( std::string filename ){
+    std::ifstream ifs( filename , std::ifstream::in );
+    if( !ifs ){
+        std::cerr << "Couldn't open file " << filename << std::endl;
+    } else {
+        std::ostringstream sstr;
+        sstr << ifs.rdbuf();
+        return sstr.str();
+    }
+    return "";
+}
 void Resource::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(Resource,get_path);
 }
@@ -53,6 +66,9 @@ Resource*           ResourceManager::load_resource(std::string filepath){
     }
     else if (extension == ".lua"){
         ret = new LuaScriptResource( filepath );
+    }
+    else if (extension == ".glsl"){
+        ret = new ShaderResource( filepath );
     } else {
         std::cerr << "What is this? Couldn't load resource for filepath: " << filepath << std::endl;
     }

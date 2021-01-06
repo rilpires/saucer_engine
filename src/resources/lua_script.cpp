@@ -4,7 +4,7 @@
 
 
 LuaScriptResource::LuaScriptResource( std::string filepath ) : Resource( filepath ){
-    src = read_file_as_string(filepath.c_str());
+    src = read_file_as_str(filepath.c_str());
 }
 LuaScriptResource::~LuaScriptResource(){
     
