@@ -14,12 +14,13 @@ SceneNode::SceneNode(){
     lua_script = NULL;
 }
 SceneNode::~SceneNode(){
-    get_out();
     for(auto it = children_nodes.begin() ; it != children_nodes.end() ; it++ )
         delete (*it);
+    children_nodes.clear();
     if( LuaEngine::current_actor == this ){
         LuaEngine::change_current_actor_env( nullptr );
     }
+    get_out();
 }
 void                SceneNode::set_scene(Scene* new_scene){
     scene = new_scene;
@@ -97,18 +98,10 @@ void                SceneNode::get_out(){
             }
         }
     }
-    set_scene(nullptr);
     if( actually_got_out ){
-        std::list<SceneNode*> prop;
-        prop.push_front( this );
-        while( !prop.empty() ){
-            SceneNode* node = prop.back();
-            node->exited_tree();
-            for( auto& child : node->children_nodes )
-                prop.push_front(child);
-            prop.pop_back();
-        }
+        exiting_tree();
     }
+    set_scene(nullptr);
 }
 void                SceneNode::add_child( SceneNode* p_child_node ){
     if(p_child_node->parent_node) std::cerr << "Trying to add a node as a child but it already has a parent. " << std::endl; 
@@ -127,31 +120,18 @@ Scene*              SceneNode::get_scene() const{
     return scene;
 }
 std::vector<SceneNode*> const&  SceneNode::get_children() const { return children_nodes; }
-template<> 
-CollisionBody*              SceneNode::create_component( ){
-    if( get_component<CollisionBody>() ){
-        std::cout << "Warning: trying to create a component of a type that already exists" << std::endl;
-        return nullptr;
-    }
-    else {
-        CollisionBody* new_comp = new CollisionBody();
-        attached_components.push_back(new_comp);
-        ((Component*)new_comp)->attach_node(this);
-        new_comp->tree_changed();
-        return new_comp;
-    }
-}
 void        SceneNode::entered_tree(){
     for( auto& child : children_nodes ) child->entered_tree();
+    for( Component*& c : attached_components )
+        c->entered_tree();
     LuaEngine::execute_entered_tree( this );
-    CollisionBody* body = get_component<CollisionBody>();
-    if( body ) body->tree_changed();
+    
 }
-void        SceneNode::exited_tree(){
-    for( auto& child : children_nodes ) child->exited_tree();
-    LuaEngine::execute_exited_tree( this );
-    CollisionBody* body = get_component<CollisionBody>();
-    if( body ) body->tree_changed();
+void        SceneNode::exiting_tree(){
+    for( auto& child : children_nodes ) child->exiting_tree();
+    LuaEngine::execute_exiting_tree( this );
+    for( Component*& c : attached_components )
+        c->exiting_tree();
 }
 void        SceneNode::bind_methods(){
     
@@ -179,12 +159,13 @@ void        SceneNode::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_parent);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_scene);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_children);
-                                                                       
-
-    REGISTER_COMPONENT_HELPERS(Sprite,"sprite");                  
-    REGISTER_COMPONENT_HELPERS(CollisionBody,"body");         
+    
+    REGISTER_COMPONENT_HELPERS(Sprite,"sprite");
+    REGISTER_COMPONENT_HELPERS(Camera,"camera");
+    REGISTER_COMPONENT_HELPERS(CollisionBody,"body");
     REGISTER_COMPONENT_HELPERS(AudioEmitter,"audio_emitter");
-
+    REGISTER_COMPONENT_HELPERS(AnchoredRect,"anchored_rect");
+    
 }
 
 

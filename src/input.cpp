@@ -33,17 +33,53 @@ template<> void LuaEngine::push( lua_State* ls , Input::InputEvent* r ){
 }
 
 
+
 bool         Input::key_pressed[GLFW_KEY_LAST+1];
 bool         Input::mouse_pressed[ 3 ];
 Vector2      Input::window_mouse_position;
 std::list<Input::InputEvent*> Input::event_queue;    
 
+
+int         Input::InputEvent::get_type(){
+    return input_event_key.type;
+}
+std::string Input::InputEvent::get_type_str() const { 
+    switch(input_event_key.type){
+        case INPUT_EVENT_TYPE_KEY: return "key";
+        case INPUT_EVENT_TYPE_MOUSE_BUTTON: return "mouse_button";
+        case INPUT_EVENT_TYPE_MOUSE_MOTION: return "mouse_motion";
+    } return "call the cops";
+}
+void        Input::InputEvent::solve(){ 
+    input_event_key.is_solved = true; 
+}
+bool        Input::InputEvent::is_solved() const { 
+    return input_event_key.is_solved; 
+}
+Vector2     Input::InputEvent::get_mouse_position() const {
+    return Vector2(input_event_mouse_motion.window_x,input_event_mouse_motion.window_y);
+};
+bool        Input::InputEvent::is_pressed() const { 
+    return input_event_key.action==PRESSED || input_event_key.action==ECHO; 
+}
+bool        Input::InputEvent::is_echo() const { 
+    return input_event_key.action==ECHO; 
+}
+bool         Input::is_key_pressed( int key_unicode ) {
+    return key_pressed[key_unicode];
+}
+bool         Input::is_mouse_button_pressed( int mouse_button ){
+    return mouse_pressed[mouse_button];
+}
+Vector2      Input::get_screen_mouse_position() {
+    return window_mouse_position;
+}
 Vector2      Input::get_world_mouse_position(){
     if( Engine::get_current_scene() ){
         Vector2 temp = window_mouse_position;
         temp.y = Engine::get_window_size().y - temp.y;
         temp -= Engine::get_window_size() * 0.5;
-        return Engine::get_render_engine()->get_camera_transform() * temp;
+        return Engine::get_render_engine()->get_camera_transform().inverted() * temp;
     } else return window_mouse_position;
 }
 Input::InputEvent* Input::pop_event_queue(){

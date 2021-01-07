@@ -1,5 +1,5 @@
 #include "resources/audiofile.h"
-
+#include "lua_engine.h"
 #include "AudioFile.h" // .wav files
 
 AudioResource::AudioResource( std::string filepath ) : Resource(filepath){
@@ -28,6 +28,13 @@ uint32_t    AudioResource::get_buffer_size() const {
 }
 void*       AudioResource::get_buffer_data() const {
     return buffer_data;
+}
+void        AudioResource::bind_methods(){
+    REGISTER_LUA_MEMBER_FUNCTION( AudioResource , get_sample_rate );
+    REGISTER_LUA_MEMBER_FUNCTION( AudioResource , get_bit_depth );
+    REGISTER_LUA_MEMBER_FUNCTION( AudioResource , get_samples_per_channel );
+    REGISTER_LUA_MEMBER_FUNCTION( AudioResource , get_length_seconds );
+    REGISTER_LUA_MEMBER_FUNCTION( AudioResource , get_num_channels );
 }
 
 WavAudioResource::WavAudioResource( std::string filepath ) : AudioResource(filepath) {

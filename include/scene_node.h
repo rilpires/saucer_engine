@@ -75,7 +75,7 @@ class SceneNode : public SaucerObject {
         inline virtual void     process_input_event( Input::InputEvent* input_event ){};
 
     private:
-        void                exited_tree();
+        void                exiting_tree();
         void                entered_tree();
 
     public:

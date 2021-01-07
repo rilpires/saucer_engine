@@ -80,7 +80,7 @@ std::vector<std::string>     AudioEngine::get_available_devices() const{
 
 // =============================================================================
 
-std::unordered_map<SaucerId,AudioEmitter*> AudioEmitter::component_from_node;
+std::unordered_multimap<SaucerId,AudioEmitter*> AudioEmitter::component_from_node;
 
 AudioEmitter::AudioEmitter(){
     AL_CALL( alGenBuffers(1,&buffer) );

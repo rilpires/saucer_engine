@@ -15,7 +15,7 @@ class LuaScriptResource : public Resource {
         bool        has_collision_start = false;
         bool        has_collision_end = false;
         bool        has_entered_tree = false;
-        bool        has_exited_tree = false;
+        bool        has_exiting_tree = false;
         bool        has_init = false;
         bool        has_frame_start = false;
         bool        has_input = false;

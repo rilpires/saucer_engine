@@ -14,7 +14,13 @@ SceneNode*  Component::get_node() const{
 }
 
 void        Component::attach_node( SceneNode* node ){
-    
+    // Do we care?
+}
+void        Component::entered_tree(){
+
+}
+void        Component::exiting_tree(){
+
 }
 void        Component::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION( Component , get_node );

@@ -19,6 +19,7 @@ T*      SceneNode::create_component( ){
         T* new_comp = new T();
         attached_components.push_back(new_comp);
         ((Component*)new_comp)->attach_node(this);
+        if( get_scene() ) new_comp->entered_tree();
         return new_comp;
     }
 }

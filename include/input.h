@@ -49,19 +49,13 @@ class Input {
             InputEventMouseButton   input_event_mouse_button;
             InputEventMouseMotion   input_event_mouse_motion;
             
-            int                 get_type(){return input_event_key.type;}
-            std::string         get_type_str() const { 
-                switch(input_event_key.type){
-                    case INPUT_EVENT_TYPE_KEY: return "key";
-                    case INPUT_EVENT_TYPE_MOUSE_BUTTON: return "mouse_button";
-                    case INPUT_EVENT_TYPE_MOUSE_MOTION: return "mouse_motion";
-                } return "call the cops";
-            }
-            void                solve(){ input_event_key.is_solved = true; }
-            bool                is_solved() const { return input_event_key.is_solved; }
-            Vector2             get_mouse_position() const {return Vector2(input_event_mouse_motion.window_x,input_event_mouse_motion.window_y);};
-            bool                is_pressed() const { return input_event_key.action==PRESSED || input_event_key.action==ECHO; }
-            bool                is_echo() const { return input_event_key.action==ECHO; }
+            int                 get_type();
+            std::string         get_type_str() const;
+            void                solve();
+            bool                is_solved() const;
+            Vector2             get_mouse_position() const;
+            bool                is_pressed() const;
+            bool                is_echo() const;
             
             operator            InputEventKey(){ return input_event_key;}
             operator            InputEventMouseButton(){ return input_event_mouse_button;}
@@ -79,9 +73,9 @@ class Input {
     
     public:
         
-        static bool         is_key_pressed( int key_unicode ) {return key_pressed[key_unicode];};
-        static bool         is_mouse_button_pressed( int mouse_button ){return mouse_pressed[mouse_button];};
-        static Vector2      get_screen_mouse_position() {return window_mouse_position;};
+        static bool         is_key_pressed( int key_unicode ) ;
+        static bool         is_mouse_button_pressed( int mouse_button );
+        static Vector2      get_screen_mouse_position();
         static Vector2      get_world_mouse_position();
         
         static InputEvent*  pop_event_queue();    

@@ -2,7 +2,7 @@
 #include "resources/shader.h"
 #include "lua_engine.h"
 
-std::unordered_map< SaucerId , RenderObject* > RenderObject::component_from_node;
+std::unordered_multimap< SaucerId , RenderObject* > RenderObject::component_from_node;
 
 
 RenderObject::RenderObject(){

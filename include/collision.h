@@ -86,7 +86,8 @@ class CollisionBody : public Component {
         // these below should not be exposed to scripting
         virtual void        collision_start( CollisionBody* other );
         virtual void        collision_end( CollisionBody* other );
-        void                tree_changed();
+        void                entered_tree();
+        void                exiting_tree();
         Vector2             get_position() const;
         float               get_rotation_degrees() const;
 

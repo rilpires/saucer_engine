@@ -105,6 +105,7 @@ void            LuaEngine::initialize(){
     Input::bind_methods();
     Scene::bind_methods();
     Engine::bind_methods();
+    Camera::bind_methods();
     Sprite::bind_methods();
     Vector2::bind_methods();
     Vector3::bind_methods();
@@ -115,8 +116,10 @@ void            LuaEngine::initialize(){
     SaucerObject::bind_methods();
     RenderObject::bind_methods();
     AudioEmitter::bind_methods();
+    AnchoredRect::bind_methods();
     CollisionBody::bind_methods();
     ImageResource::bind_methods();
+    AudioResource::bind_methods();
     ResourceManager::bind_methods();
     LuaScriptResource::bind_methods();
     kb_memory_threshold = lua_getgcthreshold(ls);
@@ -331,10 +334,10 @@ void            LuaEngine::execute_entered_tree( SceneNode* actor ){
     int err = lua_pcall(ls,0,0,0);
     print_error(err,actor->get_script());
 }
-void            LuaEngine::execute_exited_tree( SceneNode* actor ){
-    if( actor->get_script() == NULL || actor->get_script()->has_exited_tree == false )return;
+void            LuaEngine::execute_exiting_tree( SceneNode* actor ){
+    if( actor->get_script() == NULL || actor->get_script()->has_exiting_tree == false )return;
     change_current_actor_env( actor );
-    lua_pushstring(ls,"_exited_tree");
+    lua_pushstring(ls,"_exiting_tree");
     lua_gettable(ls,LUA_GLOBALSINDEX);
     int err = lua_pcall(ls,0,0,0);
     print_error(err,actor->get_script());
@@ -389,7 +392,7 @@ void            LuaEngine::create_actor_env( SceneNode* new_actor ){
             if( key == "_frame_start" )          script->has_frame_start = true;
             else if( key == "_input" )           script->has_input = true;
             else if( key == "_entered_tree" )    script->has_entered_tree = true;
-            else if( key == "_exited_tree" )     script->has_exited_tree = true;
+            else if( key == "_exiting_tree" )     script->has_exiting_tree = true;
             else if( key == "_collision_start" ) script->has_collision_start = true;
             else if( key == "_collision_end" )   script->has_collision_end = true;
             else if( key == "_init" )            script->has_init = true;

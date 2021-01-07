@@ -1,7 +1,7 @@
 #include "scene.h"
 #include "core.h"
-
 #include <queue>
+
 
 Scene::Scene(){
     root_node = NULL;
@@ -27,6 +27,12 @@ void            Scene::set_root_node(SceneNode* new_root_node){
 }
 SceneNode*      Scene::get_root_node(){
     return root_node;
+}
+void            Scene::set_current_camera( Camera* new_camera ){
+    current_camera = new_camera;
+}
+Camera*         Scene::get_current_camera() const {
+    return current_camera;
 }
 CollisionWorld* Scene::get_collision_world() const{
     return collision_world;
@@ -57,10 +63,18 @@ void            Scene::loop_draw(){
 
     std::vector<RenderObject*> all_render_objects;
     
-    for( auto it = Sprite::component_from_node.begin() ; it != Sprite::component_from_node.end() ; it++ )
+    for( auto it = RenderObject::component_from_node.begin() ; it != RenderObject::component_from_node.end() ; it++ )
         if( it->second->get_node()->get_scene() == this )
-            all_render_objects.push_back( (RenderObject*)it->second );
+            all_render_objects.push_back( it->second );
 
+    Transform camera_transf;
+    Camera* camera = get_current_camera();
+    if( camera ){
+        camera_transf = get_current_camera()->get_node()->get_global_transform();
+        camera_transf.scale( camera->get_zoom() );
+        camera_transf = camera_transf.inverted();
+    }
+    Engine::get_render_engine()->set_camera_transform( camera_transf );
     Engine::get_render_engine()->update( all_render_objects );
 
 }

@@ -22,9 +22,12 @@ class RenderEngine {
         ShaderResource*     basic_shader_resource;
         ShaderResource*     current_shader_resource;
 
+        GLuint              viewport_size_attrib_location;
+        GLuint              camera_transf_attrib_location;
         GLuint              model_transf_attrib_location; 
         GLuint              modulate_attrib_location;
-        GLuint              uv_div_attrib_location; 
+        GLuint              uv_div_attrib_location;
+        
         
     public:
         RenderEngine();

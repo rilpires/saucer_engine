@@ -71,7 +71,7 @@ class LuaEngine {
         static void             execute_frame_start( SceneNode* actor , float delta_seconds );
         static void             execute_input( SceneNode* actor , Input::InputEvent* input_event );
         static void             execute_entered_tree( SceneNode* actor );
-        static void             execute_exited_tree( SceneNode* actor );
+        static void             execute_exiting_tree( SceneNode* actor );
         static void             execute_init( SceneNode* actor );
 
 

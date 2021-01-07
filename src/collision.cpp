@@ -61,7 +61,7 @@ void        CollisionWorld::delete_disableds(){
 // ---------------------------------------------------------------------------
 
 
-std::unordered_map< SaucerId , CollisionBody* > CollisionBody::component_from_node;
+std::unordered_multimap< SaucerId , CollisionBody* > CollisionBody::component_from_node;
 
 CollisionBody::CollisionBody(){
     b2_body = nullptr;
@@ -237,19 +237,9 @@ void    CollisionBody::collision_start( CollisionBody* other ){
 void    CollisionBody::collision_end( CollisionBody* other ){
     LuaEngine::execute_collision_end( get_node() , other->get_node() );
 }
-void    CollisionBody::tree_changed(){
-
-    bool is_current_in_scene = get_node()->get_scene();
-    
-    if( !is_current_in_scene && b2_body ){
-        // Gotta delete this body... but this tree_changed can be occurring inside a CollisionListener call...
-        // So we should only nullify b2_body here and disable the body.
-        // In the end of Scene::loop_physics we iterate over all bodies to search for disabled bodies and delete them
-        b2_body->GetUserData().pointer = 0 ;
-        b2_body = nullptr;
-    }
-    else if (is_current_in_scene && !b2_body ){
-        // Gotta create this body
+void    CollisionBody::entered_tree(){
+    if( !b2_body ){
+    // Gotta create this body
         SceneNode* node = get_node();
         b2World* world = node->get_scene()->get_collision_world()->get_b2_world();
         Vector2 node_global_pos = node->get_global_position();
@@ -264,6 +254,15 @@ void    CollisionBody::tree_changed(){
         
         b2_body = world->CreateBody( &def );
         for( auto& p : fixture_defs ) b2_body->CreateFixture( &(p.first) );
+    }
+}
+void    CollisionBody::exiting_tree(){
+    if( b2_body ){
+        // Gotta delete this body... but this tree_changed can be occurring inside a CollisionListener call...
+        // So we should only nullify b2_body here and disable the body.
+        // In the end of Scene::loop_physics we iterate over all bodies to search for disabled bodies and delete them
+        b2_body->GetUserData().pointer = 0 ;
+        b2_body = nullptr;
     }
 }
 Vector2 CollisionBody::get_position() const{

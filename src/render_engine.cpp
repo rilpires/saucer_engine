@@ -36,7 +36,7 @@ RenderEngine::RenderEngine(){
     std::cout << "Version: " << version << std::endl;
 
     basic_shader_resource = (ShaderResource*) ResourceManager::get_resource("res/shaders/basic.glsl");
-    current_shader_resource = nullptr;
+    set_current_shader( basic_shader_resource );
     camera_transform = Transform();
 
     // VAO (Vertex Array Object) for generic sprites
@@ -99,8 +99,8 @@ void                RenderEngine::set_current_shader( ShaderResource* new_shader
         if( current_shader_resource ){
             GL_CALL( glUseProgram(current_shader_resource->shader_program) );
 
-            GL_CALL( unsigned int viewport_size_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"viewport_size")  );
-            GL_CALL( unsigned int camera_transf_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"camera_transf")  );
+            GL_CALL( viewport_size_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"viewport_size")  );
+            GL_CALL( camera_transf_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"camera_transf")  );
             GL_CALL( model_transf_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"model_transf")  );
             GL_CALL( modulate_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"in_modulate")  );
             GL_CALL( uv_div_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"uv_div")  );
@@ -112,6 +112,7 @@ void                RenderEngine::set_current_shader( ShaderResource* new_shader
 }
 void                RenderEngine::set_window_size( Vector2 new_size ){
     glfwSetWindowSize( glfw_window , new_size.x , new_size.y );
+    GL_CALL( glUniform2f( viewport_size_attrib_location , get_window_size().x , get_window_size().y ) );
 };
 Vector2             RenderEngine::get_window_size() const {
     int w,h;
@@ -145,6 +146,7 @@ Transform           RenderEngine::get_camera_transform() const {
 }
 void                RenderEngine::set_camera_transform(Transform t){
     camera_transform = t;
+    GL_CALL( glUniformMatrix4fv( camera_transf_attrib_location , 1 , GL_FALSE , camera_transform.m ) );
 }
 bool                RenderEngine::should_close() const {
     return glfwWindowShouldClose(glfw_window);
@@ -152,11 +154,11 @@ bool                RenderEngine::should_close() const {
 std::string         RenderEngine::get_window_title() const {
     return window_title;
 }
-void    RenderEngine::set_window_title( std::string new_title ){
+void                RenderEngine::set_window_title( std::string new_title ){
     window_title = new_title;
     glfwSetWindowTitle( glfw_window , new_title.c_str() );
 }
-void    RenderEngine::update( std::vector<RenderObject*>& draws ){
+void                RenderEngine::update( std::vector<RenderObject*>& draws ){
     
     GL_CALL( glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
     GL_CALL( glClearColor( 0,0,0,1 ) );

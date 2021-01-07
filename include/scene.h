@@ -9,7 +9,7 @@
 #include <vector>
 
 class SceneNode;
-class CameraNode;
+class Camera;
 
 class Scene : public SaucerObject {
     REGISTER_SAUCER_OBJECT(Scene,SaucerObject);
@@ -19,6 +19,7 @@ class Scene : public SaucerObject {
 
         CollisionWorld* collision_world;
         SceneNode*  root_node;
+        Camera*     current_camera;        
         std::vector<SceneNode*> current_input_handlers;
         std::vector<SceneNode*> current_script_actors;
         std::vector<SceneNode*> current_physics_actors;
@@ -37,6 +38,8 @@ class Scene : public SaucerObject {
 
         void            set_root_node(SceneNode* p_root_node);
         SceneNode*      get_root_node();
+        void            set_current_camera( Camera* new_camera );
+        Camera*         get_current_camera() const ;
         CollisionWorld* get_collision_world() const ;
         void            loop();
 

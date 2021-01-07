@@ -8,6 +8,8 @@ function _entered_tree()
         wall_body:create_rectangle_shape( window_size , center )
     end
     this:add_child(wall)
+    this:create_camera():set_active(true)
+    this:create_anchored_rect();
 end
 
 function _frame_start( dt_seconds )
@@ -19,7 +21,7 @@ function _frame_start( dt_seconds )
     if (Input.is_key_pressed(KEY.RIGHT))    then vel.x = vel.x + 1.0 end;
     if (Input.is_key_pressed(KEY.UP))       then vel.y = vel.y + 1.0 end;
     if (Input.is_key_pressed(KEY.DOWN))     then vel.y = vel.y - 1.0 end;
-    this:set_position( this:get_position() + vel*5.0 )
+    this:set_global_position( this:get_global_position() + vel*5.0 )
     local s = math.sin(Engine.get_uptime()*5000.0)
     this:get_sprite():set_modulate( Color(1,0.9+0.2*s,1,1) )
     -- print("FPS: " , Engine.get_fps() )
