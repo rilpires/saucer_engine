@@ -77,7 +77,7 @@ bool                SceneNode::is_z_relative() const {return relative_z;}
 LuaScriptResource*  SceneNode::get_script() const { return lua_script;};
 void                SceneNode::set_script( LuaScriptResource* ls ){
     if( lua_script ){
-        std::cerr << "Hmm you shouldn't change scripts attached in a node once set..." << std::endl;
+        saucer_err( "Hmm you shouldn't change scripts attached in a node once set..." )
     } else {
         lua_script = ls;
         LuaEngine::create_actor_env( this );
@@ -104,7 +104,7 @@ void                SceneNode::get_out(){
     set_scene(nullptr);
 }
 void                SceneNode::add_child( SceneNode* p_child_node ){
-    if(p_child_node->parent_node) std::cerr << "Trying to add a node as a child but it already has a parent. " << std::endl; 
+    if(p_child_node->parent_node) saucer_err( "Trying to add a node as a child but it already has a parent. " ) 
     else{
         p_child_node->parent_node = this;
         children_nodes.push_back( p_child_node );

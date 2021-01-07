@@ -12,7 +12,7 @@
 
 RenderEngine::RenderEngine(){
     
-    if( !glfwInit() ) std::cerr << "Failed to glfwInit()" << std::endl;
+    if( !glfwInit() ) saucer_err( "Failed to glfwInit()" )
     
     glfw_window = glfwCreateWindow( INITIAL_WINDOW_SIZE.x , INITIAL_WINDOW_SIZE.y , INITIAL_WINDOW_TITLE , NULL , NULL );
     
@@ -27,13 +27,26 @@ RenderEngine::RenderEngine(){
     // Initializing GLEW
     glewExperimental = true;
     GLenum ret_glewInit = glewInit();
-    if( ret_glewInit != GLEW_OK ) std::cerr << "Failed to glewInit() :" << glewGetErrorString(ret_glewInit) << std::endl;
+    if( ret_glewInit != GLEW_OK ) 
+        saucer_err( "Failed to glewInit() :" , glewGetErrorString(ret_glewInit) )
     
-    // Logging stuffs
-    const GLubyte* renderer = glGetString( GL_RENDERER );
-    const GLubyte* version = glGetString( GL_VERSION );
-    std::cout << "Renderer: " << renderer << std::endl;
-    std::cout << "Version: " << version << std::endl;
+    saucer_print( "Renderer: " , glGetString( GL_RENDERER )  );
+    saucer_print( "Version: " , glGetString( GL_VERSION )  );
+
+    GLint d = 0;
+    // GL_CALL( glGetIntegeri_v(GL_CONTEXT_PROFILE_MASK,0,&d);)
+    // GL_CALL( saucer_log( "d | GL_CONTEXT_COMPATIBILITY_PROFILE_BIT = " , (d & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT)))
+    // GL_CALL( saucer_log( "d | GL_CONTEXT_CORE_PROFILE_BIT = " , (d & GL_CONTEXT_CORE_PROFILE_BIT) ))
+    // d=0;
+    // GL_CALL( glGetIntegeri_v(GL_CONTEXT_FLAGS , 0 , &d);)
+    // GL_CALL( saucer_log( "d | GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT" , (d & GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT)))
+    // GL_CALL( saucer_log( "d | GL_CONTEXT_FLAG_DEBUG_BIT" , (d & GL_CONTEXT_FLAG_DEBUG_BIT)))
+    // GL_CALL( saucer_log( "d | GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT" , (d & GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT)))
+    // GL_CALL( saucer_log( "d | GL_CONTEXT_FLAG_NO_ERROR_BIT" , (d & GL_CONTEXT_FLAG_NO_ERROR_BIT)))
+
+    GL_CALL( saucer_log( "GL_SHADING_LANGUAGE_VERSION = " , glGetString(GL_SHADING_LANGUAGE_VERSION)))
+    // GL_CALL( glGetIntegeri_v(GL_NUM_SHADING_LANGUAGE_VERSIONS,0,&d); )
+    // GL_CALL( for( int i = 0 ; i < d ; i++ ) saucer_log(glGetStringi(GL_SHADING_LANGUAGE_VERSION,i)))
 
     basic_shader_resource = (ShaderResource*) ResourceManager::get_resource("res/shaders/basic.glsl");
     set_current_shader( basic_shader_resource );
@@ -61,7 +74,7 @@ RenderEngine::RenderEngine(){
     unsigned int vbo;
     GL_CALL( glGenBuffers(1, &vbo) );
     GL_CALL( glBindBuffer(GL_ARRAY_BUFFER,vbo) );
-    GL_CALL( glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data) , vertex_data , GL_STATIC_DRAW ) );
+    GL_CALL( glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data) , vertex_data , GL_STATIC_COPY ) );
     GL_CALL( glVertexAttribPointer( 0 , 3 , GL_FLOAT , false , 5*sizeof(GL_FLOAT) , 0 ));
     GL_CALL( glVertexAttribPointer( 1 , 2 , GL_FLOAT , false , 5*sizeof(GL_FLOAT) , (void*)(3*sizeof(GL_FLOAT)) ));
     GL_CALL( glEnableVertexAttribArray(  0 ) );

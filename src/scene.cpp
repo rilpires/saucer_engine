@@ -43,7 +43,9 @@ void            Scene::update_current_actors(){
     current_script_actors.clear();
     
     std::queue<SceneNode*> nodes_queue;
-    nodes_queue.push(get_root_node());
+    
+    if( get_root_node() )
+        nodes_queue.push(get_root_node());
     
     while( nodes_queue.size() ){
         SceneNode* scene_node = nodes_queue.front();

@@ -4,36 +4,34 @@
 
 #ifdef DEBUG
 #define AL_CALL(x)\
-    x ;                                                                                                 \
-    {                                                                                                   \
-        auto al_error = alGetError();                                                                   \
-        if( al_error != AL_NO_ERROR ){                                                                  \
-            std::cerr << "[OpenAL Error] Error code " << al_error << std::endl                          \
-            << "on " << __FILE__ << ":" << __LINE__ << "; " << #x << std::endl;                         \
-            switch(al_error){                                                                           \
-                case AL_INVALID_NAME:       std::cerr << "AL_INVALID_NAME" << std::endl;      break;    \
-                case AL_INVALID_ENUM:       std::cerr << "AL_INVALID_ENUM" << std::endl;      break;    \
-                case AL_INVALID_VALUE:      std::cerr << "AL_INVALID_VALUE" << std::endl;     break;    \
-                case AL_INVALID_OPERATION:  std::cerr << "AL_INVALID_OPERATION" << std::endl; break;    \
-                case AL_OUT_OF_MEMORY:      std::cerr << "AL_OUT_OF_MEMORY" << std::endl;     break;    \
+    x ;                                                                                 \
+    {                                                                                   \
+        auto al_error = alGetError();                                                   \
+        if( al_error != AL_NO_ERROR ){                                                  \
+            saucer_err( "[OpenAL Error] Error code " , al_error );                      \
+            switch(al_error){                                                           \
+                case AL_INVALID_NAME:       saucer_err( "AL_INVALID_NAME" )      break; \
+                case AL_INVALID_ENUM:       saucer_err( "AL_INVALID_ENUM" )      break; \
+                case AL_INVALID_VALUE:      saucer_err( "AL_INVALID_VALUE" )     break; \
+                case AL_INVALID_OPERATION:  saucer_err( "AL_INVALID_OPERATION" ) break; \
+                case AL_OUT_OF_MEMORY:      saucer_err( "AL_OUT_OF_MEMORY" )     break; \
             }                                                                                           \
         }                                                                                               \
     }
 #define ALC_CALL(device,x)\
-    x ;                                                                                                 \
-    {                                                                                                   \
-        auto alc_error = alcGetError(device);                                                           \
-        if( alc_error != ALC_NO_ERROR ){                                                                \
-            std::cerr << "[OpenAL Context Error] Context error code " << alc_error << std::endl         \
-            << "on " << __FILE__ << ":" << __LINE__ << "; " << #x << std::endl;                         \
-            switch(alc_error){                                                                          \
-                case ALC_INVALID_DEVICE:    std::cerr << "ALC_INVALID_DEVICE" << std::endl;     break;  \
-                case ALC_INVALID_CONTEXT:   std::cerr << "ALC_INVALID_CONTEXT" << std::endl;    break;  \
-                case ALC_INVALID_ENUM:      std::cerr << "ALC_INVALID_ENUM" << std::endl;       break;  \
-                case ALC_INVALID_VALUE:     std::cerr << "ALC_INVALID_VALUE" << std::endl;      break;  \
-                case ALC_OUT_OF_MEMORY:     std::cerr << "ALC_OUT_OF_MEMORY" << std::endl;      break;  \
-            }                                                                                           \
-        }                                                                                               \
+    x ;                                                                                     \
+    {                                                                                       \
+        auto alc_error = alcGetError(device);                                               \
+        if( alc_error != ALC_NO_ERROR ){                                                    \
+            saucer_err( "[OpenAL Context Error] Context error code " , alc_error );         \
+            switch(alc_error){                                                              \
+                case ALC_INVALID_DEVICE:    saucer_err( "ALC_INVALID_DEVICE" )     break;   \
+                case ALC_INVALID_CONTEXT:   saucer_err( "ALC_INVALID_CONTEXT" )    break;   \
+                case ALC_INVALID_ENUM:      saucer_err( "ALC_INVALID_ENUM" )       break;   \
+                case ALC_INVALID_VALUE:     saucer_err( "ALC_INVALID_VALUE" )      break;   \
+                case ALC_OUT_OF_MEMORY:     saucer_err( "ALC_OUT_OF_MEMORY" )      break;   \
+            }                                                                               \
+        }                                                                                   \
     }
 #else
 #define AL_CALL(x)\
@@ -46,18 +44,18 @@
 AudioEngine::AudioEngine( const char* device_name ){
     device = alcOpenDevice( device_name );
     if( !device ){
-        if(device_name) std:: cerr << "No audio device found with name:" << device_name;
-        else            std:: cerr << "No default audio device found";
+        if(device_name) saucer_err( "No audio device found with name:" , device_name )
+        else            saucer_err( "No default audio device found" )
         exit(1);
-    } else std::cout << "Loaded audio device:" << alcGetString( device , ALC_DEVICE_SPECIFIER ) << std::endl;
+    } else saucer_print( "Loaded audio device:" , alcGetString( device , ALC_DEVICE_SPECIFIER ) )
     context = alcCreateContext( device , nullptr );
     if( !context ){
-        std::cerr << "No context for audio could be created." << std::endl;
+        saucer_err( "No context for audio could be created." )
         exit(1);
     }
     ALCboolean made_current = alcMakeContextCurrent( context );
     if( !made_current ){
-        std::cerr << "Couldn't make created context as current." << std::endl;
+        saucer_err( "Couldn't make created context as current." )
         exit(1);
     }
     // From now on we can use AL_CALL and ALC_CALL
@@ -65,7 +63,7 @@ AudioEngine::AudioEngine( const char* device_name ){
     int major_version , minor_version;
     ALC_CALL( device , alcGetIntegerv( device , ALC_MAJOR_VERSION , 1 , &major_version ) );
     ALC_CALL( device , alcGetIntegerv( device , ALC_MINOR_VERSION , 1 , &minor_version ) );
-    std::cout << "Successfully initialized OpenAL version " << major_version << "." << minor_version << std::endl; 
+    saucer_print( "Successfully initialized OpenAL version " , major_version , "." , minor_version ) 
     
 }
 AudioEngine::~AudioEngine(){

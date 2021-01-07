@@ -177,21 +177,21 @@ bool    CollisionBody::has_fixed_rotation() const {
 }
 bool    CollisionBody::get_collision_layer_bit( int bit ){
     if( bit < 0 || bit > 16 ){
-        std::cerr << "get_collision_layer_bit  only accepts values for \"bit\" such that 1 <= bit <= 16 " << std::endl;
+        saucer_err( "get_collision_layer_bit  only accepts values for \"bit\" such that 1 <= bit <= 16 " )
         return false;
     }
     return collision_layer & (1 << (bit-1) ); 
 }
 bool    CollisionBody::get_collision_mask_bit( int bit ){
     if( bit < 0 || bit > 16 ){
-        std::cerr << "get_collision_mask_bit  only accepts values for \"bit\" such that 1 <= bit <= 16 " << std::endl;
+        saucer_err( "get_collision_mask_bit  only accepts values for \"bit\" such that 1 <= bit <= 16 " )
         return false;
     }
     return collision_mask & (1 << (bit-1) ); 
 }
 void    CollisionBody::set_collision_layer_bit( int bit , bool new_val ){
     if( bit < 0 || bit > 16 ){
-        std::cerr << "set_collision_layer_bit only accepts values for \"bit\" such that 1 <= bit <= 16 " << std::endl;
+        saucer_err( "set_collision_layer_bit only accepts values for \"bit\" such that 1 <= bit <= 16 " )
     } else 
     collision_layer = (new_val) ?   ( collision_layer |  (1<<(bit-1))) 
                                 :   ( collision_layer & ~(1<<(bit-1)));
@@ -205,7 +205,7 @@ void    CollisionBody::set_collision_layer_bit( int bit , bool new_val ){
 }
 void    CollisionBody::set_collision_mask_bit( int bit , bool new_val ){
     if( bit < 0 || bit > 16 ){
-        std::cerr << "set_collision_mask_bit only accepts values for \"bit\" such that 1 <= bit <= 16 " << std::endl;
+        saucer_err( "set_collision_mask_bit only accepts values for \"bit\" such that 1 <= bit <= 16 " )
     } else
     collision_mask = (new_val) ?    ( collision_mask |  (1<<(bit-1))) 
                                 :   ( collision_mask & ~(1<<(bit-1)));

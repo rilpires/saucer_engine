@@ -4,7 +4,7 @@
 
 
 
-#include <iostream>
+#include "debug.h"
 #include <list>
 
 #include "saucer_object.h"

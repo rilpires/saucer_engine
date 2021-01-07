@@ -3,7 +3,7 @@
 
 #include <png.h>
 #include <string.h>
-#include <iostream>
+#include "debug.h"
 
 
 ImageResource::ImageResource( std::string filepath ) : Resource(filepath) {
@@ -17,14 +17,14 @@ ImageResource::ImageResource( std::string filepath ) : Resource(filepath) {
     if (png_image_begin_read_from_file(&image,filepath.c_str()) != 0)
     {
         image.format = PNG_FORMAT_RGBA;
-        std::cout << "image size: " << PNG_IMAGE_SIZE(image) << std::endl;
+        saucer_print( "image size: " , PNG_IMAGE_SIZE(image) )
         data = new unsigned char[PNG_IMAGE_SIZE(image)];
         width = image.width;
         height = image.height;
 
         if (data == NULL || png_image_finish_read(&image, NULL/*background*/, data, 0/*row_stride*/, NULL/*colormap*/) == 0){
             png_image_free(&image);
-            std::cerr << "Error loading image from " << filepath << std::endl;
+            saucer_err( "Error loading image from " , filepath )
         }
         else{
             GL_CALL( glGenTextures(1,&tex_id) );
@@ -37,7 +37,7 @@ ImageResource::ImageResource( std::string filepath ) : Resource(filepath) {
             return;
         }
     }
-    else std::cerr << "Error loading image from " << filepath << std::endl;    
+    else saucer_err( "Error loading image from " , filepath )    
 }
 ImageResource::~ImageResource(){
     delete[] data;

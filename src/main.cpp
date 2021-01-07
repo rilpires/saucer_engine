@@ -2,7 +2,7 @@
 
 int main( int argc , char** argv ){
     for( int i = 0 ; i < argc ; i++ )
-        std::cout << "argv[" << i << "] = " << argv[i] << std::endl;  
+        saucer_print( "argv[" , i , "] = " , argv[i] );  
     
 
     Engine::initialize();
@@ -23,5 +23,5 @@ int main( int argc , char** argv ){
     Engine::close();
     
     LuaEngine::finish();
-    std::cout << "Bye bye!!!" << std::endl;
+    saucer_print( "Bye bye!!!" );
 }

@@ -8,7 +8,7 @@ template< typename C >
 lua_CFunction    LuaEngine::recover_nested_function( std::string function_name ){
     lua_CFunction ret = recover_nested_function( C::class_name , function_name );
     if (!ret) ret = recover_nested_function< typename C::parent_type>( function_name );
-    if (!ret) std::cerr << "Couldn't find function \"" << function_name << "\" in class \"" << C::class_name << "\"." << std::endl;
+    if (!ret) saucer_err( "Couldn't find function \"" , function_name , "\" in class \"" , C::class_name , "\"." )
     return ret;
 }
 
@@ -38,7 +38,7 @@ void    LuaEngine::push( lua_State* ls , T obj ){
 // push signature for non SaucerObject's inherited classes
 template< typename T , class C1  , class C2 , class C3 >
 void    LuaEngine::push( lua_State* ls , T obj ){
-    std::cerr << "Specialize \"LuaEngine::push\" for this class since it isn't passed by reference, but by copy" << std::endl;
+    saucer_err( "Specialize \"LuaEngine::push\" for this class since it isn't passed by reference, but by copy" )
     lua_pushnil(ls);
     exit(1);
 }

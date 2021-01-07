@@ -4,7 +4,7 @@
 #include "render_engine.h" // glfw events
 #include <vector>  // std
 #include "vector.h" // Vector2
-#include <iostream>
+#include "debug.h"
 #include <list>
 
 enum INPUT_EVENT_TYPE {         INPUT_EVENT_TYPE_KEY , 

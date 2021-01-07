@@ -1,7 +1,7 @@
 #include "lua_engine.h"
 #include "core.h"
 #include <string.h>
-#include <iostream>
+#include "debug.h"
 #include <set>
 
 lua_State*  LuaEngine::ls = NULL;
@@ -20,7 +20,7 @@ template<>
 lua_CFunction    LuaEngine::recover_nested_function<SaucerObject>( std::string function_name ){
     auto ret = recover_nested_function( "SaucerObject" , function_name );
     if(!ret){
-        std::cerr << "Couldn't find function \""<<function_name<<"\" for class SaucerObject." << std::endl;
+        saucer_err( "Couldn't find function \"",function_name,"\" for class SaucerObject." )
         return [](lua_State* ls ){return 0;};
     }
     else return ret;
@@ -91,16 +91,16 @@ const char*     LuaEngine::chunk_reader( lua_State* ls , void* data , size_t* si
     } else return NULL;
 }
 void            LuaEngine::initialize(){
-    std::cout << "Creating Lua state..." << std::endl;
+    saucer_print( "Creating Lua state..." )
     ls = lua_open();
-    std::cout << "Loading lua libs..." << std::endl;
+    saucer_print( "Loading lua libs..." )
     luaopen_base(ls);
     luaopen_io(ls);
     luaopen_string(ls);
     luaopen_math(ls);
     luaopen_table(ls);
     lua_settop(ls,0); // idk why but previous luaopen_[lib] changes the stack so I clean it
-    std::cout << "Loading lua binded methods..." << std::endl;
+    saucer_print( "Loading lua binded methods..." )
     Color::bind_methods();
     Input::bind_methods();
     Scene::bind_methods();
@@ -124,9 +124,9 @@ void            LuaEngine::initialize(){
     LuaScriptResource::bind_methods();
     kb_memory_threshold = lua_getgcthreshold(ls);
     kb_memory_used = lua_getgccount(ls);
-    std::cout << "Creating lua enviroment..." << std::endl;
+    saucer_print( "Creating lua enviroment..." )
     create_global_env();
-    std::cout << "Done." << std::endl;
+    saucer_print( "Done." )
 }
 void            LuaEngine::finish(){
     lua_close(ls);
@@ -239,19 +239,19 @@ void            LuaEngine::change_current_actor_env( SceneNode* new_actor ){
     }
 }
 void            LuaEngine::describe_stack(){
-    std::cout << "Stack (size=" << lua_gettop(ls) << ")" << std::endl;
+    saucer_print( "Stack (size=" , lua_gettop(ls) , ")" )
     char s[128];
     for( int i = 1 ; i <= lua_gettop(ls) ; i++ ){
         if( lua_type(ls,i) == LUA_TNUMBER ) 
             sprintf(s,"[%d] - [%s] - %f",i,lua_typename(ls,lua_type(ls,i)),lua_tonumber(ls,i));
         else 
             sprintf(s,"[%d] - [%s] - %s",i,lua_typename(ls,lua_type(ls,i)),lua_tostring(ls,i));
-        std::cout << s << std::endl;
+        saucer_print( s )
     }
 }
 void            LuaEngine::print_error( int err , LuaScriptResource* script ){   
     if( err ){
-        std::cerr << "Lua error on " << script->get_path() << std::endl;
+        saucer_err( "Lua error on " , script->get_path() )
         const char* error_msg = "[LUA ERROR]";
         switch (err){
             case LUA_ERRSYNTAX:
@@ -263,7 +263,7 @@ void            LuaEngine::print_error( int err , LuaScriptResource* script ){
             case LUA_ERRERR:
                 error_msg = "Lua error handling error "; break;
             }
-        std::cerr << error_msg << " : " << lua_tostring(ls,-1) << std::endl;
+        saucer_err( error_msg , " : " , lua_tostring(ls,-1) )
         lua_pop(ls,1);  
         exit(1);
     }
@@ -282,10 +282,10 @@ lua_CFunction   LuaEngine::recover_nested_function( std::string class_name , std
 lua_CFunction   LuaEngine::recover_global_function( std::string function_name ){
     auto function_find = global_functions_db.find( function_name );
     if( function_find == global_functions_db.end() ){
-        std::cerr << "Couldn't find any global function named " << function_name << std::endl;
+        saucer_err( "Couldn't find any global function named " , function_name )
         // exit(1);
         return [](lua_State* ls ){ 
-            std::cerr << "This function should not exist!" << std::endl ; 
+            saucer_err( "This function should not exist!" ); 
             return 0; 
         };
     } else return (function_find->second);
@@ -358,8 +358,8 @@ void            LuaEngine::create_actor_env( SceneNode* new_actor ){
     lua_pushnil(ls);
     while( lua_next(ls,LUA_GLOBALSINDEX)!=0 ){
         if( !lua_isstring(ls,-2) ){
-            std::cerr << "Oops? table key isn't string, it is: " << lua_typename(ls,lua_type(ls,-2)) << "\t"
-            << "converted to string: " << lua_tostring(ls,-2) << std::endl;
+            saucer_err( "Oops? table key isn't string, it is: " , lua_typename(ls,lua_type(ls,-2)) , "\t"
+            , "converted to string: " , lua_tostring(ls,-2) );
         } else {
             old_names.insert( lua_tostring(ls,-2) );
         }
@@ -381,8 +381,7 @@ void            LuaEngine::create_actor_env( SceneNode* new_actor ){
     lua_pushnil(ls);
     while( lua_next(ls,LUA_GLOBALSINDEX)!=0 ){
         if( !lua_isstring(ls,-2) ){
-            std::cerr << "Oops? table key isn't string, it is: " << lua_typename(ls,lua_type(ls,-2)) << "\t"
-            << "converted to string: " << lua_tostring(ls,-2) << std::endl;
+            saucer_err( "Oops? table key isn't string, it is: " , lua_typename(ls,lua_type(ls,-2)) , "\t" , "converted to string: " , lua_tostring(ls,-2) );
         } else if( old_names.find( lua_tostring(ls,-2) ) == old_names.end() ) {
             
             std::string key = lua_tostring(ls,-2);

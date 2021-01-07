@@ -1,4 +1,4 @@
-#include <iostream>
+#include "debug.h"
 #include "component.h"
 #include "lua_engine.h"
 

@@ -26,5 +26,5 @@ function _collision_start( other )
     audio_emitter:play()
     sprite = this:get_sprite()
     sprite:set_frame_index( sprite:get_frame_index()+1 )
-
+    -- this:get_parent():get_out()
 end

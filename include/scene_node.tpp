@@ -12,7 +12,7 @@ T*      SceneNode::get_component() const{
 template< typename T> 
 T*      SceneNode::create_component( ){
     if( get_component<T>() ){
-        std::cout << "Warning: trying to create a component of a type that already exists" << std::endl;
+        saucer_print( "Warning: trying to create a component of a type that already exists" )
         return nullptr;
     }
     else {
@@ -27,7 +27,7 @@ template< typename T>
 void    SceneNode::destroy_component( ){
     T* current_comp = get_component<T>();
     if( !current_comp ){
-        std::cout << "Warning: trying to destroy an unexistent component " << std::endl;
+        saucer_print( "Warning: trying to destroy an unexistent component " )
     } else {
         auto it = attached_components.begin();
         while( *it != (Component*)current_comp ) it++;

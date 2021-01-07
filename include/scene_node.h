@@ -1,7 +1,7 @@
 #ifndef SCENE_NODE_H
 #define SCENE_NODE_H
 
-#include <iostream>
+#include "debug.h"
 #include <vector>
 #include <list>
 #include <unordered_map>

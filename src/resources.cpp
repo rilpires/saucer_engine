@@ -5,7 +5,7 @@
 #include "resources/shader.h"
 #include "lua_engine.h"
 
-#include <iostream>
+#include "debug.h"
 #include <fstream>
 #include <sstream>
 
@@ -22,7 +22,7 @@ Resource::~Resource(){
 std::string Resource::read_file_as_str( std::string filename ){
     std::ifstream ifs( filename , std::ifstream::in );
     if( !ifs ){
-        std::cerr << "Couldn't open file " << filename << std::endl;
+        saucer_err( "Couldn't open file " , filename )
     } else {
         std::ostringstream sstr;
         sstr << ifs.rdbuf();
@@ -46,7 +46,7 @@ void    ResourceManager::set_resource(std::string resource_name , Resource* r ){
     if( r == NULL )return;
     if( id_by_path.find(resource_name)!= id_by_path.end()){
         if( id_by_path[resource_name]!= r->get_saucer_id() ){
-            std::cerr << "Resource name " << resource_name << " is already used by another resource" << std::endl;
+            saucer_err( "Resource name " , resource_name , " is already used by another resource" );
             return;
         } else return; // Nothing to do
     }
@@ -70,7 +70,7 @@ Resource*           ResourceManager::load_resource(std::string filepath){
     else if (extension == ".glsl"){
         ret = new ShaderResource( filepath );
     } else {
-        std::cerr << "What is this? Couldn't load resource for filepath: " << filepath << std::endl;
+        saucer_err( "What is this? Couldn't load resource for filepath: " , filepath )
     }
     id_by_path.insert(std::pair<std::string,SaucerId>(ret->path ,ret->get_saucer_id()));
     return ret;

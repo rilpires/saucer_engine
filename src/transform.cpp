@@ -1,6 +1,6 @@
 #include "transform.h"
 #include <math.h>
-#include <iostream>
+#include "debug.h"
 
 Transform::Transform(){
     // Identity transform
@@ -128,7 +128,7 @@ Transform       Transform::inverted(){
     det = m[0] * ret.m[0] + m[1] * ret.m[4] + m[2] * ret.m[8] + m[3] * ret.m[12];
 
     if (det == 0) {
-        std::cerr << "[WARNING] Couldn't invert a transform matrix... Unexpected behavior ahead maybe?" << std::endl;
+        saucer_err( "[WARNING] Couldn't invert a transform matrix... Unexpected behavior ahead maybe?" )
         det = 0.000001;
     }
 

@@ -70,7 +70,7 @@ WavAudioResource::WavAudioResource( std::string filepath ) : AudioResource(filep
     }
     
     else {
-        std::cerr << "bit_depth=="<<bit_depth<<" && num_channels==" << num_channels << std::endl;
+        saucer_err( "bit_depth==",bit_depth," && num_channels==" , num_channels )
     }
 
 }

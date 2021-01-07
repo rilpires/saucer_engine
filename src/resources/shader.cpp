@@ -1,6 +1,6 @@
 #include "resources/shader.h"
 #include "debug.h"
-#include <iostream>
+#include "debug.h"
 
 ShaderResource::ShaderResource( std::string filename ){
     shader_program = glCreateProgram();
@@ -16,7 +16,7 @@ ShaderResource::ShaderResource( std::string filename ){
     vertex_header = shader_file.find("#vertex");
     frag_header = shader_file.find("#fragment");
     if( vertex_header == std::string::npos || frag_header == std::string::npos )
-        std::cerr << "Error while parsing shader file \"" << filename << "\", unexpected behavior ahead" <<std::endl;
+        saucer_err( "Error while parsing shader file \"" , filename , "\", unexpected behavior ahead" )
     vertex_src_begin = shader_file.find('\n',vertex_header)+1;
     frag_src_begin = shader_file.find('\n',frag_header)+1;
     vertex_shader = shader_file.substr( vertex_src_begin , frag_header-vertex_src_begin );
@@ -46,8 +46,7 @@ void    ShaderResource::attach_shader( GLenum shader_type , std::string shader_s
         glGetShaderiv( shader ,GL_INFO_LOG_LENGTH,&info_log_size);
         char* msg = new char[info_log_size];
         glGetShaderInfoLog( shader ,info_log_size,&info_log_size, msg);
-        std::cerr << "[OpenGL Error] Couldn't compile " << ((shader_type==GL_VERTEX_SHADER)?("vertex"):("fragment")) << " shader " << std::endl
-        << msg << std::endl;
+        saucer_err( "[OpenGL Error] Couldn't compile ", ((shader_type==GL_VERTEX_SHADER)?("vertex"):("fragment")) , " shader " , msg );
         delete[] msg;
     }
     GL_CALL( glAttachShader( shader_program , shader ); )
