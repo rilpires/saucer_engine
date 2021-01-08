@@ -19,7 +19,7 @@
 #include "render_engine.h"
 #include "resources.h"
 #include "camera.h"
-#include "anchored_rect.h"
+#include "patch_rect.h"
 #include "resources/image.h"
 #include "resources/lua_script.h"
 #include "resources/audiofile.h"

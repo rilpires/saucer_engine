@@ -9,13 +9,8 @@ RenderObject::RenderObject(){
     current_shader = nullptr;
     use_parent_shader = false;
 }
-RenderData      RenderObject::get_render_data() const {
-    RenderData ret;
-    ret.texture_id = 0;
-    ret.uv_top_left = Vector2(0,0);
-    ret.uv_bottom_right = Vector2(1,1);
-    ret.shader_program = get_current_shader();
-    return ret;
+std::vector<RenderData>  RenderObject::generate_render_data() const{
+    return std::vector<RenderData>();
 }
 bool            RenderObject::get_use_parent_shader() const {
     return use_parent_shader;

@@ -19,7 +19,7 @@ int main( int argc , char** argv ){
     // for( int i = 0 ; i < 50000 ; i++ ){
     //     SceneNode* new_node = new SceneNode();
     //     root->add_child( new_node );
-    //     new_node->create_component<Sprite>()->set_texture( (ImageResource*)ResourceManager::get_resource("res/gold.png") );
+    //     new_node->create_component<Sprite>()->set_texture( (TextureResource*)ResourceManager::get_resource("res/gold.png") );
     //     new_node->set_position( Vector2( (float(random()%1000))-500 , (float(random()%1000))-500  ));
     // }
 

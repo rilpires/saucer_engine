@@ -14,11 +14,12 @@ RenderEngine::RenderEngine(){
     
     if( !glfwInit() ) saucer_err( "Failed to glfwInit()" )
     
-    glfw_window = glfwCreateWindow( INITIAL_WINDOW_SIZE.x , INITIAL_WINDOW_SIZE.y , INITIAL_WINDOW_TITLE , NULL , NULL );
+    window_size = INITIAL_WINDOW_SIZE;
+    glfw_window = glfwCreateWindow( window_size.x , window_size.y , INITIAL_WINDOW_TITLE , NULL , NULL );
     
     // Defining context variables & other stuffs
     glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR , 3 );
-    glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR , 1 );
+    glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR , 0 );
     // glfwWindowHint( GLFW_OPENGL_COMPAT_PROFILE , 0 );
 
     // Setting context
@@ -53,9 +54,8 @@ RenderEngine::RenderEngine(){
     basic_shader_resource = (ShaderResource*) ResourceManager::get_resource("res/shaders/basic.glsl");
     set_current_shader( basic_shader_resource );
     camera_transform = Transform();
-
-
-    Vector2 window_size = get_window_size();
+    
+    set_window_size(INITIAL_WINDOW_SIZE);
     // VBO (Vertex Buffer Object) for 2D objects, constant
     // These will be properly transformed by uniforms:
     // 1 - scaled proportionally to texture_size from window_size (gl_Position.xy *= textureSize(tex,0)/viewport_size;)
@@ -84,8 +84,7 @@ RenderEngine::RenderEngine(){
     GL_CALL( glEnableVertexAttribArray( 1 ) );
 
     unsigned int vertex_index[] = { 
-        1 , 2 , 0 ,
-        3 };
+        1 , 2 , 0 , 3 };
     
     unsigned int veb;
     GL_CALL( glGenBuffers(1,&veb) );
@@ -112,25 +111,24 @@ void                RenderEngine::set_current_shader( ShaderResource* new_shader
         if( current_shader_resource ){
             GL_CALL( glUseProgram(current_shader_resource->shader_program) );
 
-            GL_CALL( viewport_size_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"viewport_size")  );
+            GL_CALL( pixel_size_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"pixel_size")  );
             GL_CALL( camera_transf_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"camera_transf")  );
             GL_CALL( model_transf_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"model_transf")  );
             GL_CALL( modulate_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"in_modulate")  );
             GL_CALL( uv_div_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"uv_div")  );
+            GL_CALL( ignore_camera_atrib_location = glGetUniformLocation(current_shader_resource->shader_program,"ignore_camera")  );
             
-            GL_CALL( glUniform2f( viewport_size_attrib_location , get_window_size().x , get_window_size().y ) );
             GL_CALL( glUniformMatrix4fv( camera_transf_attrib_location , 1 , GL_FALSE , camera_transform.m ) );
         }
     }
 }
 void                RenderEngine::set_window_size( Vector2 new_size ){
-    glfwSetWindowSize( glfw_window , new_size.x , new_size.y );
-    GL_CALL( glUniform2f( viewport_size_attrib_location , get_window_size().x , get_window_size().y ) );
+    window_size = new_size;
+    glfwSetWindowSize( glfw_window , window_size.x , window_size.y );
+    GL_CALL( glUniform4f( pixel_size_attrib_location , window_size.x , window_size.y , 0.0f , 0.0f ) );
 };
 Vector2             RenderEngine::get_window_size() const {
-    int w,h;
-    glfwGetWindowSize( glfw_window , &w , &h );
-    return Vector2( w,h );
+    return window_size;
 };
 void                RenderEngine::set_window_pos( Vector2 new_pos ){
     glfwSetWindowPos( glfw_window , new_pos.x , new_pos.y );
@@ -195,6 +193,12 @@ void                RenderEngine::update( const std::vector<RenderData>& draws )
                 GL_CALL( glBindTexture( GL_TEXTURE_2D , render_data->texture_id ) );
                 last_used_texture = render_data->texture_id;
             }
+
+            GL_CALL( glUniform4f( pixel_size_attrib_location ,  640 , 
+                                                                480 , 
+                                                                render_data->size_in_pixels.x , 
+                                                                render_data->size_in_pixels.y ) );
+            GL_CALL( glUniform1i( ignore_camera_atrib_location , !render_data->view_transform ) );
             GL_CALL( glUniformMatrix4fv( model_transf_attrib_location , 1 , GL_FALSE , render_data->model_transform.m ) );
             GL_CALL( glUniform4fv( uv_div_attrib_location , 1 , uv_div ) );
             GL_CALL( glUniform4f( modulate_attrib_location , ((float)render_data->final_modulate.r)/255.0f , 

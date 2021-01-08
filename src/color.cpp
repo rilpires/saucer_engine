@@ -53,6 +53,12 @@ template<> lua_CFunction    LuaEngine::create_lua_constructor<Color>( lua_State*
     };
 }
 
+
+template<> float    Color::as_float<'r'>() const{ return float(r)/255.0f; }
+template<> float    Color::as_float<'g'>() const{ return float(g)/255.0f; }
+template<> float    Color::as_float<'b'>() const{ return float(b)/255.0f; }
+template<> float    Color::as_float<'a'>() const{ return float(a)/255.0f; }
+
 Color::Color( float r , float g , float b , float a ){
     this->r = r * 255U;
     this->g = g * 255U;

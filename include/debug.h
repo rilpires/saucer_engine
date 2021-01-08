@@ -11,6 +11,17 @@
 #define saucer_err(...) saucer_log_<std::cerr>( __FILE__ ":" STRINGIFY(__LINE__) , ":\t[ERROR]\t" , __VA_ARGS__) << std::endl;
 #define saucer_warn(...) saucer_log_<std::cerr>( __FILE__ ":" STRINGIFY(__LINE__) , ":\t[WARNING]\t" , __VA_ARGS__) << std::endl;
 
+// Runtime assert. Enabled only if DEBUG is defined
+#ifdef DEBUG
+#define SAUCER_ASSERT(x) ;\
+    if( ((bool)(x)) == false ){                 \
+        saucer_err("Assertion failed: " , #x ); \
+    }                                           
+#else
+    #define SAUCER_ASSERT(x) ;
+#endif
+
+
 template< std::ostream& stream ,  typename T , class = typename std::enable_if<std::is_arithmetic<T>::value>::type >
 std::ostream& saucer_log_( T t ){
     return stream << t;

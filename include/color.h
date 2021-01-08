@@ -13,8 +13,11 @@ struct Color{
     Color( int color );
 
 
-    Color   operator*   (const Color  c     ) const ;
-    void    operator*=  (const Color  c     );
+    Color           operator*   (const Color  c     ) const ;
+    void            operator*=  (const Color  c     );
+    
+    template<char c>
+    float           as_float() const;
 
     operator std::string() const;
     

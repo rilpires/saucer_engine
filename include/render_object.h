@@ -19,7 +19,7 @@ class RenderObject : public Component {
         RenderObject();
         
     public:
-        virtual RenderData  get_render_data() const ;
+        virtual std::vector<RenderData>  generate_render_data() const ;
 
         bool                get_use_parent_shader() const ;
         void                set_use_parent_shader( bool new_val );

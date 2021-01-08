@@ -21,15 +21,8 @@ class Scene : public SaucerObject {
         CollisionWorld* collision_world;
         SceneNode*  root_node;
         Camera*     current_camera;        
-        std::vector<RenderData> current_rendering_datas;
-        std::vector<SceneNode*> current_input_handlers;
-        std::vector<SceneNode*> current_script_actors;
-        std::vector<SceneNode*> current_physics_actors;
-
-        // Traverses the tree and has some optimizations for accumulating transforms and modulates
-        void        update_current_actors();
+        
         void        loop_draw();
-        void        loop_input();
         void        loop_script();
         void        loop_physics();
 

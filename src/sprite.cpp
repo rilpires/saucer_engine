@@ -17,20 +17,22 @@ Sprite::~Sprite(){
     if( node ) component_from_node.erase( node->get_saucer_id() );
 }
 
-RenderData      Sprite::get_render_data() const {
-    if( texture ){
-        RenderData ret;
-        ret.texture_id      = texture->get_texture_id();
-        ret.uv_top_left     = Vector2(  (1.0/h_frames)*(frame_index%h_frames) ,   (1.0/v_frames)*(frame_index/h_frames) );
-        ret.uv_bottom_right = ret.uv_top_left + Vector2( 1.0/h_frames , 1.0/v_frames ) ;
-        ret.shader_program = get_current_shader();
-        return ret;
-    } else return RenderObject::get_render_data();
+std::vector<RenderData>  Sprite::generate_render_data() const{
+    std::vector<RenderData> ret;;
+    ret.push_back(RenderData());
+    ret[0].texture_id      = (texture)?(texture->get_texture_id()):(0);
+    ret[0].uv_top_left     = Vector2(  (1.0/h_frames)*(frame_index%h_frames) ,   (1.0/v_frames)*(frame_index/h_frames) );
+    ret[0].uv_bottom_right = ret[0].uv_top_left + Vector2( 1.0/h_frames , 1.0/v_frames ) ;
+    ret[0].size_in_pixels = (texture)?(texture->get_size()*(Vector2(1.0/h_frames,1.0/v_frames))):(Vector2(0,0));
+    ret[0].shader_program = get_current_shader();
+    ret[0].use_tree_transform = true;
+    ret[0].view_transform = true;
+    return ret;
 }
-ImageResource*  Sprite::get_texture() const{
+TextureResource*  Sprite::get_texture() const{
     return texture;
 }
-void            Sprite::set_texture( ImageResource* tex ){
+void            Sprite::set_texture( TextureResource* tex ){
     texture = tex;
 }
 short           Sprite::get_h_frames() const{

@@ -59,7 +59,7 @@ Resource*           ResourceManager::load_resource(std::string filepath){
     std::string extension = str_filepath.substr( str_filepath.find_last_of('.') );
     
     if( extension == ".png" ){
-        ret = new ImageResource( filepath );
+        ret = new TextureResource( filepath );
     }
     else if (extension == ".wav"){
         ret = new WavAudioResource( filepath.c_str() );

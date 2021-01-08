@@ -3,27 +3,27 @@
 
 #include "render_object.h"
 
-class ImageResource;
+class TextureResource;
 class Sprite : public RenderObject {
     
     REGISTER_AS_INHERITED_COMPONENT(Sprite,RenderObject);
 
     private:
 
-        ImageResource*  texture;
-        short           h_frames;
-        short           v_frames;
-        short           frame_index;
-        bool            centralized;
+        TextureResource*    texture;
+        short               h_frames;
+        short               v_frames;
+        short               frame_index;
+        bool                centralized;
     
     public:
         Sprite();
         ~Sprite();
 
-        RenderData      get_render_data() const ;
+        std::vector<RenderData>  generate_render_data() const ;
 
-        ImageResource*  get_texture() const;
-        void            set_texture( ImageResource* tex );
+        TextureResource*  get_texture() const;
+        void            set_texture( TextureResource* tex );
         short           get_h_frames() const;
         void            set_h_frames( short new_val );
         short           get_v_frames() const;

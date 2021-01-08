@@ -23,7 +23,10 @@ struct RenderData {
     GLuint              texture_id;
     Vector2             uv_top_left;
     Vector2             uv_bottom_right;
+    Vector2             size_in_pixels;
     ShaderResource*     shader_program;
+    bool                use_tree_transform;
+    bool                view_transform;
     Transform           model_transform;  // This will be filled at "tree-discovering" time, since it got to be accumulated from parents
     Color               final_modulate; // This will be filled at "tree-discovering" time, since it got to be accumulated from parents
 };
@@ -32,6 +35,7 @@ class RenderEngine {
     private:
         GLFWwindow*         glfw_window;
         std::string         window_title;
+        Vector2             window_size;
         Transform           camera_transform;
         
         ShaderResource*     basic_shader_resource;
@@ -39,7 +43,8 @@ class RenderEngine {
 
         GLuint              last_used_texture;
 
-        GLuint              viewport_size_attrib_location;
+        bool                ignore_camera_atrib_location;
+        GLuint              pixel_size_attrib_location;
         GLuint              camera_transf_attrib_location;
         GLuint              model_transf_attrib_location; 
         GLuint              modulate_attrib_location;

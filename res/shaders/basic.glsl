@@ -8,10 +8,10 @@ layout(location = 0) in vec3 position;
 layout(location = 1) in vec2 in_uv;
 
 uniform sampler2D tex;
-uniform vec2    viewport_size;
-
+uniform vec4    pixel_size; // ( viewport_size , object_size )
 uniform vec4    uv_div; // ( topleft , bottomright )
 
+uniform bool    ignore_camera;
 uniform mat4    camera_transf;
 uniform mat4    model_transf;
 uniform vec4    in_modulate;
@@ -21,13 +21,14 @@ out vec4 modulate;
 
 void main(){
     vec2 tex_size = textureSize(tex,0);
-    vec2 size_in_pixels = tex_size * vec2( uv_div.z - uv_div.x , uv_div.w - uv_div.y );
+    vec2 viewport_size_pixels = pixel_size.xy;
+    vec2 size_in_pixels = pixel_size.zw;
 
     gl_Position = vec4( position , 1.0 );
-    gl_Position.xy *= (size_in_pixels/viewport_size);
+    gl_Position.xy *= (size_in_pixels/pixel_size.xy);
     gl_Position *= model_transf;
-    gl_Position *= camera_transf;
-    gl_Position.xy /= ( viewport_size/2 );
+    if(!ignore_camera) gl_Position *= camera_transf;
+    gl_Position.xy /= ( pixel_size.xy/2 );
     
     uv = in_uv;
     uv.x *= (uv_div.z - uv_div.x);

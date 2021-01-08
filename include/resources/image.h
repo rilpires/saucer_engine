@@ -6,20 +6,30 @@
 
 typedef unsigned int TextureId;
 
-class ImageResource : public Resource {
-    REGISTER_SAUCER_OBJECT(ImageResource,Resource)
+enum TEXTURE_WRAP_MODE {
+    REPEAT,
+    CLAMP,
+    MIRRORED_REPEAT,
+    ALPHA_ZERO
+};
+
+class TextureResource : public Resource {
+    REGISTER_SAUCER_OBJECT(TextureResource,Resource)
     
     private:
         unsigned char*          data;
+        short                   wrap_mode;
         size_t                  width,height;
         TextureId               tex_id;
-        ~ImageResource();
+        ~TextureResource();
     public:
-        ImageResource( std::string filepath );
+        TextureResource( std::string filepath );
         TextureId               get_texture_id() const {return tex_id;}
         Color                   get_pixel(size_t x , size_t y) const;
         Vector2                 get_size() const;
-        
+        int                     get_wrap_mode() const;
+        void                    set_wrap_mode( int new_mode );
+
         static void             bind_methods();
 };
 

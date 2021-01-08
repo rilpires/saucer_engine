@@ -111,6 +111,7 @@ void            LuaEngine::initialize(){
     Vector2::bind_methods();
     Vector3::bind_methods();
     Resource::bind_methods();
+    PatchRect::bind_methods();
     Component::bind_methods();
     SceneNode::bind_methods();
     Transform::bind_methods();
@@ -121,8 +122,8 @@ void            LuaEngine::initialize(){
     CollisionBody::bind_methods();
     AudioResource::bind_methods();
     ResourceManager::bind_methods();
+    TextureResource::bind_methods();
     LuaScriptResource::bind_methods();
-    ImageResource::bind_methods();
     kb_memory_threshold = lua_getgcthreshold(ls);
     kb_memory_used = lua_getgccount(ls);
     saucer_print( "Creating lua enviroment..." )
@@ -293,63 +294,77 @@ lua_CFunction   LuaEngine::recover_global_function( std::string function_name ){
 }
 void            LuaEngine::execute_collision_start( SceneNode* actor , SceneNode* other ){
     if( actor->get_script() == NULL || actor->get_script()->has_collision_start == false )return;
+    SceneNode* old_actor = current_actor;
     change_current_actor_env( actor );
     lua_pushstring(ls,"_collision_start");
     lua_gettable(ls,LUA_GLOBALSINDEX);
     push(ls,other);
     int err = lua_pcall(ls,1,0,0);
     print_error(err,actor->get_script());
+    change_current_actor_env(old_actor);
 }
 void            LuaEngine::execute_collision_end( SceneNode* actor , SceneNode* other ){
     if( actor->get_script() == NULL || actor->get_script()->has_collision_end == false )return;
+    SceneNode* old_actor = current_actor;
     change_current_actor_env( actor );
     lua_pushstring(ls,"_collision_end");
     lua_gettable(ls,LUA_GLOBALSINDEX);
     push(ls,other);
     int err = lua_pcall(ls,1,0,0);
     print_error(err,actor->get_script());
+    change_current_actor_env(old_actor);
 }
 void            LuaEngine::execute_frame_start( SceneNode* actor , float delta_seconds ){
     if( actor->get_script() == NULL || actor->get_script()->has_frame_start == false )return;
+    SceneNode* old_actor = current_actor;
     change_current_actor_env( actor );
     lua_pushstring(ls,"_frame_start");
     lua_gettable(ls,LUA_GLOBALSINDEX);
     lua_pushnumber(ls,delta_seconds);
     int err = lua_pcall(ls,1,0,0);
     print_error(err,actor->get_script());
+    change_current_actor_env(old_actor);
 }
 void            LuaEngine::execute_input( SceneNode* actor , Input::InputEvent* input_event ){
     if( actor->get_script() == NULL || actor->get_script()->has_input == false )return;
+    SceneNode* old_actor = current_actor;
     change_current_actor_env( actor );
     lua_pushstring(ls,"_input");
     lua_gettable(ls,LUA_GLOBALSINDEX);
     push(ls,input_event);
     int err = lua_pcall(ls,1,0,0);
     print_error(err,actor->get_script());
+    change_current_actor_env(old_actor);
 }
 void            LuaEngine::execute_entered_tree( SceneNode* actor ){
     if( actor->get_script() == NULL || actor->get_script()->has_entered_tree == false )return;
+    SceneNode* old_actor = current_actor;
     change_current_actor_env( actor );
     lua_pushstring(ls,"_entered_tree");
     lua_gettable(ls,LUA_GLOBALSINDEX);
     int err = lua_pcall(ls,0,0,0);
     print_error(err,actor->get_script());
+    change_current_actor_env(old_actor);
 }
 void            LuaEngine::execute_exiting_tree( SceneNode* actor ){
     if( actor->get_script() == NULL || actor->get_script()->has_exiting_tree == false )return;
+    SceneNode* old_actor = current_actor;
     change_current_actor_env( actor );
     lua_pushstring(ls,"_exiting_tree");
     lua_gettable(ls,LUA_GLOBALSINDEX);
     int err = lua_pcall(ls,0,0,0);
     print_error(err,actor->get_script());
+    change_current_actor_env(old_actor);
 }
 void            LuaEngine::execute_init( SceneNode* actor ){
     if( actor->get_script() == NULL || actor->get_script()->has_init == false )return;
+    SceneNode* old_actor = current_actor;
     change_current_actor_env( actor );
     lua_pushstring(ls,"_init");
     lua_gettable(ls,LUA_GLOBALSINDEX);
     int err = lua_pcall(ls,0,0,0);
     print_error(err,actor->get_script());
+    change_current_actor_env(old_actor);
 }
 void            LuaEngine::create_actor_env( SceneNode* new_actor ){
     SceneNode* old_actor = current_actor;

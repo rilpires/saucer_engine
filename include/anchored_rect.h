@@ -20,26 +20,30 @@ class AnchoredRect : public RenderObject {
         Vector2         rect_size;
         bool            starts_on_viewport;
         bool            use_scene_node_transform; // Doesn't have any effect if has AnchoredRect parent
-
+        
     public:
         AnchoredRect();
 
-        virtual RenderData  get_render_data() const ;
+        std::vector<RenderData>  generate_render_data() const ;
 
-        bool                is_border_anchored();
+        bool                is_border_anchored( int border ) const ;
         void                set_anchored_border( int border , bool new_val );
-        Vector2             get_rect_pos();
+        Vector2             get_rect_pos() const ;
         void                set_rect_pos( Vector2 new_val );
-        Vector2             get_rect_size();
+        Vector2             get_rect_size() const ;
         void                set_rect_size( Vector2 new_val );
-        bool                get_starts_on_viewport();
+        bool                get_starts_on_viewport() const ;
         void                set_starts_on_viewport( bool new_val );
-        bool                get_use_scene_node_transform();
+        bool                get_use_scene_node_transform() const ;
         void                set_use_scene_node_transform( bool new_val );
+        Vector2             get_global_rect_pos() const;
         void                grow( int border , float amount );
 
         static void         bind_methods();
 
+    private:
+        const std::vector<AnchoredRect*>    get_children_rects() const;
+        AnchoredRect*                       get_parent_rect() const;
 
 };
 

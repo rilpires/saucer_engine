@@ -9,7 +9,7 @@ function _entered_tree()
     end
     this:add_child(wall)
     this:create_camera():set_active(true)
-    this:create_anchored_rect();
+    this:get_camera():set_zoom(Vector2(1,1))
 end
 
 function _frame_start( dt_seconds )
@@ -34,18 +34,19 @@ v_frames = 3;
 function _input( input_event )
     if( input_event:get_type() == InputEventType.MOUSE_BUTTON and input_event:is_pressed() ) then
         current_spawn = SceneNode.new()
+        current_spawn:set_script( load("res/scripts/spawn.lua") )
         this:add_child(current_spawn)
         current_spawn:set_global_position( Input.get_world_mouse_position() )
         current_spawn:create_sprite()
         current_spawn:get_sprite():set_texture( load("res/troll.png") ) 
         current_spawn:get_sprite():set_h_frames(h_frames) 
-        current_spawn:get_sprite():set_v_frames(v_frames) 
+        current_spawn:get_sprite():set_v_frames(v_frames)
         current_spawn:get_sprite():set_frame_index(8)
-        current_spawn:set_script( load("res/scripts/spawn.lua") )
     elseif ( input_event:get_type() == InputEventType.MOUSE_BUTTON and not input_event:is_pressed() ) then 
         local body = current_spawn:create_body()
         local sprite = current_spawn:get_sprite()
         current_spawn:set_scale(Vector2(1,1))
+        current_spawn:set_rotation_degrees(0)
         body:set_body_type( BodyType.DYNAMIC )
         body:set_restitution( 0.15 )
         body:set_sensor( false )

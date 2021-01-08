@@ -176,7 +176,6 @@ void        SceneNode::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_rotation_degrees);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_rotation_degrees);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_global_rotation_degrees);
-    // REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_global_transform);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_z);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_z);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_global_z);
@@ -199,7 +198,7 @@ void        SceneNode::bind_methods(){
     REGISTER_COMPONENT_HELPERS(CollisionBody,"body");
     REGISTER_COMPONENT_HELPERS(AudioEmitter,"audio_emitter");
     REGISTER_COMPONENT_HELPERS(AnchoredRect,"anchored_rect");
-    
+    REGISTER_COMPONENT_HELPERS(PatchRect,"patch_rect");
 }
 
 

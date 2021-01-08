@@ -38,14 +38,11 @@ Camera*         Scene::get_current_camera() const {
 CollisionWorld* Scene::get_collision_world() const{
     return collision_world;
 }
-void            Scene::update_current_actors(){
-    current_rendering_datas.clear();
-    current_input_handlers.clear();
-    current_physics_actors.clear();
-    current_script_actors.clear();
+void            Scene::loop_draw(){
     
+    // Traversing the whole tree filling render_datas in proper order
     std::queue< AccumulatedTreeNode > nodes_queue;
-    
+    std::vector< RenderData > render_datas;
     if( root_node ){
         AccumulatedTreeNode tree_node;
         tree_node.n = root_node;
@@ -53,25 +50,18 @@ void            Scene::update_current_actors(){
         tree_node.c = root_node->get_modulate();
         nodes_queue.push(tree_node);
     }
-
     while( nodes_queue.size() ){
         AccumulatedTreeNode tree_node = nodes_queue.front();
         SceneNode* scene_node = tree_node.n;
         
         auto render_object_range = RenderObject::recover_range_from_node( scene_node );
         for( auto it = render_object_range.first ; it != render_object_range.second ; it++ ){
-            auto render_data = it->second->get_render_data();
-            render_data.model_transform = tree_node.t;
-            render_data.final_modulate = tree_node.c * scene_node->get_self_modulate();
-            current_rendering_datas.push_back( render_data );
+            for( RenderData& render_data : it->second->generate_render_data() ){
+                if(render_data.use_tree_transform) render_data.model_transform = tree_node.t;
+                render_data.final_modulate = tree_node.c * scene_node->get_self_modulate();
+                render_datas.push_back( render_data );
+            }
         }
-        
-        if( scene_node->get_component<CollisionBody>() )
-            current_physics_actors.push_back( scene_node );
-        if( scene_node->get_script() )
-            current_script_actors.push_back( scene_node );
-        nodes_queue.pop();
-        
         
         for( auto child : scene_node->get_children() ){
             AccumulatedTreeNode child_tree_node;
@@ -81,10 +71,9 @@ void            Scene::update_current_actors(){
             nodes_queue.push( child_tree_node );
         }
 
+        nodes_queue.pop();
     }
-}
-void            Scene::loop_draw(){
-    
+
     Transform camera_transf;
     Camera* camera = get_current_camera();
     if( camera ){
@@ -94,51 +83,69 @@ void            Scene::loop_draw(){
     }
 
     // Z-sorting. Must be stable_sort or else unexpected "z flips" can occur between same z-level sprites sometimes...
-    std::stable_sort( current_rendering_datas.begin() , current_rendering_datas.end() , []( const RenderData& data1 , const RenderData& data2 )->bool{
+    std::stable_sort( render_datas.begin() , render_datas.end() , []( const RenderData& data1 , const RenderData& data2 )->bool{
         return data2.model_transform.m[10] > data1.model_transform.m[10];
     });
+    
     Engine::get_render_engine()->set_camera_transform( camera_transf );
-    Engine::get_render_engine()->update( current_rendering_datas );
+    Engine::get_render_engine()->update( render_datas );
 
 }
-void            Scene::loop_input(){
+void            Scene::loop_script(){
+    std::queue< SceneNode* > nodes_queue;
+    std::vector< SceneNode* > script_actors;
+    double last_frame_duration = Engine::get_last_frame_duration();
+
+    // Traversing the tree & finding the actors
+    if( root_node )
+        nodes_queue.push(root_node);
+    while( nodes_queue.size() ){
+        SceneNode* scene_node = nodes_queue.front();;
+        if( scene_node->get_script() )
+            script_actors.push_back(scene_node);
+        for( auto child : scene_node->get_children() )
+            nodes_queue.push( child );
+        nodes_queue.pop();
+    }
+
+    // Solving inputs
     Input::InputEvent* next_input_event = Input::pop_event_queue();
     while(next_input_event){
-        for( auto it = current_script_actors.begin() ; 
-             it != current_script_actors.end() && !next_input_event->is_solved() ;
+        for( auto it = script_actors.begin() ; 
+             it != script_actors.end() && !next_input_event->is_solved() ;
              it++ )
         {
-            SceneNode* node_actor = *it;
+            SceneNode*& node_actor = *it;
             LuaEngine::execute_input( node_actor , next_input_event );
         }
         delete next_input_event;   
         next_input_event = Input::pop_event_queue();
     }
-}
-void            Scene::loop_script(){
-    for( auto it = current_script_actors.begin() ; it != current_script_actors.end() ; it++ ){
-        LuaEngine::execute_frame_start( *it , Engine::get_last_frame_duration() );
-    }
+
+    // Executing _frame_start for each
+    std::for_each( script_actors.begin() , script_actors.end() , [last_frame_duration](SceneNode*& node){
+        LuaEngine::execute_frame_start( node , last_frame_duration );
+    });
+
+
 }
 void            Scene::loop_physics(){
     collision_world->step();
-    for( SceneNode*& node : current_physics_actors ){
+    
+    for( auto it : CollisionBody::component_from_node ){
+        CollisionBody*& body = it.second;
+        SceneNode* node = body->get_node();
         if( node->get_scene() ){
-            CollisionBody* body = node->get_component<CollisionBody>();
-            if( body ){
-                node->set_position( body->get_position() );
-                node->set_rotation_degrees( body->get_rotation_degrees() );
-            }
+            node->set_position( body->get_position() );
+            node->set_rotation_degrees( body->get_rotation_degrees() );
         }
     }
     collision_world->delete_disableds();   
 }
 void            Scene::loop(){
-    update_current_actors();
-    loop_draw();
-    loop_input();
-    loop_physics();
     loop_script();
+    loop_physics();
+    loop_draw();
 }
 void            Scene::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION( Scene , get_root_node );

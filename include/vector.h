@@ -15,6 +15,7 @@ struct Vector2 {
 
     Vector2 rotated( const float rotation_degrees ) const ;
 
+    Vector2  operator-  (                     ) const ;
     Vector2  operator+  (const Vector2  v     ) const ;
     Vector2  operator-  (const Vector2  v     ) const ;
     Vector2  operator*  (const Vector2  v     ) const ;
@@ -27,6 +28,8 @@ struct Vector2 {
     void     operator*= (const float    scale )       ;
     void     operator/= (const Vector2  v     )       ;
     void     operator/= (const float    div   )       ;
+    bool     operator!= (const Vector2  v     )       ;
+    bool     operator== (const Vector2  v     )       ;
 
     operator std::string() const{
         char buff[48];
