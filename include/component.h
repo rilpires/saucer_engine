@@ -12,6 +12,7 @@ class Component : public SaucerObject {
     friend class Scene;                                                                                     \
     private:                                                                                                \
         static std::unordered_multimap< SaucerId , C* > component_from_node;                                \
+        using iterator = std::unordered_multimap< SaucerId , C* >::iterator;                                \
     public:                                                                                                 \
         static C*  recover_from_node( const SceneNode* node ){                                              \
             if(!node) return nullptr;                                                                       \
@@ -21,6 +22,9 @@ class Component : public SaucerObject {
                 C* ret = (it_range.first)->second;                                                          \
                 return ret;                                                                                 \
              }                                                                                              \
+        }                                                                                                   \
+        static std::pair<iterator,iterator>  recover_range_from_node( const SceneNode* node ){              \
+            return component_from_node.equal_range( node->get_saucer_id() );                                \
         }                                                                                                   \
                                                                                                             \
     protected:                                                                                              \

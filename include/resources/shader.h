@@ -8,6 +8,7 @@ class ShaderResource : public Resource {
     REGISTER_SAUCER_OBJECT(ShaderResource,Resource)
     
     friend class RenderEngine;
+    friend class RenderObject;
     private:
         GLuint  shader_program;
 

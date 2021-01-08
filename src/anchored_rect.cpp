@@ -7,7 +7,7 @@ AnchoredRect::AnchoredRect() {
     
 }
 
-RenderObject::RenderData AnchoredRect::get_render_data() const {
+RenderData AnchoredRect::get_render_data() const {
     
 }
 

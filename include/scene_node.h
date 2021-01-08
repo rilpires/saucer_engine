@@ -27,6 +27,9 @@ class SceneNode : public SaucerObject {
         float                       rotation_degrees; // Counter clock wise
         short                       z;
         bool                        relative_z;
+        Color                       modulate;
+        Color                       self_modulate;
+        bool                        inherits_transform;
         SceneNode*                  parent_node;
         std::vector<SceneNode*>     children_nodes;
         Scene*                      scene;
@@ -54,6 +57,11 @@ class SceneNode : public SaucerObject {
         void                    set_z( short new_z );
         short                   get_z( ) const;
         short                   get_global_z() const ;
+        Color                   get_modulate() const ;
+        void                    set_modulate( Color new_col );
+        Color                   get_self_modulate() const ;
+        void                    set_self_modulate( Color new_col );
+        Color                   get_global_modulate() const ;
         void                    set_relative_z(bool new_val);
         bool                    is_z_relative() const ;
         void                    set_script( LuaScriptResource* ls );
@@ -66,13 +74,15 @@ class SceneNode : public SaucerObject {
 
         std::vector<SceneNode*> const&  get_children() const;
 
+        bool                    get_inherits_transform() const;
+        void                    set_inherits_transform(bool new_val);
+
         template< typename T> 
         T*                      get_component() const;
         template< typename T> 
         T*                      create_component( );
         template< typename T> 
         void                    destroy_component( );
-        inline virtual void     process_input_event( Input::InputEvent* input_event ){};
 
     private:
         void                exiting_tree();

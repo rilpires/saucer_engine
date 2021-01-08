@@ -15,15 +15,18 @@ class Scene : public SaucerObject {
     REGISTER_SAUCER_OBJECT(Scene,SaucerObject);
 
     friend class Window; // access current_window    
-    private:
 
+
+    private:
         CollisionWorld* collision_world;
         SceneNode*  root_node;
         Camera*     current_camera;        
+        std::vector<RenderData> current_rendering_datas;
         std::vector<SceneNode*> current_input_handlers;
         std::vector<SceneNode*> current_script_actors;
         std::vector<SceneNode*> current_physics_actors;
 
+        // Traverses the tree and has some optimizations for accumulating transforms and modulates
         void        update_current_actors();
         void        loop_draw();
         void        loop_input();
@@ -44,6 +47,13 @@ class Scene : public SaucerObject {
         void            loop();
 
         static void bind_methods();
+
+    private:
+        struct AccumulatedTreeNode{
+            Transform t;
+            Color c;
+            SceneNode* n;
+        };
 
 };
 

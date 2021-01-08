@@ -9,9 +9,24 @@
 #include <vector>
 
 #include "transform.h"
+#include "color.h"
 
 class RenderObject;
 class ShaderResource;
+
+// This is the data to be passed to the render engine.
+// Proper transforms from SceneNode will be applied further, outside of this scope.
+// Since we are talking only about sprites, it is basically:
+// 1 - TextureID
+// 2 - UV coordinates ( two pairs of vector2 while we don't have a Rect2 type )
+struct RenderData {
+    GLuint              texture_id;
+    Vector2             uv_top_left;
+    Vector2             uv_bottom_right;
+    ShaderResource*     shader_program;
+    Transform           model_transform;  // This will be filled at "tree-discovering" time, since it got to be accumulated from parents
+    Color               final_modulate; // This will be filled at "tree-discovering" time, since it got to be accumulated from parents
+};
 class RenderEngine {
     
     private:
@@ -21,6 +36,8 @@ class RenderEngine {
         
         ShaderResource*     basic_shader_resource;
         ShaderResource*     current_shader_resource;
+
+        GLuint              last_used_texture;
 
         GLuint              viewport_size_attrib_location;
         GLuint              camera_transf_attrib_location;
@@ -46,7 +63,8 @@ class RenderEngine {
         bool                should_close() const;
         std::string         get_window_title() const;
         void                set_window_title( std::string new_title );
-        void                update( std::vector<RenderObject*>& draws );
+        GLuint              get_last_used_texture() const;
+        void                update( const std::vector<RenderData>& draws );
 
 
 };

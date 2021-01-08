@@ -2,6 +2,7 @@
 #define CORE_H
 
 #define GLEW_STATIC
+#include <math.h>
 
 #include "saucer_object.h"
 

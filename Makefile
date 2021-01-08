@@ -32,7 +32,7 @@ INCLUDE_PATHS := \
 RELEASE ?= 0
 
 CXX	      := g++
-CXX_FLAGS := -std=c++11 -Wall
+CXX_FLAGS := -std=c++11 -Wall -Wextra
 SRC_FILES := $(wildcard src/*.cpp) $(wildcard src/*/*.cpp)
 OBJ_FILES := $(patsubst src/%.cpp, obj/%.o, $(SRC_FILES) )
 EXEC_NAME := main

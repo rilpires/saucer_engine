@@ -238,13 +238,14 @@ void    CollisionBody::collision_end( CollisionBody* other ){
     LuaEngine::execute_collision_end( get_node() , other->get_node() );
 }
 void    CollisionBody::entered_tree(){
+    SceneNode* node = get_node();
     if( !b2_body ){
     // Gotta create this body
-        SceneNode* node = get_node();
         b2World* world = node->get_scene()->get_collision_world()->get_b2_world();
         Vector2 node_global_pos = node->get_global_position();
-        float node_global_rot_radians = node->get_global_rotation_degrees() * M_PI / 180.0 ;
-        
+        node->set_inherits_transform(false);
+        node->set_position(node_global_pos);
+        float node_global_rot_radians = node->get_global_rotation_degrees() * M_PI / 180.0 ;    
         b2BodyDef def;
         def.position = b2Vec2( node_global_pos.x * METERS_PER_PIXEL , node_global_pos.y * METERS_PER_PIXEL );
         def.angle = node_global_rot_radians;
@@ -261,6 +262,7 @@ void    CollisionBody::exiting_tree(){
         // Gotta delete this body... but this tree_changed can be occurring inside a CollisionListener call...
         // So we should only nullify b2_body here and disable the body.
         // In the end of Scene::loop_physics we iterate over all bodies to search for disabled bodies and delete them
+        get_node()->set_inherits_transform(true);
         b2_body->GetUserData().pointer = 0 ;
         b2_body = nullptr;
     }

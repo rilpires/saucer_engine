@@ -17,12 +17,13 @@ Sprite::~Sprite(){
     if( node ) component_from_node.erase( node->get_saucer_id() );
 }
 
-RenderObject::RenderData      Sprite::get_render_data() const {
+RenderData      Sprite::get_render_data() const {
     if( texture ){
         RenderData ret;
         ret.texture_id      = texture->get_texture_id();
         ret.uv_top_left     = Vector2(  (1.0/h_frames)*(frame_index%h_frames) ,   (1.0/v_frames)*(frame_index/h_frames) );
         ret.uv_bottom_right = ret.uv_top_left + Vector2( 1.0/h_frames , 1.0/v_frames ) ;
+        ret.shader_program = get_current_shader();
         return ret;
     } else return RenderObject::get_render_data();
 }

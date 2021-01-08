@@ -4,6 +4,7 @@
 #include "debug.h"
 #include <set>
 
+
 lua_State*  LuaEngine::ls = NULL;
 int         LuaEngine::kb_memory_used = 0;
 int         LuaEngine::kb_memory_threshold = 0;
@@ -118,10 +119,10 @@ void            LuaEngine::initialize(){
     AudioEmitter::bind_methods();
     AnchoredRect::bind_methods();
     CollisionBody::bind_methods();
-    ImageResource::bind_methods();
     AudioResource::bind_methods();
     ResourceManager::bind_methods();
     LuaScriptResource::bind_methods();
+    ImageResource::bind_methods();
     kb_memory_threshold = lua_getgcthreshold(ls);
     kb_memory_used = lua_getgccount(ls);
     saucer_print( "Creating lua enviroment..." )

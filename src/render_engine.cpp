@@ -18,7 +18,7 @@ RenderEngine::RenderEngine(){
     
     // Defining context variables & other stuffs
     glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR , 3 );
-    glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR , 0 );
+    glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR , 1 );
     // glfwWindowHint( GLFW_OPENGL_COMPAT_PROFILE , 0 );
 
     // Setting context
@@ -33,30 +33,28 @@ RenderEngine::RenderEngine(){
     saucer_print( "Renderer: " , glGetString( GL_RENDERER )  );
     saucer_print( "Version: " , glGetString( GL_VERSION )  );
 
+    last_used_texture = 0;
+
     GLint d = 0;
-    // GL_CALL( glGetIntegeri_v(GL_CONTEXT_PROFILE_MASK,0,&d);)
-    // GL_CALL( saucer_log( "d | GL_CONTEXT_COMPATIBILITY_PROFILE_BIT = " , (d & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT)))
-    // GL_CALL( saucer_log( "d | GL_CONTEXT_CORE_PROFILE_BIT = " , (d & GL_CONTEXT_CORE_PROFILE_BIT) ))
-    // d=0;
-    // GL_CALL( glGetIntegeri_v(GL_CONTEXT_FLAGS , 0 , &d);)
-    // GL_CALL( saucer_log( "d | GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT" , (d & GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT)))
-    // GL_CALL( saucer_log( "d | GL_CONTEXT_FLAG_DEBUG_BIT" , (d & GL_CONTEXT_FLAG_DEBUG_BIT)))
-    // GL_CALL( saucer_log( "d | GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT" , (d & GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT)))
-    // GL_CALL( saucer_log( "d | GL_CONTEXT_FLAG_NO_ERROR_BIT" , (d & GL_CONTEXT_FLAG_NO_ERROR_BIT)))
+    GL_CALL( glGetIntegerv(GL_CONTEXT_PROFILE_MASK,&d))
+    GL_CALL( saucer_log( "GL_CONTEXT_COMPATIBILITY_PROFILE_BIT = " , (d & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT)))
+    GL_CALL( saucer_log( "GL_CONTEXT_CORE_PROFILE_BIT = " , (d & GL_CONTEXT_CORE_PROFILE_BIT) ))
+    d=0;
+    GL_CALL( glGetIntegerv(GL_CONTEXT_FLAGS, &d))
+    GL_CALL( saucer_log( "GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT" , (d & GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT)))
+    GL_CALL( saucer_log( "GL_CONTEXT_FLAG_DEBUG_BIT" , (d & GL_CONTEXT_FLAG_DEBUG_BIT)))
+    GL_CALL( saucer_log( "GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT" , (d & GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT)))
+    GL_CALL( saucer_log( "GL_CONTEXT_FLAG_NO_ERROR_BIT" , (d & GL_CONTEXT_FLAG_NO_ERROR_BIT)))
 
     GL_CALL( saucer_log( "GL_SHADING_LANGUAGE_VERSION = " , glGetString(GL_SHADING_LANGUAGE_VERSION)))
-    // GL_CALL( glGetIntegeri_v(GL_NUM_SHADING_LANGUAGE_VERSIONS,0,&d); )
-    // GL_CALL( for( int i = 0 ; i < d ; i++ ) saucer_log(glGetStringi(GL_SHADING_LANGUAGE_VERSION,i)))
+    GL_CALL( glGetIntegerv(GL_NUM_SHADING_LANGUAGE_VERSIONS,&d); )
+    GL_CALL( for( int i = 0 ; i < d ; i++ ) saucer_log(glGetStringi(GL_SHADING_LANGUAGE_VERSION,i)))
 
     basic_shader_resource = (ShaderResource*) ResourceManager::get_resource("res/shaders/basic.glsl");
     set_current_shader( basic_shader_resource );
     camera_transform = Transform();
 
-    // VAO (Vertex Array Object) for generic sprites
-    unsigned int vao;
-    GL_CALL( glCreateVertexArrays(1,&vao) );
-    GL_CALL( glBindVertexArray(vao) );
-    
+
     Vector2 window_size = get_window_size();
     // VBO (Vertex Buffer Object) for 2D objects, constant
     // These will be properly transformed by uniforms:
@@ -75,18 +73,20 @@ RenderEngine::RenderEngine(){
     GL_CALL( glGenBuffers(1, &vbo) );
     GL_CALL( glBindBuffer(GL_ARRAY_BUFFER,vbo) );
     GL_CALL( glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data) , vertex_data , GL_STATIC_COPY ) );
+
+    // VAO (Vertex Array Object) for generic sprites
+    unsigned int vao;
+    GL_CALL( glCreateVertexArrays(1,&vao) );
+    GL_CALL( glBindVertexArray(vao) );
     GL_CALL( glVertexAttribPointer( 0 , 3 , GL_FLOAT , false , 5*sizeof(GL_FLOAT) , 0 ));
     GL_CALL( glVertexAttribPointer( 1 , 2 , GL_FLOAT , false , 5*sizeof(GL_FLOAT) , (void*)(3*sizeof(GL_FLOAT)) ));
     GL_CALL( glEnableVertexAttribArray(  0 ) );
     GL_CALL( glEnableVertexAttribArray( 1 ) );
 
-    // VEB (Vertex Element Buffer )
-    // Just the two triangles
-    unsigned int vertex_index[] = {
-        0 , 2 , 1 ,
-        0 , 3 , 2
-    };
-
+    unsigned int vertex_index[] = { 
+        1 , 2 , 0 ,
+        3 };
+    
     unsigned int veb;
     GL_CALL( glGenBuffers(1,&veb) );
     GL_CALL( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,veb) );
@@ -171,42 +171,37 @@ void                RenderEngine::set_window_title( std::string new_title ){
     window_title = new_title;
     glfwSetWindowTitle( glfw_window , new_title.c_str() );
 }
-void                RenderEngine::update( std::vector<RenderObject*>& draws ){
+GLuint              RenderEngine::get_last_used_texture() const{
+    return last_used_texture;
+}
+void                RenderEngine::update( const std::vector<RenderData>& draws ){
     
     GL_CALL( glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
     GL_CALL( glClearColor( 0,0,0,1 ) );
-    
-    // Z-sorting. Must be stable_sort or else unexpected "z flips" can occur between same z-level sprites sometimes...
-    std::stable_sort( draws.begin() , draws.end() , []( const RenderObject* n1 , const RenderObject* n2)->bool{
-        return n2->get_node()->get_global_z() > n1->get_node()->get_global_z();
-    });
-
-    for( auto it = draws.begin() ; it != draws.end() ; it ++ ){
-        
-        SceneNode* scene_node = (*it)->get_node();
-        RenderObject* render_object = *it;
-        ShaderResource* object_shader = render_object->get_current_shader();
-        RenderObject::RenderData render_data = render_object->get_render_data();
-
-        if( !object_shader ) object_shader = basic_shader_resource;
-        set_current_shader( object_shader );
-        
-        if( render_data.texture_id ) {
+    for( auto render_data = draws.begin() ; render_data != draws.end() ; render_data ++ ){
             
-            Transform   model_transform;
-            Color       modulate;
-            Vector2     size_in_pixels;
-            model_transform =   (scene_node->get_component<CollisionBody>() )   ?   scene_node->get_transform() 
-                                                                                :   scene_node->get_global_transform()  ;
-            modulate = render_object->get_global_modulate();
-            const float uv_div[4] = { render_data.uv_top_left.x ,render_data.uv_top_left.y , render_data.uv_bottom_right.x ,render_data.uv_bottom_right.y };
+        ShaderResource* shader_program = render_data->shader_program;
+        if(!shader_program) shader_program = basic_shader_resource;
+        set_current_shader( shader_program );
+        
+        if( render_data->texture_id ) {
             
-
-            GL_CALL( glBindTexture( GL_TEXTURE_2D , render_data.texture_id ) );
-            GL_CALL( glUniformMatrix4fv( model_transf_attrib_location , 1 , GL_FALSE , model_transform.m ) );
+            const float uv_div[4] = { render_data->uv_top_left.x      ,
+                                      render_data->uv_top_left.y      , 
+                                      render_data->uv_bottom_right.x  ,
+                                      render_data->uv_bottom_right.y  };
+            
+            if( last_used_texture != render_data->texture_id ){
+                GL_CALL( glBindTexture( GL_TEXTURE_2D , render_data->texture_id ) );
+                last_used_texture = render_data->texture_id;
+            }
+            GL_CALL( glUniformMatrix4fv( model_transf_attrib_location , 1 , GL_FALSE , render_data->model_transform.m ) );
             GL_CALL( glUniform4fv( uv_div_attrib_location , 1 , uv_div ) );
-            GL_CALL( glUniform4f( modulate_attrib_location , ((float)modulate.r)/255.0f , ((float)modulate.g)/255.0f , ((float)modulate.b)/255.0f , ((float)modulate.a)/255.0f ));
-            GL_CALL( glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,NULL) );
+            GL_CALL( glUniform4f( modulate_attrib_location , ((float)render_data->final_modulate.r)/255.0f , 
+                                                             ((float)render_data->final_modulate.g)/255.0f , 
+                                                             ((float)render_data->final_modulate.b)/255.0f , 
+                                                             ((float)render_data->final_modulate.a)/255.0f ));
+            GL_CALL( glDrawElements(GL_TRIANGLE_STRIP,4,GL_UNSIGNED_INT,nullptr ) );
 
         }
     }

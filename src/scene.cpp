@@ -1,6 +1,7 @@
 #include "scene.h"
 #include "core.h"
 #include <queue>
+#include <algorithm>
 
 
 Scene::Scene(){
@@ -38,17 +39,33 @@ CollisionWorld* Scene::get_collision_world() const{
     return collision_world;
 }
 void            Scene::update_current_actors(){
+    current_rendering_datas.clear();
     current_input_handlers.clear();
     current_physics_actors.clear();
     current_script_actors.clear();
     
-    std::queue<SceneNode*> nodes_queue;
+    std::queue< AccumulatedTreeNode > nodes_queue;
     
-    if( get_root_node() )
-        nodes_queue.push(get_root_node());
-    
+    if( root_node ){
+        AccumulatedTreeNode tree_node;
+        tree_node.n = root_node;
+        tree_node.t = root_node->get_transform();
+        tree_node.c = root_node->get_modulate();
+        nodes_queue.push(tree_node);
+    }
+
     while( nodes_queue.size() ){
-        SceneNode* scene_node = nodes_queue.front();
+        AccumulatedTreeNode tree_node = nodes_queue.front();
+        SceneNode* scene_node = tree_node.n;
+        
+        auto render_object_range = RenderObject::recover_range_from_node( scene_node );
+        for( auto it = render_object_range.first ; it != render_object_range.second ; it++ ){
+            auto render_data = it->second->get_render_data();
+            render_data.model_transform = tree_node.t;
+            render_data.final_modulate = tree_node.c * scene_node->get_self_modulate();
+            current_rendering_datas.push_back( render_data );
+        }
+        
         if( scene_node->get_component<CollisionBody>() )
             current_physics_actors.push_back( scene_node );
         if( scene_node->get_script() )
@@ -56,19 +73,18 @@ void            Scene::update_current_actors(){
         nodes_queue.pop();
         
         
-        for( auto child : scene_node->get_children() )
-            nodes_queue.push( child );
+        for( auto child : scene_node->get_children() ){
+            AccumulatedTreeNode child_tree_node;
+            child_tree_node.n = child;
+            child_tree_node.t = (child->get_inherits_transform()) ? (tree_node.t*child->get_transform() ):(child->get_transform());
+            child_tree_node.c = tree_node.c * child->get_modulate();
+            nodes_queue.push( child_tree_node );
+        }
 
     }
 }
 void            Scene::loop_draw(){
-
-    std::vector<RenderObject*> all_render_objects;
     
-    for( auto it = RenderObject::component_from_node.begin() ; it != RenderObject::component_from_node.end() ; it++ )
-        if( it->second->get_node()->get_scene() == this )
-            all_render_objects.push_back( it->second );
-
     Transform camera_transf;
     Camera* camera = get_current_camera();
     if( camera ){
@@ -76,8 +92,13 @@ void            Scene::loop_draw(){
         camera_transf.scale( camera->get_zoom() );
         camera_transf = camera_transf.inverted();
     }
+
+    // Z-sorting. Must be stable_sort or else unexpected "z flips" can occur between same z-level sprites sometimes...
+    std::stable_sort( current_rendering_datas.begin() , current_rendering_datas.end() , []( const RenderData& data1 , const RenderData& data2 )->bool{
+        return data2.model_transform.m[10] > data1.model_transform.m[10];
+    });
     Engine::get_render_engine()->set_camera_transform( camera_transf );
-    Engine::get_render_engine()->update( all_render_objects );
+    Engine::get_render_engine()->update( current_rendering_datas );
 
 }
 void            Scene::loop_input(){
@@ -114,10 +135,10 @@ void            Scene::loop_physics(){
 }
 void            Scene::loop(){
     update_current_actors();
+    loop_draw();
     loop_input();
     loop_physics();
     loop_script();
-    loop_draw();
 }
 void            Scene::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION( Scene , get_root_node );

@@ -114,6 +114,36 @@ class LuaEngine {
 
 };
 
+template<>
+lua_CFunction    LuaEngine::recover_nested_function<SaucerObject>( std::string function_name );
+
+template<> void     LuaEngine::push( lua_State* ls , bool b );
+template<> void     LuaEngine::push( lua_State* ls , std::string s);
+template<> void     LuaEngine::push( lua_State* ls , double n );
+template<> void     LuaEngine::push( lua_State* ls , float n );
+template<> void     LuaEngine::push( lua_State* ls , int n );
+template<> void     LuaEngine::push( lua_State* ls , short n );
+template<> void     LuaEngine::push( lua_State* ls , SaucerId n );
+template<> void     LuaEngine::push( lua_State* ls , Vector2 v );
+template<> void     LuaEngine::push( lua_State* ls , Vector3 v );
+template<> void     LuaEngine::push( lua_State* ls , Color v );
+template<> void     LuaEngine::push( lua_State* ls , Input::InputEvent* r );
+
+template<> lua_CFunction    LuaEngine::create_lua_constructor<Color>( lua_State* ls );
+template<> lua_CFunction    LuaEngine::create_lua_constructor<Vector2>( lua_State* ls );
+template<> lua_CFunction    LuaEngine::create_lua_constructor<Vector3>( lua_State* ls );
+
+template<> int                  LuaEngine::pop( lua_State* ls );
+template<> float                LuaEngine::pop( lua_State* ls );
+template<> short                LuaEngine::pop( lua_State* ls );
+template<> double               LuaEngine::pop( lua_State* ls );
+template<> bool                 LuaEngine::pop( lua_State* ls );
+template<> std::string          LuaEngine::pop( lua_State* ls );
+template<> Input::InputEvent*   LuaEngine::pop(lua_State* ls );
+
+
+
+
 #include "lua_engine.tpp"
 
 #endif

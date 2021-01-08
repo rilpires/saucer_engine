@@ -9,17 +9,16 @@ typedef unsigned int TextureId;
 class ImageResource : public Resource {
     REGISTER_SAUCER_OBJECT(ImageResource,Resource)
     
-    friend class ResourceManager;
     private:
         unsigned char*          data;
         size_t                  width,height;
         TextureId               tex_id;
-        ImageResource( std::string filepath );
         ~ImageResource();
     public:
+        ImageResource( std::string filepath );
         TextureId               get_texture_id() const {return tex_id;}
         Color                   get_pixel(size_t x , size_t y) const;
-        Vector2                 get_size() const {return Vector2(width,height);};
+        Vector2                 get_size() const;
         
         static void             bind_methods();
 };

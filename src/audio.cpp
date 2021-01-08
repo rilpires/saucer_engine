@@ -119,6 +119,7 @@ void                AudioEmitter::set_audio_resource(AudioResource* new_res){
         if( num_channels == 2 && bit_depth == 8 )   format = AL_FORMAT_STEREO8;
         else 
         if( num_channels == 2 && bit_depth == 16 )  format = AL_FORMAT_STEREO16;
+        else saucer_err("call the cops");
 
         AL_CALL( alSourcei( source , AL_BUFFER , 0 ) );
         AL_CALL( alBufferData( buffer , format , audio_resource->get_buffer_data() , audio_resource->get_buffer_size()  , audio_resource->get_sample_rate() ) );

@@ -27,6 +27,7 @@ ImageResource::ImageResource( std::string filepath ) : Resource(filepath) {
             saucer_err( "Error loading image from " , filepath )
         }
         else{
+            GLuint old_binded_tex = Engine::get_render_engine()->get_last_used_texture();
             GL_CALL( glGenTextures(1,&tex_id) );
             GL_CALL( glBindTexture(GL_TEXTURE_2D,tex_id) );
             GL_CALL( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S , GL_CLAMP_TO_EDGE ) );
@@ -34,6 +35,7 @@ ImageResource::ImageResource( std::string filepath ) : Resource(filepath) {
             GL_CALL( glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MAG_FILTER , GL_NEAREST ) );
             GL_CALL( glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MIN_FILTER , GL_NEAREST ) );
             GL_CALL( glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,data) );
+            GL_CALL( glBindTexture(GL_TEXTURE_2D,old_binded_tex) );
             return;
         }
     }
@@ -47,7 +49,9 @@ Color           ImageResource::get_pixel(size_t x , size_t y) const{
     size_t r_pointer = 4*( x + y*width );
     return Color( data[r_pointer] , data[r_pointer+1] , data[r_pointer+2] , data[r_pointer+3] );
 }
-
+Vector2           ImageResource::get_size() const{
+    return Vector2(width,height);
+}
 void ImageResource::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION( ImageResource , get_size );
     REGISTER_LUA_MEMBER_FUNCTION( ImageResource , get_pixel );

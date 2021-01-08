@@ -16,10 +16,15 @@ int main( int argc , char** argv ){
     root->set_script( LuaScriptResource::get_resource("res/scripts/test.lua") );
     scene->set_root_node(root);
 
-    ResourceManager::get_resource("res/shaders/basic.glsl");
-    
+    // for( int i = 0 ; i < 50000 ; i++ ){
+    //     SceneNode* new_node = new SceneNode();
+    //     root->add_child( new_node );
+    //     new_node->create_component<Sprite>()->set_texture( (ImageResource*)ResourceManager::get_resource("res/gold.png") );
+    //     new_node->set_position( Vector2( (float(random()%1000))-500 , (float(random()%1000))-500  ));
+    // }
+
     while( !Engine::should_close() ) 
-    Engine::update(); 
+        Engine::update(); 
     Engine::close();
     
     LuaEngine::finish();

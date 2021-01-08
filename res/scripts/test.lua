@@ -23,8 +23,8 @@ function _frame_start( dt_seconds )
     if (Input.is_key_pressed(KEY.DOWN))     then vel.y = vel.y - 1.0 end;
     this:set_global_position( this:get_global_position() + vel*5.0 )
     local s = math.sin(Engine.get_uptime()*5000.0)
-    this:get_sprite():set_modulate( Color(1,0.9+0.2*s,1,1) )
-    -- print("FPS: " , Engine.get_fps() )
+    this:set_modulate( Color(1,0.9+0.2*s,1,1) )
+    print("FPS: " , Engine.get_fps() )
 end
 
 current_spawn = nil

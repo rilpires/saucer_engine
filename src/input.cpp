@@ -3,13 +3,13 @@
 
 // Push/pop definitions for Input::InputEvent* should be special, since it's the only type 
 // that is passed by pointer and isn't a saucer object
+
 template<> Input::InputEvent* LuaEngine::pop(lua_State* ls ){
     Input::InputEvent** ret = static_cast<Input::InputEvent**>(lua_touserdata(ls,-1) );
     lua_pop(ls,1);
     return *ret;
 }
 
-// push definition for InputEvent should be specialized since it is used in "LuaEngine::execute_input" here
 template<> void LuaEngine::push( lua_State* ls , Input::InputEvent* r ){
     // This is unusual we will take care
     Input::InputEvent** input_pointerpointer = (Input::InputEvent**)lua_newuserdata( ls , sizeof(Input::InputEvent*) );

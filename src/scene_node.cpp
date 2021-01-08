@@ -9,6 +9,9 @@ SceneNode::SceneNode(){
     rotation_degrees = 0.0f;
     z = 0;
     relative_z = true;
+    modulate = Color();
+    self_modulate = Color();
+    inherits_transform = true;
     parent_node = NULL;
     scene = NULL;
     lua_script = NULL;
@@ -62,7 +65,7 @@ Transform           SceneNode::get_transform() const{
 }
 Transform           SceneNode::get_global_transform() const{
     Transform ret = get_transform();
-    if( get_parent() ) return get_parent()->get_global_transform() * ret;
+    if( inherits_transform && parent_node ) return parent_node->get_global_transform() * ret;
     else return ret;
 }
 void                SceneNode::set_z( short new_z ){z=new_z;}
@@ -71,6 +74,27 @@ short               SceneNode::get_global_z() const {
     if( relative_z && parent_node )
         return parent_node->get_global_z()+z;
     return z;
+}
+Color               SceneNode::get_modulate() const {
+    return modulate;
+}
+void                SceneNode::set_modulate( Color new_col ){
+    modulate = new_col;
+}
+Color               SceneNode::get_self_modulate() const {
+    return self_modulate;
+}
+void                SceneNode::set_self_modulate( Color new_col ){
+    self_modulate = new_col;
+}
+Color               SceneNode::get_global_modulate() const{
+    Color ret = self_modulate;
+    const SceneNode* node = this;
+    while(node){
+        ret *= node->modulate;
+        node = node->get_parent();
+    }
+    return ret;
 }
 void                SceneNode::set_relative_z(bool new_val){relative_z=new_val;}
 bool                SceneNode::is_z_relative() const {return relative_z;}
@@ -120,6 +144,12 @@ Scene*              SceneNode::get_scene() const{
     return scene;
 }
 std::vector<SceneNode*> const&  SceneNode::get_children() const { return children_nodes; }
+bool                SceneNode::get_inherits_transform() const{
+    return inherits_transform;
+}
+void                SceneNode::set_inherits_transform(bool new_val){
+    inherits_transform = new_val;
+}
 void        SceneNode::entered_tree(){
     for( auto& child : children_nodes ) child->entered_tree();
     for( Component*& c : attached_components )
@@ -152,6 +182,10 @@ void        SceneNode::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_global_z);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_relative_z);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,is_z_relative);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_modulate );
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_modulate );
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_self_modulate );
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_self_modulate );
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_script);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_script);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_out);
