@@ -64,10 +64,10 @@ RenderEngine::RenderEngine(){
     // 4 - finally, scaling from screen_space coordinates to window_space ( gl_Position.xy /= ( viewport_size/2 ) )
     float vertex_data[] = {
     /*  X                       Y                       Z       U       V    */
-        -0.5f*window_size.x ,   -0.5f*window_size.y ,   0.0 ,   0.0 ,   1.0 ,
-        +0.5f*window_size.x ,   -0.5f*window_size.y ,   0.0 ,   1.0 ,   1.0 ,
-        +0.5f*window_size.x ,   +0.5f*window_size.y ,   0.0 ,   1.0 ,   0.0 ,
-        -0.5f*window_size.x ,   +0.5f*window_size.y ,   0.0 ,   0.0 ,   0.0
+        -0.5f*window_size.x ,   -0.5f*window_size.y ,   0.0 ,   0.0 ,   0.0 ,
+        +0.5f*window_size.x ,   -0.5f*window_size.y ,   0.0 ,   1.0 ,   0.0 ,
+        +0.5f*window_size.x ,   +0.5f*window_size.y ,   0.0 ,   1.0 ,   1.0 ,
+        -0.5f*window_size.x ,   +0.5f*window_size.y ,   0.0 ,   0.0 ,   1.0
     };
     unsigned int vbo;
     GL_CALL( glGenBuffers(1, &vbo) );
@@ -194,8 +194,8 @@ void                RenderEngine::update( const std::vector<RenderData>& draws )
                 last_used_texture = render_data->texture_id;
             }
 
-            GL_CALL( glUniform4f( pixel_size_attrib_location ,  640 , 
-                                                                480 , 
+            GL_CALL( glUniform4f( pixel_size_attrib_location ,  window_size.x , 
+                                                                window_size.y , 
                                                                 render_data->size_in_pixels.x , 
                                                                 render_data->size_in_pixels.y ) );
             GL_CALL( glUniform1i( ignore_camera_atrib_location , !render_data->view_transform ) );

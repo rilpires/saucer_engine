@@ -58,34 +58,27 @@ void AnchoredRect::set_use_scene_node_transform(bool new_val) {
     use_scene_node_transform = new_val;
 }
 Vector2 AnchoredRect::get_global_rect_pos() const{
-    AnchoredRect* parent_rect = get_parent_rect();
-    Vector2 local_pos = rect_pos*Vector2(1,-1);
-    if( starts_on_viewport ){
-        return local_pos + Engine::get_window_size() * Vector2(-0.5,0.5) ;
-    } else if( parent_rect ){
-        return parent_rect->get_global_rect_pos() + local_pos;
-    } else if( use_scene_node_transform ){
-        return get_node()->get_global_transform() * local_pos;
-    } else {
-        // Well.. the same as starts_on_viewport
-        return local_pos + Engine::get_window_size() * Vector2(-0.5,0.5) ;
-    }
+    return get_parent_global_transform() * rect_pos;
 }
 void AnchoredRect::grow(int border, float amount) {
     switch (border)
     {
         case LEFT_BORDER:
+            amount = std::max(amount,-rect_size.x);
             rect_size.x += amount;
             rect_pos.x -= amount;
             break;
         case RIGHT_BORDER:
+            amount = std::max(amount,-rect_size.x);
             rect_size.x += amount;
             break;
         case TOP_BORDER:
+            amount = std::max(amount,-rect_size.y);
             rect_size.y += amount;
             rect_pos.y -= amount;
             break;
         case BOTTOM_BORDER:
+            amount = std::max(amount,-rect_size.y);
             rect_size.y += amount;
             break;
         default:
@@ -110,6 +103,19 @@ AnchoredRect*                       AnchoredRect::get_parent_rect() const{
     if( attached_node && attached_node->get_parent() )
         return attached_node->get_parent()->get_component<AnchoredRect>();
     return nullptr;
+}
+Transform   AnchoredRect::get_parent_global_transform() const{
+    AnchoredRect* parent_rect = get_parent_rect();
+    if( starts_on_viewport ){
+        return Transform() ;
+    } else if( parent_rect ){
+        return parent_rect->get_parent_global_transform().translate(parent_rect->rect_pos);
+    } else if( use_scene_node_transform ){
+        return get_node()->get_global_transform();
+    } else {
+        // Well.. the same as starts_on_viewport
+        return Transform();
+    }
 }
 void AnchoredRect::bind_methods() {
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , is_border_anchored );

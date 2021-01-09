@@ -25,10 +25,11 @@ void main(){
     vec2 size_in_pixels = pixel_size.zw;
 
     gl_Position = vec4( position , 1.0 );
-    gl_Position.xy *= (size_in_pixels/pixel_size.xy);
+    gl_Position.xy *= (size_in_pixels/viewport_size_pixels);
     gl_Position *= model_transf;
     if(!ignore_camera) gl_Position *= camera_transf;
     gl_Position.xy /= ( pixel_size.xy/2 );
+    gl_Position.y *= -1;
     
     uv = in_uv;
     uv.x *= (uv_div.z - uv_div.x);

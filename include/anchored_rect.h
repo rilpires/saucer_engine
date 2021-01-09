@@ -36,15 +36,16 @@ class AnchoredRect : public RenderObject {
         void                set_starts_on_viewport( bool new_val );
         bool                get_use_scene_node_transform() const ;
         void                set_use_scene_node_transform( bool new_val );
-        Vector2             get_global_rect_pos() const;
         void                grow( int border , float amount );
 
         static void         bind_methods();
 
-    private:
+    protected:
         const std::vector<AnchoredRect*>    get_children_rects() const;
         AnchoredRect*                       get_parent_rect() const;
-
+        Vector2                 get_global_rect_pos() const;
+        Transform               get_parent_global_transform() const;
+        
 };
 
 #endif

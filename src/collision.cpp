@@ -24,7 +24,7 @@ void CollisionWorld::CollisionListener::EndContact(b2Contact* contact){
 }
 
 CollisionWorld::CollisionWorld(){
-    gravity = Vector2( 0.0f , -10.0f ) ;
+    gravity = Vector2( 0.0f , 10.0f ) ;
     b2_world = new b2World( b2Vec2(gravity.x , gravity.y ) );
     listener = new CollisionWorld::CollisionListener();
     b2_world->SetContactListener( listener );

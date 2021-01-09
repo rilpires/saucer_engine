@@ -77,7 +77,6 @@ Vector2      Input::get_screen_mouse_position() {
 Vector2      Input::get_world_mouse_position(){
     if( Engine::get_current_scene() ){
         Vector2 temp = window_mouse_position;
-        temp.y = Engine::get_window_size().y - temp.y;
         temp -= Engine::get_window_size() * 0.5;
         return Engine::get_render_engine()->get_camera_transform().inverted() * temp;
     } else return window_mouse_position;

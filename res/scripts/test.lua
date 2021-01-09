@@ -4,7 +4,7 @@ function _entered_tree()
     wall = SceneNode.new()
     wall_body = wall:create_body()
     wall_body:set_body_type( BodyType.STATIC )
-    for index,center in { Vector2(-window_size.x,0) , Vector2(window_size.x,0) , Vector2(0,-window_size.y) } do
+    for index,center in { Vector2(-window_size.x,0) , Vector2(window_size.x,0) , Vector2(0,window_size.y) } do
         wall_body:create_rectangle_shape( window_size , center )
     end
     this:add_child(wall)
@@ -19,8 +19,8 @@ function _frame_start( dt_seconds )
     vel = Vector2(0,0);
     if (Input.is_key_pressed(KEY.LEFT))     then vel.x = vel.x - 1.0 end;
     if (Input.is_key_pressed(KEY.RIGHT))    then vel.x = vel.x + 1.0 end;
-    if (Input.is_key_pressed(KEY.UP))       then vel.y = vel.y + 1.0 end;
-    if (Input.is_key_pressed(KEY.DOWN))     then vel.y = vel.y - 1.0 end;
+    if (Input.is_key_pressed(KEY.UP))       then vel.y = vel.y - 1.0 end;
+    if (Input.is_key_pressed(KEY.DOWN))     then vel.y = vel.y + 1.0 end;
     this:set_global_position( this:get_global_position() + vel*5.0 )
     local s = math.sin(Engine.get_uptime()*5000.0)
     this:set_modulate( Color(1,0.9+0.2*s,1,1) )

@@ -1,15 +1,23 @@
 
 function _entered_tree()
     patch = this:create_patch_rect(); 
-    patch:set_rect_pos(  Vector2(0,110) )
+    patch:set_rect_pos(  Vector2(-50,0) )
     patch:set_rect_size( Vector2(100,100) )
-    patch:set_texture( load("res/troll.png") )
-    patch:set_use_scene_node_transform(true)
+    patch:set_texture( load("res/border.png") )
+    patch:set_use_scene_node_transform(false)
 
     new_node = SceneNode.new()
     this:add_child(new_node)
-    -- new_node:create_anchored_rect():set_rect_pos(Vector2(50,50))
-    -- new_node:get_anchored_rect():get_texture():set_wrap_mode( TextureWrapMode.ALPHA_ZERO )
+    child_rect = new_node:create_patch_rect()
+    child_rect:set_anchored_border(0,false)
+    child_rect:set_anchored_border(1,true)
+    child_rect:set_anchored_border(2,false)
+    child_rect:set_anchored_border(3,false)
+    child_rect:set_rect_pos(Vector2(-50,50))
+    child_rect:set_rect_size(Vector2(70,70))
+    child_rect:set_starts_on_viewport(false)
+    child_rect:set_texture( load("res/border.png") )
+    -- this:get_parent():add_child(new_node)
 end
 
 function _frame_start( dt_seconds )
@@ -20,12 +28,10 @@ function _frame_start( dt_seconds )
     if not this:get_body() then
         local s = math.sin( Engine.get_uptime() * 200.0 + id*13 );
         this:set_rotation_degrees( this:get_rotation_degrees() + 3 )
-        this:set_scale( Vector2( s , 1 ) )
+        -- this:set_scale( Vector2( s , 1 ) )
     end
-
     patch = this:get_patch_rect()
-    -- patch:set_margin( 0 , 10 + 10*math.sin(t*100) )
-    -- patch:set_rect_size( Vector2( 100 , 100 + 50*math.sin( t * 100 ) ) )
+    patch:set_rect_size( Vector2( 160 + 22*math.cos( t * 110 ) , 160 + 20*math.sin( t * 30 ) ) )
 end
 
 list_of_sounds = {
