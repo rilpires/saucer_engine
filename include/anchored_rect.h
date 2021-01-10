@@ -15,7 +15,7 @@ class AnchoredRect : public RenderObject {
     REGISTER_AS_INHERITED_COMPONENT(AnchoredRect,RenderObject);
     
     private:
-        unsigned char   anchored_borders; // 4 bits mask
+        unsigned char   anchored_borders[4];
         Vector2         rect_pos;
         Vector2         rect_size;
         bool            starts_on_viewport;
@@ -26,8 +26,8 @@ class AnchoredRect : public RenderObject {
 
         std::vector<RenderData>  generate_render_data() const ;
 
-        bool                is_border_anchored( int border ) const ;
-        void                set_anchored_border( int border , bool new_val );
+        bool                is_border_anchored( int border , int parent_border ) const ;
+        void                set_anchored_border( int border , int parent_border , bool new_val );
         Vector2             get_rect_pos() const ;
         void                set_rect_pos( Vector2 new_val );
         Vector2             get_rect_size() const ;

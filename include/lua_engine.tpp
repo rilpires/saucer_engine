@@ -260,5 +260,63 @@ struct LuaEngine::to_lua_cfunction<R(C::*)(T_arg1,T_arg2)>{
     }
 };
 
+template< typename R , typename C , typename T_arg1, typename T_arg2, typename T_arg3 >
+struct LuaEngine::to_lua_cfunction<R(C::*)(T_arg1,T_arg2,T_arg3)>{
+    using function_type = R(C::*)(T_arg1,T_arg2,T_arg3);
+    using const_function_type = R(C::*)(T_arg1,T_arg2,T_arg3) const;
+    using class_type = typename to_used_type<C>::type;
+
+    template< typename ret_type , function_type f , class = typename std::enable_if<std::is_same< ret_type ,void>::value>::type >
+    static lua_CFunction   generate_lambda( ){
+        return []( lua_State* ls ) {
+            T_arg3      arg3    = LuaEngine::pop<T_arg3>(ls);
+            T_arg2      arg2    = LuaEngine::pop<T_arg2>(ls);
+            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
+            class_type  obj     = LuaEngine::pop<class_type>(ls);
+            C& obj_ref = to_ref<C>(obj);
+            (obj_ref.*f)(arg1,arg2,arg3);
+            return 0;
+        };
+    }
+    template< typename ret_type , const_function_type f , class = typename std::enable_if<std::is_same< ret_type ,void>::value>::type >
+    static lua_CFunction   generate_lambda( ){
+        return []( lua_State* ls ) {
+            T_arg3      arg3    = LuaEngine::pop<T_arg3>(ls);
+            T_arg2      arg2    = LuaEngine::pop<T_arg2>(ls);
+            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
+            class_type  obj     = LuaEngine::pop<class_type>(ls);
+            C& obj_ref = to_ref<C>(obj);
+            (obj_ref.*f)(arg1,arg2,arg3);
+            return 0;
+        };
+    }
+    template< typename ret_type , function_type f , class = typename std::enable_if<!std::is_same< ret_type ,void>::value>::type , class=int >
+    static lua_CFunction   generate_lambda( ){
+        return []( lua_State* ls ) {
+            T_arg3      arg3    = LuaEngine::pop<T_arg3>(ls);
+            T_arg2      arg2    = LuaEngine::pop<T_arg2>(ls);
+            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
+            class_type  obj     = LuaEngine::pop<class_type>(ls);
+            C& obj_ref = to_ref<C>(obj);
+            R ret = (obj_ref.*f)(arg1,arg2,arg3);
+            LuaEngine::push<R>(ls,ret);
+            return 1;
+        };
+    }
+    template< typename ret_type , const_function_type f , class = typename std::enable_if<!std::is_same< ret_type ,void>::value>::type , class=int >
+    static lua_CFunction   generate_lambda( ){
+        return []( lua_State* ls ) {
+            T_arg3      arg3    = LuaEngine::pop<T_arg3>(ls);
+            T_arg2      arg2    = LuaEngine::pop<T_arg2>(ls);
+            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
+            class_type  obj     = LuaEngine::pop<class_type>(ls);
+            C& obj_ref = to_ref<C>(obj);
+            R ret = (obj_ref.*f)(arg1,arg2,arg3);
+            LuaEngine::push<R>(ls,ret);
+            return 1;
+        };
+    }
+};
+
 
 #endif

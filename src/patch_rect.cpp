@@ -13,69 +13,52 @@ PatchRect::PatchRect() {
 std::vector<RenderData> PatchRect::generate_render_data() const {
     std::vector<RenderData> ret;
     if( get_texture() ){
-        
         Vector2 tex_size = get_texture()->get_size();
-
-        SAUCER_ASSERT(margins[LEFT_BORDER]+margins[RIGHT_BORDER] <= tex_size.x );
-        SAUCER_ASSERT(margins[TOP_BORDER]+margins[BOTTOM_BORDER] <= tex_size.y );
-    
-        Vector2 rect_size = get_rect_size();
-        Vector2 effective_rect_size;
-        std::vector<int> dxs , dys;
-        int middle_width = rect_size.x - margins[LEFT_BORDER] - margins[RIGHT_BORDER];
-        int middle_height = rect_size.y - margins[BOTTOM_BORDER] - margins[TOP_BORDER];
-        int texture_middle_width = tex_size.x - margins[LEFT_BORDER] - margins[RIGHT_BORDER];
-        int texture_middle_height = tex_size.y - margins[TOP_BORDER] - margins[BOTTOM_BORDER];
-        effective_rect_size.x = std::max( (int)rect_size.x , margins[LEFT_BORDER] + margins[RIGHT_BORDER] );
-        effective_rect_size.y = std::max( (int)rect_size.y , margins[TOP_BORDER] + margins[BOTTOM_BORDER] );
-        
-        dxs.push_back(0);
-        for( int dx = margins[LEFT_BORDER] ; dx <= effective_rect_size.x - margins[RIGHT_BORDER] ; dx += texture_middle_width )
-            dxs.push_back(dx);
-        if( middle_width>0 ) dxs.push_back( rect_size.x - margins[RIGHT_BORDER] );
-
-        dys.push_back(0);
-        for( int dy = margins[TOP_BORDER] ; dy <= effective_rect_size.y - margins[BOTTOM_BORDER] ; dy += texture_middle_height )
-            dys.push_back(dy);
-        if( middle_height>0 ) dys.push_back( rect_size.y - margins[BOTTOM_BORDER] );
-
-        for( int xi = 0 ; xi < dxs.size() ; xi++ )
-        for( int yi = 0 ; yi < dys.size() ; yi++ )
+        for( int xi : {0,1,2} )
+        for( int yi : {0,1,2} )
         {
-            if(!draw_center && xi>0 && xi<dxs.size()-1 && yi>0 && yi<dys.size()-1 ) break;
+            if(!draw_center && xi==1 && yi==1 ) continue;
+            
             RenderData data;
-            int dx = dxs[xi] , dy = dys[yi];
+            int dx,dy;
             if( xi==0 ){
+                dx = 0;
                 data.size_in_pixels.x = margins[LEFT_BORDER];
                 data.uv_top_left.x = 0;
                 data.uv_bottom_right.x = margins[LEFT_BORDER] / tex_size.x;
             } else 
-            if( xi>=1 && xi< dxs.size()-1 ) {
-                data.size_in_pixels.x = std::min( texture_middle_width , (int)rect_size.x-margins[RIGHT_BORDER]-dx );
+            if( xi==1 ) {
+                dx = margins[LEFT_BORDER];
+                data.size_in_pixels.x = std::max( 0 , (int)get_rect_size().x-margins[LEFT_BORDER]-margins[RIGHT_BORDER] );
                 data.uv_top_left.x = margins[LEFT_BORDER] / tex_size.x;
-                data.uv_bottom_right.x = data.uv_top_left.x + data.size_in_pixels.x/tex_size.x;
+                data.uv_bottom_right.x = 1.0 - margins[RIGHT_BORDER] / tex_size.x;
             } else 
-            if( xi==dxs.size()-1 ) {
+            if( xi==2 ) {
+                dx = get_rect_size().x - margins[RIGHT_BORDER];
                 data.size_in_pixels.x = margins[RIGHT_BORDER];
                 data.uv_top_left.x = 1.0 - margins[RIGHT_BORDER] / tex_size.x;
                 data.uv_bottom_right.x = 1;
             }
 
             if( yi==0 ){
+                dy = 0;
                 data.size_in_pixels.y = margins[TOP_BORDER];
                 data.uv_top_left.y = 0;
                 data.uv_bottom_right.y = margins[TOP_BORDER] / tex_size.y;
             } else 
-            if( yi>=1 && yi< dys.size()-1 ) {
-                data.size_in_pixels.y = std::min( texture_middle_height , (int)rect_size.y-margins[BOTTOM_BORDER]-dy );
+            if( yi==1 ) {
+                dy = margins[TOP_BORDER];
+                data.size_in_pixels.y = std::max( 0 , (int)get_rect_size().y-margins[TOP_BORDER]-margins[BOTTOM_BORDER] );
                 data.uv_top_left.y = margins[TOP_BORDER] / tex_size.y;
-                data.uv_bottom_right.y = data.uv_top_left.y + data.size_in_pixels.y/tex_size.y;
+                data.uv_bottom_right.y = 1.0 - margins[BOTTOM_BORDER] / tex_size.y;
             } else 
-            if( yi==dys.size()-1 ) {
+            if( yi==2 ) {
+                dy = get_rect_size().y - margins[BOTTOM_BORDER];
                 data.size_in_pixels.y = margins[BOTTOM_BORDER];
                 data.uv_top_left.y = 1.0 - margins[BOTTOM_BORDER] / tex_size.y;
                 data.uv_bottom_right.y = 1;
             }
+
             
             data.model_transform = get_parent_global_transform() * Transform().translate( get_rect_pos() + Vector2(dx,dy) + data.size_in_pixels*0.5 );
             data.use_tree_transform = false;

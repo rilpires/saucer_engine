@@ -22,6 +22,8 @@ std::vector<RenderData>  LabelRect::generate_render_data() const {
             // Line breaking logic
             if( text[char_index]!=last_char && last_char == ' '  ){
                 size_t next_space = text.find_first_of(' ',char_index);
+                if( next_space == std::string::npos )
+                    next_space = text.size();
                 if( next_space != std::string::npos ){
                     size_t estimated_pixel_advance = 0;
                     for( size_t i = char_index ; i < next_space ; i++ )

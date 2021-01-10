@@ -4,7 +4,10 @@
 std::unordered_multimap<SaucerId,AnchoredRect*> AnchoredRect::component_from_node;
 
 AnchoredRect::AnchoredRect() {
-    anchored_borders = 0;
+    anchored_borders[0] = 0;
+    anchored_borders[1] = 0;
+    anchored_borders[2] = 0;
+    anchored_borders[3] = 0;
     rect_pos = Vector2(0,0);
     rect_size = Vector2(0,0);
     starts_on_viewport = false;
@@ -16,13 +19,16 @@ std::vector<RenderData>  AnchoredRect::generate_render_data() const{
     std::vector<RenderData> ret;
     return ret;
 }
-bool AnchoredRect::is_border_anchored( int border ) const {
-    return (anchored_borders & (1<<(border-1)));    
+
+
+bool AnchoredRect::is_border_anchored( int border , int parent_border ) const {
+    return (anchored_borders[border] & (1<<(parent_border-1)));
 }
-void AnchoredRect::set_anchored_border(int border, bool new_val) {
-    if (new_val)    anchored_borders |=  (1<<(border-1));
-    else            anchored_borders &= ~(1<<(border-1));
+void AnchoredRect::set_anchored_border( int border , int parent_border , bool new_val ){
+    if (new_val)    anchored_borders[border] |=  (1<<(parent_border-1));
+    else            anchored_borders[border] &= ~(1<<(parent_border-1));
 }
+
 Vector2 AnchoredRect::get_rect_pos() const {
     return rect_pos;
 }
@@ -85,9 +91,14 @@ void AnchoredRect::grow(int border, float amount) {
             saucer_err("Invalid border: " , border );
             break;
     }
-    for( auto& it : get_children_rects() ){
-        if( it->starts_on_viewport==false && it->is_border_anchored(border))
-            it->grow(border,amount);
+    for( auto& child_rect : get_children_rects() ){
+        if( child_rect->starts_on_viewport==false )
+        for( int child_border : {LEFT_BORDER,RIGHT_BORDER,TOP_BORDER,BOTTOM_BORDER}){
+            if( child_rect->is_border_anchored(child_border,border) ){
+                if(child_border==border)    child_rect->grow(child_border,amount);
+                else                        child_rect->grow(child_border,-amount);
+            }
+        }
     }
 }
 const std::vector<AnchoredRect*>    AnchoredRect::get_children_rects() const{
@@ -118,6 +129,11 @@ Transform   AnchoredRect::get_parent_global_transform() const{
     }
 }
 void AnchoredRect::bind_methods() {
+    REGISTER_LUA_CONSTANT( BORDER , TOP     ,   TOP_BORDER );
+    REGISTER_LUA_CONSTANT( BORDER , LEFT    ,   LEFT_BORDER );
+    REGISTER_LUA_CONSTANT( BORDER , RIGHT   ,   RIGHT_BORDER );
+    REGISTER_LUA_CONSTANT( BORDER , BOTTOM  ,   BOTTOM_BORDER );
+
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , is_border_anchored );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , set_anchored_border );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , get_rect_pos );
