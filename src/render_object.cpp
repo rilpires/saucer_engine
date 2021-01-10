@@ -16,7 +16,7 @@ bool            RenderObject::get_use_parent_shader() const {
     return use_parent_shader;
 }
 void            RenderObject::set_use_parent_shader( bool new_val ){
-    use_parent_shader = true;
+    use_parent_shader = new_val;
 }
 ShaderResource* RenderObject::get_current_shader() const {
     if( use_parent_shader ){

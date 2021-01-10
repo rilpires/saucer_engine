@@ -96,12 +96,11 @@ void            Scene::loop_draw(){
     Engine::get_render_engine()->update( render_datas );
 
 }
-void            Scene::loop_script(){
+void            Scene::loop_input(){
     std::queue< SceneNode* > nodes_queue;
     std::vector< SceneNode* > script_actors;
-    double last_frame_duration = Engine::get_last_frame_duration();
-
-    // Traversing the tree & finding the actors
+    
+    // Traversing the tree & finding the possible actors
     if( root_node )
         nodes_queue.push(root_node);
     while( nodes_queue.size() ){
@@ -126,23 +125,23 @@ void            Scene::loop_script(){
         next_input_event = Input::pop_event_queue();
     }
 
-    // Traversing the AGAIN to find the actors, since it could change in solving inputs part
-    script_actors.clear();
+
+}
+void            Scene::loop_script(){
+    std::queue< SceneNode* > nodes_queue;
+    double last_frame_duration = Engine::get_last_frame_duration();
+
+    // Traversing the three while solving "_frame_start" script 
     if( root_node )
         nodes_queue.push(root_node);
     while( nodes_queue.size() ){
         SceneNode* scene_node = nodes_queue.front();;
         if( scene_node->get_script() )
-            script_actors.push_back(scene_node);
+            LuaEngine::execute_frame_start( scene_node , last_frame_duration );
         for( auto child : scene_node->get_children() )
             nodes_queue.push( child );
         nodes_queue.pop();
     }
-    // Executing _frame_start for each
-    std::for_each( script_actors.begin() , script_actors.end() , [last_frame_duration](SceneNode*& node){
-        LuaEngine::execute_frame_start( node , last_frame_duration );
-    });
-
 
 }
 void            Scene::loop_physics(){
@@ -159,6 +158,7 @@ void            Scene::loop_physics(){
     collision_world->delete_disableds();   
 }
 void            Scene::loop(){
+    loop_input();
     loop_script();
     loop_physics();
     loop_draw();

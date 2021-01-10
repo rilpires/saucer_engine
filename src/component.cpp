@@ -14,7 +14,7 @@ SceneNode*  Component::get_node() const{
 }
 
 void        Component::attach_node( SceneNode* node ){
-    // Do we care?
+    saucer_err("Do we care?"); // No we do not care
 }
 void        Component::entered_tree(){
 

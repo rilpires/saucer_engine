@@ -22,6 +22,7 @@ class Scene : public SaucerObject {
         SceneNode*  root_node;
         Camera*     current_camera;        
         
+        void        loop_input();
         void        loop_draw();
         void        loop_script();
         void        loop_physics();

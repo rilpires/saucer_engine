@@ -74,7 +74,7 @@ template<> void LuaEngine::push<Vector2>( lua_State* ls , Vector2 v ){
 
 }
 
-template<> lua_CFunction    LuaEngine::create_lua_constructor<Vector2>( lua_State* ls ){
+template<> lua_CFunction    LuaEngine::create_lua_constructor<Vector2>(){
     return [](lua_State* ls){
         float x = lua_tonumber(ls,-2);
         float y = lua_tonumber(ls,-1);
@@ -161,7 +161,7 @@ template<> void LuaEngine::push( lua_State* ls , Vector3 v ){
     #define PUSH_VECTOR3_METATABLE_OPERATION_SCALAR(index_str,operator) \
     lua_pushstring(ls,index_str);                                       \
     lua_pushcfunction(ls, [](lua_State* ls)->int{                       \
-        Vector3 v1 = *(Vector3*)lua_touserdata(ls,-2);                  \
+        Vector3 v1(*(Vector3*)lua_touserdata(ls,-2));                   \
         float f = lua_tonumber(ls,-1);                                  \
         lua_pop(ls,2);                                                  \
         LuaEngine::push(ls,v1 operator f);                              \
@@ -178,7 +178,7 @@ template<> void LuaEngine::push( lua_State* ls , Vector3 v ){
     lua_setmetatable(ls,-2);
 
 }
-template<> lua_CFunction    LuaEngine::create_lua_constructor<Vector3>( lua_State* ls ){
+template<> lua_CFunction    LuaEngine::create_lua_constructor<Vector3>(){
     return [](lua_State* ls){
         float r = lua_tonumber(ls,-4);
         float g = lua_tonumber(ls,-3);

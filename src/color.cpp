@@ -41,7 +41,7 @@ template<> void LuaEngine::push( lua_State* ls , Color v ){
     
     lua_setmetatable(ls,-2);
 }
-template<> lua_CFunction    LuaEngine::create_lua_constructor<Color>( lua_State* ls ){
+template<> lua_CFunction    LuaEngine::create_lua_constructor<Color>( ){
     return [](lua_State* ls){
         unsigned char r = 255.0 * std::min( 1.0f , std::max( 0.0f , (float)lua_tonumber(ls,-4) ) );
         unsigned char g = 255.0 * std::min( 1.0f , std::max( 0.0f , (float)lua_tonumber(ls,-3) ) );

@@ -17,8 +17,8 @@ FontResource::FontResource(std::string filepath) : Resource(filepath) {
     int pixel_font_size = 64; // This won't do the highest character be 64px tall, so I won't save it
     FT_CALL( FT_Set_Pixel_Sizes( face , pixel_font_size , pixel_font_size ) );
 
-    int max_char_bitmap_width = 0;
-    int max_char_bitmap_height = 0;
+    size_t max_char_bitmap_width = 0;
+    size_t max_char_bitmap_height = 0;
     int num_rows = ceil(pow((float)(face->num_glyphs) , 0.5));
     int num_cols = ceil(((float)face->num_glyphs)/num_rows);
     for( int i = 0 ; i < face->num_glyphs ; i++ ){
@@ -42,8 +42,8 @@ FontResource::FontResource(std::string filepath) : Resource(filepath) {
         auto& glyph = face->glyph;
         int col = i % num_cols;
         int row = i / num_cols;
-        for( int dx = 0 ; dx < glyph->bitmap.width ; dx++ )
-        for( int dy = 0 ; dy < glyph->bitmap.rows  ; dy++ )
+        for( size_t dx = 0 ; dx < glyph->bitmap.width ; dx++ )
+        for( size_t dy = 0 ; dy < glyph->bitmap.rows  ; dy++ )
         {
             int pixel_col = col*max_char_bitmap_width + dx;
             int pixel_row = row*max_char_bitmap_height + dy;

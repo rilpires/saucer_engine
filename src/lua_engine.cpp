@@ -192,7 +192,7 @@ void            LuaEngine::create_global_env( ){
     // "by-reference" objects like SceneNode ( my_new_node = SceneNode.new() )
     #define LUAENGINE_VALUE_CONSTRUCTOR(T)                              \
     lua_pushstring( ls , #T );                                          \
-    lua_pushcfunction( ls , LuaEngine::create_lua_constructor<T>(ls) ); \
+    lua_pushcfunction( ls , LuaEngine::create_lua_constructor<T>() );   \
     lua_settable(ls,LUA_GLOBALSINDEX);                                          
 
     LUAENGINE_VALUE_CONSTRUCTOR(Color);
@@ -289,7 +289,7 @@ lua_CFunction   LuaEngine::recover_global_function( std::string function_name ){
         saucer_err( "Couldn't find any global function named " , function_name )
         // exit(1);
         return [](lua_State* ls ){ 
-            saucer_err( "This function should not exist!" ); 
+            saucer_err( "This function should not exist!" );
             return 0; 
         };
     } else return (function_find->second);

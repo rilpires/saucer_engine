@@ -81,7 +81,7 @@ class LuaEngine {
         static void             register_function( std::string class_name , std::string function_name , lua_CFunction f );
 
         template< typename T >
-        static lua_CFunction    create_lua_constructor( lua_State* );    
+        static lua_CFunction    create_lua_constructor();    
         
 
         // push signature for std::vectors (const vector& only!)
@@ -129,9 +129,9 @@ template<> void     LuaEngine::push( lua_State* ls , Vector3 v );
 template<> void     LuaEngine::push( lua_State* ls , Color v );
 template<> void     LuaEngine::push( lua_State* ls , Input::InputEvent* r );
 
-template<> lua_CFunction    LuaEngine::create_lua_constructor<Color>( lua_State* ls );
-template<> lua_CFunction    LuaEngine::create_lua_constructor<Vector2>( lua_State* ls );
-template<> lua_CFunction    LuaEngine::create_lua_constructor<Vector3>( lua_State* ls );
+template<> lua_CFunction    LuaEngine::create_lua_constructor<Color>( );
+template<> lua_CFunction    LuaEngine::create_lua_constructor<Vector2>( );
+template<> lua_CFunction    LuaEngine::create_lua_constructor<Vector3>( );
 
 template<> int                  LuaEngine::pop( lua_State* ls );
 template<> float                LuaEngine::pop( lua_State* ls );
