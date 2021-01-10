@@ -117,8 +117,11 @@ void                RenderEngine::set_current_shader( ShaderResource* new_shader
             GL_CALL( modulate_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"in_modulate")  );
             GL_CALL( uv_div_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"uv_div")  );
             GL_CALL( ignore_camera_atrib_location = glGetUniformLocation(current_shader_resource->shader_program,"ignore_camera")  );
+            GL_CALL( tex_alpha_mask_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"tex_is_alpha_mask")  );
+            GL_CALL( time_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"time")  );
             
             GL_CALL( glUniformMatrix4fv( camera_transf_attrib_location , 1 , GL_FALSE , camera_transform.m ) );
+            GL_CALL( glUniform1f( time_attrib_location , Engine::get_uptime() ) );
         }
     }
 }
@@ -176,6 +179,7 @@ void                RenderEngine::update( const std::vector<RenderData>& draws )
     
     GL_CALL( glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
     GL_CALL( glClearColor( 0,0,0,1 ) );
+    GL_CALL( glUniform1f( time_attrib_location , Engine::get_uptime() ) );
     for( auto render_data = draws.begin() ; render_data != draws.end() ; render_data ++ ){
             
         ShaderResource* shader_program = render_data->shader_program;
@@ -199,6 +203,7 @@ void                RenderEngine::update( const std::vector<RenderData>& draws )
                                                                 render_data->size_in_pixels.x , 
                                                                 render_data->size_in_pixels.y ) );
             GL_CALL( glUniform1i( ignore_camera_atrib_location , !render_data->view_transform ) );
+            GL_CALL( glUniform1i( tex_alpha_mask_attrib_location , render_data->tex_is_alpha_mask ) );
             GL_CALL( glUniformMatrix4fv( model_transf_attrib_location , 1 , GL_FALSE , render_data->model_transform.m ) );
             GL_CALL( glUniform4fv( uv_div_attrib_location , 1 , uv_div ) );
             GL_CALL( glUniform4f( modulate_attrib_location , ((float)render_data->final_modulate.r)/255.0f , 

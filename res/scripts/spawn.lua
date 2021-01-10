@@ -1,37 +1,41 @@
 
 function _entered_tree()
-    patch = this:create_patch_rect(); 
-    patch:set_rect_pos(  Vector2(-50,0) )
-    patch:set_rect_size( Vector2(100,100) )
-    patch:set_texture( load("res/border.png") )
-    patch:set_use_scene_node_transform(false)
-
-    new_node = SceneNode.new()
-    this:add_child(new_node)
-    child_rect = new_node:create_patch_rect()
+    
+    child1 = SceneNode.new()
+    child_rect = child1:create_patch_rect()
+    this:add_child(child1)
     child_rect:set_anchored_border(0,false)
     child_rect:set_anchored_border(1,true)
     child_rect:set_anchored_border(2,false)
     child_rect:set_anchored_border(3,false)
-    child_rect:set_rect_pos(Vector2(-50,50))
-    child_rect:set_rect_size(Vector2(70,70))
-    child_rect:set_starts_on_viewport(false)
     child_rect:set_texture( load("res/border.png") )
-    -- this:get_parent():add_child(new_node)
+    child_rect:set_rect_pos(Vector2(-320,-210))
+    child_rect:set_rect_size(Vector2(22202,22270))
+    child_rect:set_draw_center(false)
+    child_rect:set_starts_on_viewport(false)
+    child_rect:set_use_scene_node_transform(false)
+
+
+    child2 = SceneNode.new()
+    label_rect = child2:create_label_rect() 
+    child1:add_child(child2);
+    label_rect:set_text([[Eu, que já andei pelos quatro cantos do mundo procurando Foi justamente num sonho que Ele me falou Às vezes você me pergunta Por que é que eu sou tão calado Não falo de amor quase nada Nem fico sorrindo ao seu lado Você pensa em mim toda hora Me come, me cospe, me deixa Talvez você não entenda Mas hoje eu vou lhe mostrar eu sou a a luz das estrelas Eu sou a cor do luar Eu sou as coisas da vida Eu sou o medo de amar Eu sou o medo do fraco A força da imaginação O blefe do jogador Eu sou, eu fui, eu vou Eu sou o seu sacrifício A placa de contra-mão O sangue no olhar do vam]]);
+    label_rect:set_font(load("res/fonts/Mono10_v0.95/Mono10 Regular.ttf"));
+    label_rect:set_rect_pos(Vector2(10,10))
+    label_rect:set_rect_size(Vector2(200,70))
+
 end
 
 function _frame_start( dt_seconds )
     local id = this:get_saucer_id()
     local r = math.sin( id*123 );
     t = Engine.get_uptime()
-    this:set_modulate( Color(r,1,1,1) )
     if not this:get_body() then
         local s = math.sin( Engine.get_uptime() * 200.0 + id*13 );
-        this:set_rotation_degrees( this:get_rotation_degrees() + 3 )
-        -- this:set_scale( Vector2( s , 1 ) )
+        this:set_rotation_degrees( this:get_rotation_degrees() + 1 )
     end
-    patch = this:get_patch_rect()
-    patch:set_rect_size( Vector2( 160 + 22*math.cos( t * 110 ) , 160 + 20*math.sin( t * 30 ) ) )
+
+    child_patch_rect = this:get_children()[1]:get_patch_rect()
 end
 
 list_of_sounds = {

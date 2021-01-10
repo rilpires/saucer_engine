@@ -22,8 +22,7 @@ function _frame_start( dt_seconds )
     if (Input.is_key_pressed(KEY.UP))       then vel.y = vel.y - 1.0 end;
     if (Input.is_key_pressed(KEY.DOWN))     then vel.y = vel.y + 1.0 end;
     this:set_global_position( this:get_global_position() + vel*5.0 )
-    local s = math.sin(Engine.get_uptime()*5000.0)
-    this:set_modulate( Color(1,0.9+0.2*s,1,1) )
+    
     print("FPS: " , Engine.get_fps() )
 end
 
@@ -40,7 +39,8 @@ function _input( input_event )
         current_spawn:create_sprite()
         current_spawn:get_sprite():set_texture( load("res/troll.png") ) 
         current_spawn:get_sprite():set_h_frames(h_frames) 
-        current_spawn:get_sprite():set_v_frames(v_frames)
+        current_spawn:get_sprite():set_v_frames(v_frames) 
+        current_spawn:set_self_modulate(Color(0,0,0,0))
         current_spawn:get_sprite():set_frame_index(8)
     elseif ( input_event:get_type() == InputEventType.MOUSE_BUTTON and not input_event:is_pressed() ) then 
         local body = current_spawn:create_body()

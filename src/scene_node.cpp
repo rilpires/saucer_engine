@@ -199,6 +199,8 @@ void        SceneNode::bind_methods(){
     REGISTER_COMPONENT_HELPERS(AudioEmitter,"audio_emitter");
     REGISTER_COMPONENT_HELPERS(AnchoredRect,"anchored_rect");
     REGISTER_COMPONENT_HELPERS(PatchRect,"patch_rect");
+    REGISTER_COMPONENT_HELPERS(LabelRect,"label_rect");
+
 }
 
 

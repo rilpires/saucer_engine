@@ -39,10 +39,10 @@ std::vector<RenderData> PatchRect::generate_render_data() const {
             dys.push_back(dy);
         if( middle_height>0 ) dys.push_back( rect_size.y - margins[BOTTOM_BORDER] );
 
-
         for( int xi = 0 ; xi < dxs.size() ; xi++ )
         for( int yi = 0 ; yi < dys.size() ; yi++ )
         {
+            if(!draw_center && xi>0 && xi<dxs.size()-1 && yi>0 && yi<dys.size()-1 ) break;
             RenderData data;
             int dx = dxs[xi] , dy = dys[yi];
             if( xi==0 ){
@@ -103,13 +103,20 @@ TextureResource* PatchRect::get_texture() const {
     return texture;
 }
 
-void PatchRect::set_texture(TextureResource* tex) {
+void    PatchRect::set_texture(TextureResource* tex) {
     texture = tex;
 }
-
+void    PatchRect::set_draw_center( bool new_val){
+    draw_center=new_val;
+}
+bool    PatchRect::get_draw_center() const{
+    return draw_center;
+}
 void PatchRect::bind_methods() {
     REGISTER_LUA_MEMBER_FUNCTION( PatchRect , get_margin );
     REGISTER_LUA_MEMBER_FUNCTION( PatchRect , set_margin );
     REGISTER_LUA_MEMBER_FUNCTION( PatchRect , get_texture );
     REGISTER_LUA_MEMBER_FUNCTION( PatchRect , set_texture );
+    REGISTER_LUA_MEMBER_FUNCTION( PatchRect , set_draw_center );
+    REGISTER_LUA_MEMBER_FUNCTION( PatchRect , get_draw_center );
 }

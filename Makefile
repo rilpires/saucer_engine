@@ -7,6 +7,7 @@ LINKER_FOLDERS := 	\
 	deps/glew/lib \
 	deps/openal_soft \
 	deps/box2d/build/bin \
+	deps/freetype/build  
 
 LIBS := \
 	png \
@@ -17,7 +18,8 @@ LIBS := \
 	GLEW \
 	openal common ex-common \
 	lua lualib \
-	box2d \
+	freetype \
+	box2d 
 
 INCLUDE_PATHS := \
 	include \
@@ -26,8 +28,9 @@ INCLUDE_PATHS := \
 	deps/glfw/include \
 	deps/glew/include \
 	deps/audiofile \
+	deps/freetype/include \
 	deps/openal_soft/include \
-	deps/box2d/include \
+	deps/box2d/include
 
 RELEASE ?= 0
 

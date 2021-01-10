@@ -9,6 +9,7 @@ class PatchRect : public AnchoredRect {
     
     private:
         short               margins[4]; // One for each border
+        bool                draw_center;
         TextureResource*    texture;
 
     public:
@@ -20,6 +21,8 @@ class PatchRect : public AnchoredRect {
         void                set_margin( int border , short new_val );
         TextureResource*    get_texture() const ;
         void                set_texture( TextureResource* tex );
+        void                set_draw_center( bool new_val);
+        bool                get_draw_center() const;
         
         static void         bind_methods();
 

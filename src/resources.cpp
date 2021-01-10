@@ -3,6 +3,7 @@
 #include "resources/lua_script.h"
 #include "resources/audiofile.h"
 #include "resources/shader.h"
+#include "resources/font.h"
 #include "lua_engine.h"
 
 #include "debug.h"
@@ -66,6 +67,9 @@ Resource*           ResourceManager::load_resource(std::string filepath){
     }
     else if (extension == ".lua"){
         ret = new LuaScriptResource( filepath );
+    }
+    else if (extension == ".ttf"){
+        ret = new FontResource( filepath );
     }
     else if (extension == ".glsl"){
         ret = new ShaderResource( filepath );

@@ -115,7 +115,9 @@ void            LuaEngine::initialize(){
     Component::bind_methods();
     SceneNode::bind_methods();
     Transform::bind_methods();
+    LabelRect::bind_methods();    
     SaucerObject::bind_methods();
+    FontResource::bind_methods();
     RenderObject::bind_methods();
     AudioEmitter::bind_methods();
     AnchoredRect::bind_methods();

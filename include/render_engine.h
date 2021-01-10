@@ -27,6 +27,7 @@ struct RenderData {
     ShaderResource*     shader_program;
     bool                use_tree_transform;
     bool                view_transform;
+    bool                tex_is_alpha_mask = false;
     Transform           model_transform;  // This will be filled at "tree-discovering" time, since it got to be accumulated from parents
     Color               final_modulate; // This will be filled at "tree-discovering" time, since it got to be accumulated from parents
 };
@@ -49,6 +50,8 @@ class RenderEngine {
         GLuint              model_transf_attrib_location; 
         GLuint              modulate_attrib_location;
         GLuint              uv_div_attrib_location;
+        GLuint              tex_alpha_mask_attrib_location;
+        GLuint              time_attrib_location;
         
         
     public:
