@@ -24,7 +24,7 @@ class AnchoredRect : public RenderObject {
     public:
         AnchoredRect();
 
-        std::vector<RenderData>  generate_render_data() const ;
+        std::vector<RenderData>  generate_render_data() override ;
 
         bool                is_border_anchored( int border , int parent_border ) const ;
         void                set_anchored_border( int border , int parent_border , bool new_val );

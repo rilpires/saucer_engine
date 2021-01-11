@@ -47,7 +47,13 @@ std::ostream& saucer_log_( T t , Ts ... args ){
         unsigned int gl_error = glGetError();                                                               \
         while(gl_error != GLEW_OK ){                                                                        \
             saucer_err("[OpenGL Error] Error code " , gl_error , ";\t" , glewGetErrorString(gl_error) );    \
-            if (gl_error == GL_INVALID_OPERATION ) break;                                                   \
+            switch(gl_error){                                                                               \
+                case GL_INVALID_ENUM: saucer_err("GL_INVALID_ENUM");break;                                  \
+                case GL_INVALID_VALUE: saucer_err("GL_INVALID_VALUE");break;                                \
+                case GL_INVALID_OPERATION: saucer_err("GL_INVALID_OPERATION");break;                        \
+                case GL_OUT_OF_MEMORY: saucer_err("GL_OUT_OF_MEMORY");break;                                \
+            }                                                                                               \
+            break;                                                                                          \
         }                                                                                                   \
     }
 #else

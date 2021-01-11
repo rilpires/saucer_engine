@@ -20,7 +20,7 @@ class Sprite : public RenderObject {
         Sprite();
         ~Sprite();
 
-        std::vector<RenderData>  generate_render_data() const ;
+        std::vector<RenderData>  generate_render_data() ;
 
         TextureResource*  get_texture() const;
         void            set_texture( TextureResource* tex );

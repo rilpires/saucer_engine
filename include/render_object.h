@@ -12,14 +12,16 @@ class RenderObject : public Component {
     friend class RenderEngine;
 
     private:
-        bool            use_parent_shader;
-        ShaderResource* current_shader;
-        
+        bool                use_parent_shader;
+        ShaderResource*     current_shader;
     protected:
+        VertexData*         vertex_data;
+        unsigned short      vertex_data_count;
+        bool                dirty_vertex_data; // useful for some big VBOs
         RenderObject();
         
     public:
-        virtual std::vector<RenderData>  generate_render_data() const ;
+        virtual std::vector<RenderData>  generate_render_data() ;
 
         bool                get_use_parent_shader() const ;
         void                set_use_parent_shader( bool new_val );

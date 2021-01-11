@@ -44,7 +44,6 @@ void            Scene::loop_draw(){
     std::queue< AccumulatedTreeNode > nodes_queue;
     std::vector< AccumulatedTreeNode > render_objs;
     std::vector< RenderData > render_datas;
-    
     if( root_node ){
         AccumulatedTreeNode tree_node;
         tree_node.n = root_node;
@@ -79,6 +78,7 @@ void            Scene::loop_draw(){
             for( RenderData& render_data : v ){
                 if(render_data.use_tree_transform) render_data.model_transform = tree_node.t;
                 render_data.final_modulate = tree_node.c * tree_node.n->get_self_modulate();
+                // render_data.fill_vertices_modulate();
                 render_datas.push_back( render_data );
             }
         }
@@ -89,10 +89,9 @@ void            Scene::loop_draw(){
     if( camera ){
         camera_transf = get_current_camera()->get_node()->get_global_transform();
         camera_transf.scale( camera->get_zoom() );
-        camera_transf = camera_transf.inverted();
     }
 
-    Engine::get_render_engine()->set_camera_transform( camera_transf );
+    Engine::get_render_engine()->set_view_transform( camera_transf.inverted() );
     Engine::get_render_engine()->update( render_datas );
 
 }

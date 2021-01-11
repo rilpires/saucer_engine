@@ -40,7 +40,7 @@ function _input( input_event )
         current_spawn:get_sprite():set_texture( load("res/troll.png") ) 
         current_spawn:get_sprite():set_h_frames(h_frames) 
         current_spawn:get_sprite():set_v_frames(v_frames) 
-        current_spawn:set_self_modulate(Color(0,0,0,0))
+        current_spawn:set_self_modulate(Color(1,1,1,0.5))
         current_spawn:get_sprite():set_frame_index(8)
     elseif ( input_event:get_type() == InputEventType.MOUSE_BUTTON and not input_event:is_pressed() ) then 
         local body = current_spawn:create_body()

@@ -6,37 +6,30 @@
 
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec2 in_uv;
+layout(location = 2) in vec4 in_modulate;
 
 uniform sampler2D tex;
-uniform vec4    pixel_size; // ( viewport_size , object_size )
-uniform vec4    uv_div; // ( topleft , bottomright )
 
+uniform vec2    viewport_size;
 uniform bool    ignore_camera;
-uniform mat4    camera_transf;
+uniform mat4    view_transf;
 uniform mat4    model_transf;
-uniform vec4    in_modulate;
 uniform float   time;
 
 out vec2 uv;
 out vec4 modulate;
 
 void main(){
-    vec2 tex_size = textureSize(tex,0);
-    vec2 viewport_size_pixels = pixel_size.xy;
-    vec2 size_in_pixels = pixel_size.zw;
-
     gl_Position = vec4( position , 1.0 );
-    gl_Position.xy *= (size_in_pixels/viewport_size_pixels);
     gl_Position *= model_transf;
-    if(!ignore_camera) gl_Position *= camera_transf;
-    gl_Position.xy /= ( pixel_size.xy/2 );
+    if(!ignore_camera) gl_Position *= view_transf;
+    gl_Position.xy /= ( viewport_size.xy/2 );
     gl_Position.y *= -1;
-    
     uv = in_uv;
-    uv.x *= (uv_div.z - uv_div.x);
-    uv.y *= (uv_div.w - uv_div.y);
-    uv.xy += uv_div.xy;
-    
+    // modulate = vec4(in_modulate.x/255.0f,
+    //                 in_modulate.y/255.0f,
+    //                 in_modulate.z/255.0f,
+    //                 in_modulate.w/255.0f);
     modulate = in_modulate;
 };
 
@@ -57,6 +50,7 @@ out vec4 outColor;
 void main(){
     vec4 temp_modulate = modulate;
     bool aesthetics_90s_wave = true;
+
 
     if( !tex_is_alpha_mask ){
         if( aesthetics_90s_wave ){

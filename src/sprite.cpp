@@ -11,22 +11,50 @@ Sprite::Sprite() {
     h_frames = 1;
     v_frames = 1;
     frame_index = 0;
+    vertex_data = new VertexData[4];
+    vertex_data_count = 4;
 }
 Sprite::~Sprite(){
-    SceneNode* node = get_node(); 
-    if( node ) component_from_node.erase( node->get_saucer_id() );
+    delete[] vertex_data;
 }
 
-std::vector<RenderData>  Sprite::generate_render_data() const{
-    std::vector<RenderData> ret;;
-    ret.push_back(RenderData());
-    ret[0].texture_id      = (texture)?(texture->get_texture_id()):(0);
-    ret[0].uv_top_left     = Vector2(  (1.0/h_frames)*(frame_index%h_frames) ,   (1.0/v_frames)*(frame_index/h_frames) );
-    ret[0].uv_bottom_right = ret[0].uv_top_left + Vector2( 1.0/h_frames , 1.0/v_frames ) ;
-    ret[0].size_in_pixels = (texture)?(texture->get_size()*(Vector2(1.0/h_frames,1.0/v_frames))):(Vector2(0,0));
-    ret[0].shader_program = get_current_shader();
-    ret[0].use_tree_transform = true;
-    ret[0].view_transform = true;
+std::vector<RenderData>  Sprite::generate_render_data(){
+    std::vector<RenderData> ret;
+    if( texture ){
+        RenderData render_data;
+        
+        Vector2 top_left_uv = Vector2(  (1.0/h_frames)*(frame_index%h_frames) ,   (1.0/v_frames)*(frame_index/h_frames) );
+        Vector2 bottom_right_uv = top_left_uv + Vector2( 1.0/h_frames , 1.0/v_frames ) ;
+        Vector2 size = texture->get_size() * Vector2(1.0/h_frames,1.0/v_frames) ;
+
+        vertex_data[0].pos  = Vector3(0,0,0);
+        vertex_data[0].uv   = top_left_uv;
+        
+        vertex_data[1].pos  = Vector3(size.x,0,0);
+        vertex_data[1].uv   = Vector2(bottom_right_uv.x , top_left_uv.y);
+        
+        vertex_data[2].pos  = Vector3(0,size.y,0);
+        vertex_data[2].uv   = Vector2(top_left_uv.x , bottom_right_uv.y);
+
+        vertex_data[3].pos  = Vector3(size.x,size.y,0);
+        vertex_data[3].uv   = bottom_right_uv;
+        
+        if( true ){ // centered
+            vertex_data[0].pos -= Vector3( size.x*0.5 , size.y*0.5 , 0 );
+            vertex_data[1].pos -= Vector3( size.x*0.5 , size.y*0.5 , 0 );
+            vertex_data[2].pos -= Vector3( size.x*0.5 , size.y*0.5 , 0 );
+            vertex_data[3].pos -= Vector3( size.x*0.5 , size.y*0.5 , 0 );
+        }
+
+        render_data.vertex_data = vertex_data;
+        render_data.vertex_data_count = vertex_data_count;
+        render_data.texture_id  = texture->get_texture_id();
+        render_data.shader_program = get_current_shader();
+        render_data.use_tree_transform = true;
+        render_data.use_view_transform = true;
+
+        ret.push_back(render_data);
+    }
     return ret;
 }
 TextureResource*  Sprite::get_texture() const{

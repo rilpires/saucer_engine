@@ -15,7 +15,7 @@ AnchoredRect::AnchoredRect() {
 }
 
 
-std::vector<RenderData>  AnchoredRect::generate_render_data() const{
+std::vector<RenderData>  AnchoredRect::generate_render_data(){
     std::vector<RenderData> ret;
     return ret;
 }
@@ -43,7 +43,7 @@ Vector2 AnchoredRect::get_rect_size() const {
 
 void AnchoredRect::set_rect_size(Vector2 new_val) {
     new_val.x = std::max(0.0f,new_val.x);
-    new_val.y = std::max(0.0f,new_val.y);
+    new_val.y = std::max(0.0f,new_val.y);        
     grow(RIGHT_BORDER,new_val.x - rect_size.x);
     grow(BOTTOM_BORDER,new_val.y - rect_size.y);
 }
@@ -67,25 +67,30 @@ Vector2 AnchoredRect::get_global_rect_pos() const{
     return get_parent_global_transform() * rect_pos;
 }
 void AnchoredRect::grow(int border, float amount) {
+    if( amount == 0 ) return;
     switch (border)
     {
         case LEFT_BORDER:
             amount = std::max(amount,-rect_size.x);
             rect_size.x += amount;
             rect_pos.x -= amount;
+            dirty_vertex_data = true;
             break;
         case RIGHT_BORDER:
             amount = std::max(amount,-rect_size.x);
             rect_size.x += amount;
+            dirty_vertex_data = true;
             break;
         case TOP_BORDER:
             amount = std::max(amount,-rect_size.y);
             rect_size.y += amount;
             rect_pos.y -= amount;
+            dirty_vertex_data = true;
             break;
         case BOTTOM_BORDER:
             amount = std::max(amount,-rect_size.y);
             rect_size.y += amount;
+            dirty_vertex_data = true;
             break;
         default:
             saucer_err("Invalid border: " , border );

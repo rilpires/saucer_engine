@@ -9,6 +9,9 @@
 #define INITIAL_WINDOW_SIZE Vector2(640,480)
 #define INITIAL_WINDOW_TITLE "SaucerEngine"
 
+void RenderData::fill_vertices_modulate(){
+    for( unsigned short i = 0 ; i < vertex_data_count ; i++ ) vertex_data[i].modulate = final_modulate;
+}
 
 RenderEngine::RenderEngine(){
     
@@ -35,61 +38,42 @@ RenderEngine::RenderEngine(){
     saucer_print( "Version: " , glGetString( GL_VERSION )  );
 
     last_used_texture = 0;
-
-    GLint d = 0;
-    GL_CALL( glGetIntegerv(GL_CONTEXT_PROFILE_MASK,&d))
-    GL_CALL( saucer_log( "GL_CONTEXT_COMPATIBILITY_PROFILE_BIT = " , (d & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT)))
-    GL_CALL( saucer_log( "GL_CONTEXT_CORE_PROFILE_BIT = " , (d & GL_CONTEXT_CORE_PROFILE_BIT) ))
-    d=0;
-    GL_CALL( glGetIntegerv(GL_CONTEXT_FLAGS, &d))
-    GL_CALL( saucer_log( "GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT" , (d & GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT)))
-    GL_CALL( saucer_log( "GL_CONTEXT_FLAG_DEBUG_BIT" , (d & GL_CONTEXT_FLAG_DEBUG_BIT)))
-    GL_CALL( saucer_log( "GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT" , (d & GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT)))
-    GL_CALL( saucer_log( "GL_CONTEXT_FLAG_NO_ERROR_BIT" , (d & GL_CONTEXT_FLAG_NO_ERROR_BIT)))
-
-    GL_CALL( saucer_log( "GL_SHADING_LANGUAGE_VERSION = " , glGetString(GL_SHADING_LANGUAGE_VERSION)))
-    GL_CALL( glGetIntegerv(GL_NUM_SHADING_LANGUAGE_VERSIONS,&d); )
-    GL_CALL( for( int i = 0 ; i < d ; i++ ) saucer_log(glGetStringi(GL_SHADING_LANGUAGE_VERSION,i)))
-
+    view_transform = Transform();
     basic_shader_resource = (ShaderResource*) ResourceManager::get_resource("res/shaders/basic.glsl");
-    set_current_shader( basic_shader_resource );
-    camera_transform = Transform();
-    
-    set_window_size(INITIAL_WINDOW_SIZE);
-    // VBO (Vertex Buffer Object) for 2D objects, constant
-    // These will be properly transformed by uniforms:
-    // 1 - scaled proportionally to texture_size from window_size (gl_Position.xy *= textureSize(tex,0)/viewport_size;)
-    // 2 - model transform (gl_Position *= model_transf)
-    // 3 - camera transform (gl_Position *= camera_transf)
-    // 4 - finally, scaling from screen_space coordinates to window_space ( gl_Position.xy /= ( viewport_size/2 ) )
-    float vertex_data[] = {
-    /*  X                       Y                       Z       U       V    */
-        -0.5f*window_size.x ,   -0.5f*window_size.y ,   0.0 ,   0.0 ,   0.0 ,
-        +0.5f*window_size.x ,   -0.5f*window_size.y ,   0.0 ,   1.0 ,   0.0 ,
-        +0.5f*window_size.x ,   +0.5f*window_size.y ,   0.0 ,   1.0 ,   1.0 ,
-        -0.5f*window_size.x ,   +0.5f*window_size.y ,   0.0 ,   0.0 ,   1.0
-    };
-    unsigned int vbo;
-    GL_CALL( glGenBuffers(1, &vbo) );
-    GL_CALL( glBindBuffer(GL_ARRAY_BUFFER,vbo) );
-    GL_CALL( glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data) , vertex_data , GL_STATIC_COPY ) );
 
+    set_current_shader( basic_shader_resource );
+    set_window_size(INITIAL_WINDOW_SIZE);
+
+
+    GL_CALL( glGenBuffers(1, &vbo_index) );
+    GL_CALL( glBindBuffer(GL_ARRAY_BUFFER,vbo_index) );
+    GL_CALL( glBufferData(GL_ARRAY_BUFFER, sizeof(VertexData)*MAX_VERTEX_COUNT , 0 , GL_STREAM_DRAW ) );
+    GL_CALL( m_VBO = (VertexData*)glMapBuffer(GL_ARRAY_BUFFER , GL_WRITE_ONLY ) );
+    
     // VAO (Vertex Array Object) for generic sprites
     unsigned int vao;
     GL_CALL( glCreateVertexArrays(1,&vao) );
     GL_CALL( glBindVertexArray(vao) );
-    GL_CALL( glVertexAttribPointer( 0 , 3 , GL_FLOAT , false , 5*sizeof(GL_FLOAT) , 0 ));
-    GL_CALL( glVertexAttribPointer( 1 , 2 , GL_FLOAT , false , 5*sizeof(GL_FLOAT) , (void*)(3*sizeof(GL_FLOAT)) ));
-    GL_CALL( glEnableVertexAttribArray(  0 ) );
+    GL_CALL( glVertexAttribPointer( 0 , 3 , GL_FLOAT ,          false , sizeof(VertexData) , 0 ));
+    GL_CALL( glVertexAttribPointer( 1 , 2 , GL_FLOAT ,          false , sizeof(VertexData) , (void*)(sizeof(Vector3))));
+    GL_CALL( glVertexAttribPointer( 2 , 4 , GL_UNSIGNED_BYTE ,  true , sizeof(VertexData) , (void*)(sizeof(Vector3)+sizeof(Vector2))));
+    GL_CALL( glEnableVertexAttribArray( 0 ) );
     GL_CALL( glEnableVertexAttribArray( 1 ) );
+    GL_CALL( glEnableVertexAttribArray( 2 ) );
 
-    unsigned int vertex_index[] = { 
-        1 , 2 , 0 , 3 };
-    
     unsigned int veb;
+    unsigned short veb_array[MAX_VERTEX_COUNT];
+    for( size_t i = 0 , offset=0 ; i < MAX_VERTEX_COUNT ; i+=6 , offset+=4 ){
+        veb_array[i+0] = offset+0;
+        veb_array[i+1] = offset+1;
+        veb_array[i+2] = offset+2;
+        veb_array[i+3] = offset+1;
+        veb_array[i+4] = offset+2;
+        veb_array[i+5] = offset+3;
+    }
     GL_CALL( glGenBuffers(1,&veb) );
     GL_CALL( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,veb) );
-    GL_CALL( glBufferData(GL_ELEMENT_ARRAY_BUFFER , sizeof(vertex_index) , vertex_index , GL_STATIC_DRAW) );
+    GL_CALL( glBufferData(GL_ELEMENT_ARRAY_BUFFER , sizeof(unsigned short)*MAX_VERTEX_COUNT , veb_array , GL_STATIC_DRAW) );
 
 
     GL_CALL( glEnable(GL_DEPTH_TEST) );
@@ -97,6 +81,19 @@ RenderEngine::RenderEngine(){
     GL_CALL( glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) );  
     GL_CALL( glDepthFunc(GL_LEQUAL) );
 
+    //GLint d = 0;
+    //GL_CALL( glGetIntegerv(GL_CONTEXT_PROFILE_MASK,&d))
+    //GL_CALL( saucer_log( "GL_CONTEXT_COMPATIBILITY_PROFILE_BIT = " , (d & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT)))
+    //GL_CALL( saucer_log( "GL_CONTEXT_CORE_PROFILE_BIT = " , (d & GL_CONTEXT_CORE_PROFILE_BIT) ))
+    //d=0;
+    //GL_CALL( glGetIntegerv(GL_CONTEXT_FLAGS, &d))
+    //GL_CALL( saucer_log( "GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT" , (d & GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT)))
+    //GL_CALL( saucer_log( "GL_CONTEXT_FLAG_DEBUG_BIT" , (d & GL_CONTEXT_FLAG_DEBUG_BIT)))
+    //GL_CALL( saucer_log( "GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT" , (d & GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT)))
+    //GL_CALL( saucer_log( "GL_CONTEXT_FLAG_NO_ERROR_BIT" , (d & GL_CONTEXT_FLAG_NO_ERROR_BIT)))
+    //GL_CALL( saucer_log( "GL_SHADING_LANGUAGE_VERSION = " , glGetString(GL_SHADING_LANGUAGE_VERSION)))
+    //GL_CALL( glGetIntegerv(GL_NUM_SHADING_LANGUAGE_VERSIONS,&d); )
+    //GL_CALL( for( int i = 0 ; i < d ; i++ ) saucer_log(glGetStringi(GL_SHADING_LANGUAGE_VERSION,i)))
 }
 RenderEngine::~RenderEngine(){
     glfwDestroyWindow( glfw_window );
@@ -111,16 +108,14 @@ void                RenderEngine::set_current_shader( ShaderResource* new_shader
         if( current_shader_resource ){
             GL_CALL( glUseProgram(current_shader_resource->shader_program) );
 
-            GL_CALL( pixel_size_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"pixel_size")  );
-            GL_CALL( camera_transf_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"camera_transf")  );
+            GL_CALL( view_transf_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"view_transf")  );
             GL_CALL( model_transf_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"model_transf")  );
-            GL_CALL( modulate_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"in_modulate")  );
-            GL_CALL( uv_div_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"uv_div")  );
+            GL_CALL( viewport_size_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"viewport_size")  );
             GL_CALL( ignore_camera_atrib_location = glGetUniformLocation(current_shader_resource->shader_program,"ignore_camera")  );
-            GL_CALL( tex_alpha_mask_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"tex_is_alpha_mask")  );
+            GL_CALL( tex_is_alpha_mask_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"tex_is_alpha_mask")  );
             GL_CALL( time_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"time")  );
-            
-            GL_CALL( glUniformMatrix4fv( camera_transf_attrib_location , 1 , GL_FALSE , camera_transform.m ) );
+            GL_CALL( glUniform2f( viewport_size_attrib_location , window_size.x , window_size.y ) );
+            GL_CALL( glUniformMatrix4fv( view_transf_attrib_location , 1 , GL_FALSE , view_transform.m ) );
             GL_CALL( glUniform1f( time_attrib_location , Engine::get_uptime() ) );
         }
     }
@@ -128,7 +123,7 @@ void                RenderEngine::set_current_shader( ShaderResource* new_shader
 void                RenderEngine::set_window_size( Vector2 new_size ){
     window_size = new_size;
     glfwSetWindowSize( glfw_window , window_size.x , window_size.y );
-    GL_CALL( glUniform4f( pixel_size_attrib_location , window_size.x , window_size.y , 0.0f , 0.0f ) );
+    GL_CALL( glUniform2f( viewport_size_attrib_location , window_size.x , window_size.y ) );
 };
 Vector2             RenderEngine::get_window_size() const {
     return window_size;
@@ -155,12 +150,12 @@ void                RenderEngine::set_fullscreen( bool fs ){
 bool                RenderEngine::is_fullscreen() const {
     return glfwGetWindowMonitor(glfw_window) != NULL;
 };
-Transform           RenderEngine::get_camera_transform() const {
-    return camera_transform;
+Transform           RenderEngine::get_view_transform() const {
+    return view_transform;
 }
-void                RenderEngine::set_camera_transform(Transform t){
-    camera_transform = t;
-    GL_CALL( glUniformMatrix4fv( camera_transf_attrib_location , 1 , GL_FALSE , camera_transform.m ) );
+void                RenderEngine::set_view_transform(Transform t){
+    view_transform = t;
+    GL_CALL( glUniformMatrix4fv( view_transf_attrib_location , 1 , GL_FALSE , view_transform.m ) );
 }
 bool                RenderEngine::should_close() const {
     return glfwWindowShouldClose(glfw_window);
@@ -175,46 +170,49 @@ void                RenderEngine::set_window_title( std::string new_title ){
 GLuint              RenderEngine::get_last_used_texture() const{
     return last_used_texture;
 }
+ShaderResource*     RenderEngine::get_basic_shader() const{
+    return basic_shader_resource;
+}
 void                RenderEngine::update( const std::vector<RenderData>& draws ){
     
     GL_CALL( glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
     GL_CALL( glClearColor( 0,0,0,1 ) );
     GL_CALL( glUniform1f( time_attrib_location , Engine::get_uptime() ) );
-    for( auto render_data = draws.begin() ; render_data != draws.end() ; render_data ++ ){
-            
-        ShaderResource* shader_program = render_data->shader_program;
-        if(!shader_program) shader_program = basic_shader_resource;
-        set_current_shader( shader_program );
-        
-        if( render_data->texture_id ) {
-            
-            const float uv_div[4] = { render_data->uv_top_left.x      ,
-                                      render_data->uv_top_left.y      , 
-                                      render_data->uv_bottom_right.x  ,
-                                      render_data->uv_bottom_right.y  };
-            
-            if( last_used_texture != render_data->texture_id ){
-                GL_CALL( glBindTexture( GL_TEXTURE_2D , render_data->texture_id ) );
-                last_used_texture = render_data->texture_id;
-            }
-
-            GL_CALL( glUniform4f( pixel_size_attrib_location ,  window_size.x , 
-                                                                window_size.y , 
-                                                                render_data->size_in_pixels.x , 
-                                                                render_data->size_in_pixels.y ) );
-            GL_CALL( glUniform1i( ignore_camera_atrib_location , !render_data->view_transform ) );
-            GL_CALL( glUniform1i( tex_alpha_mask_attrib_location , render_data->tex_is_alpha_mask ) );
-            GL_CALL( glUniformMatrix4fv( model_transf_attrib_location , 1 , GL_FALSE , render_data->model_transform.m ) );
-            GL_CALL( glUniform4fv( uv_div_attrib_location , 1 , uv_div ) );
-            GL_CALL( glUniform4f( modulate_attrib_location , ((float)render_data->final_modulate.r)/255.0f , 
-                                                             ((float)render_data->final_modulate.g)/255.0f , 
-                                                             ((float)render_data->final_modulate.b)/255.0f , 
-                                                             ((float)render_data->final_modulate.a)/255.0f ));
-            GL_CALL( glDrawElements(GL_TRIANGLE_STRIP,4,GL_UNSIGNED_INT,nullptr ) );
-
-        }
-    }
     
+    size_t first=0 , batch_size=MAX_VERTEX_COUNT+1;
+    for( size_t i = 0 ; i < draws.size() ; i++ ){
+        const RenderData& render_data = draws[i];
+        
+        for( size_t k = 0 ; k < render_data.vertex_data_count ; k++ )
+            m_VBO[k] = render_data.vertex_data[k];
+        
+        if( current_shader_resource != render_data.shader_program )
+            set_current_shader( render_data.shader_program );
+        
+        if( last_used_texture != render_data.texture_id ){
+            GL_CALL( glBindTexture( GL_TEXTURE_2D , render_data.texture_id ) );
+            last_used_texture = render_data.texture_id;
+        }
+        
+        GL_CALL( glUniform1i( ignore_camera_atrib_location , !render_data.use_view_transform  ) );
+        GL_CALL( glUniform1i( tex_is_alpha_mask_attrib_location , render_data.tex_is_alpha_mask ) );
+        GL_CALL( glUniformMatrix4fv( model_transf_attrib_location , 1 , false , render_data.model_transform.m ) );
+        GL_CALL( glUnmapBuffer(GL_ARRAY_BUFFER) );
+        GL_CALL( glDrawElements(GL_TRIANGLES,(render_data.vertex_data_count/4)*6,GL_UNSIGNED_SHORT,nullptr ) );
+        GL_CALL( m_VBO = (VertexData*)glMapBuffer(GL_ARRAY_BUFFER , GL_WRITE_ONLY ) );
+    }
+
+    // VertexData v1; v1.pos = Vector3(-300,-200,0)*0.001    ; v1.modulate = Color(1.0f,1.0f,1.0f,1.0f) ; v1.uv = Vector2(0,0);
+    // VertexData v2; v2.pos = Vector3(300,-200,0) *0.001    ; v2.modulate = Color(1.0f,0.0f,1.0f,1.0f) ; v2.uv = Vector2(1,0);
+    // VertexData v3; v3.pos = Vector3(-300,200,0) *0.001    ; v3.modulate = Color(0.0f,1.0f,1.0f,1.0f) ; v3.uv = Vector2(0,1);
+    // VertexData v4; v4.pos = Vector3(300,200,0)  *0.001    ; v4.modulate = Color(1.0f,1.0f,0.0f,1.0f) ; v4.uv = Vector2(1,1);
+    // m_VBO[0] = v1; m_VBO[1] = v2; m_VBO[2] = v3; m_VBO[3] = v4;
+    // GL_CALL( glUnmapBuffer(GL_ARRAY_BUFFER) );
+    // GL_CALL( glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_SHORT,nullptr ) );
+    // GL_CALL( m_VBO = (VertexData*)glMapBuffer(GL_ARRAY_BUFFER , GL_WRITE_ONLY ) );
+    
+    // GL_CALL( glUnmapBuffer(GL_ARRAY_BUFFER) )
+
     glfwSwapBuffers( glfw_window );
 
 };

@@ -14,8 +14,9 @@ class PatchRect : public AnchoredRect {
 
     public:
         PatchRect();
+        ~PatchRect();
 
-        std::vector<RenderData>  generate_render_data() const ;
+        std::vector<RenderData>  generate_render_data() ;
 
         short               get_margin( int border ) const;
         void                set_margin( int border , short new_val );

@@ -16,13 +16,17 @@ class LabelRect : public AnchoredRect {
 
     public:
         LabelRect();
+        ~LabelRect();
 
-        std::vector<RenderData>  generate_render_data() const ;
+        std::vector<RenderData>  generate_render_data() override;
+        void                update_vertex_data();
 
         std::string         get_text() const;
         void                set_text( std::string s );
         FontResource*       get_font() const;
         void                set_font( FontResource* f );
+        int                 get_font_size() const;
+        void                set_font_size(int new_val);
         int                 get_line_gap() const;
         void                set_line_gap(int new_val);
         
