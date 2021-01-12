@@ -1,6 +1,16 @@
+label_rect = 0
 
 function _entered_tree()
     
+    patch_rect = this:create_patch_rect()
+    patch_rect:set_rect_size( Vector2(100,100))
+    patch_rect:set_use_scene_node_transform(true)
+    patch_rect:set_texture( load("res/border.png") )
+    patch_rect:set_margin( BORDER.TOP , 2  )
+    patch_rect:set_margin( BORDER.BOTTOM , 2  )
+    patch_rect:set_margin( BORDER.LEFT , 2  )
+    patch_rect:set_margin( BORDER.RIGHT , 2  )
+
     child1 = SceneNode.new()
     child_rect = child1:create_patch_rect()
     this:add_child(child1)

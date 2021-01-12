@@ -6,13 +6,14 @@
 
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec2 in_uv;
-layout(location = 2) in vec4 in_modulate;
+layout(location = 2) in vec4 in_modulate; // Currently unused
 
 uniform sampler2D tex;
 
 uniform vec2    viewport_size;
 uniform bool    ignore_camera;
 uniform mat4    view_transf;
+uniform vec4    uniform_modulate;
 uniform mat4    model_transf;
 uniform float   time;
 
@@ -30,7 +31,8 @@ void main(){
     //                 in_modulate.y/255.0f,
     //                 in_modulate.z/255.0f,
     //                 in_modulate.w/255.0f);
-    modulate = in_modulate;
+    // modulate = in_modulate;
+    modulate = uniform_modulate;
 };
 
 

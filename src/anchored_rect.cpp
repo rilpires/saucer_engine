@@ -1,5 +1,6 @@
 #include "anchored_rect.h"
 #include "lua_engine.h"
+#include "scene.h"
 
 std::unordered_multimap<SaucerId,AnchoredRect*> AnchoredRect::component_from_node;
 
@@ -11,16 +12,18 @@ AnchoredRect::AnchoredRect() {
     rect_pos = Vector2(0,0);
     rect_size = Vector2(0,0);
     starts_on_viewport = false;
+    ignore_mouse = false;
     use_scene_node_transform = false;
 }
-
-
+AnchoredRect::~AnchoredRect() {
+    if( attached_node && attached_node->get_scene() && attached_node->get_scene()->get_current_hovered_anchored_rect() == this ){
+        attached_node->get_scene()->set_current_hovered_anchored_rect(nullptr);
+    }
+}
 std::vector<RenderData>  AnchoredRect::generate_render_data(){
     std::vector<RenderData> ret;
     return ret;
 }
-
-
 bool AnchoredRect::is_border_anchored( int border , int parent_border ) const {
     return (anchored_borders[border] & (1<<(parent_border-1)));
 }
@@ -28,35 +31,34 @@ void AnchoredRect::set_anchored_border( int border , int parent_border , bool ne
     if (new_val)    anchored_borders[border] |=  (1<<(parent_border-1));
     else            anchored_borders[border] &= ~(1<<(parent_border-1));
 }
-
 Vector2 AnchoredRect::get_rect_pos() const {
     return rect_pos;
 }
-
 void AnchoredRect::set_rect_pos(Vector2 new_val) {
     rect_pos = new_val;
 }
-
 Vector2 AnchoredRect::get_rect_size() const {
     return rect_size;
 }
-
 void AnchoredRect::set_rect_size(Vector2 new_val) {
     new_val.x = std::max(0.0f,new_val.x);
     new_val.y = std::max(0.0f,new_val.y);        
     grow(RIGHT_BORDER,new_val.x - rect_size.x);
     grow(BOTTOM_BORDER,new_val.y - rect_size.y);
 }
-
-bool AnchoredRect::get_starts_on_viewport() const {
+bool    AnchoredRect::get_starts_on_viewport() const {
     return starts_on_viewport;
 }
-
-void AnchoredRect::set_starts_on_viewport(bool new_val) {
+void    AnchoredRect::set_starts_on_viewport(bool new_val) {
     starts_on_viewport = new_val;
 }
-
-bool AnchoredRect::get_use_scene_node_transform() const {
+bool    AnchoredRect::get_ignore_mouse() const{
+    return ignore_mouse;
+}
+void    AnchoredRect::set_ignore_mouse(bool new_val){
+    ignore_mouse = new_val;
+}
+bool    AnchoredRect::get_use_scene_node_transform() const {
     return use_scene_node_transform;
 }
 
@@ -147,6 +149,8 @@ void AnchoredRect::bind_methods() {
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , set_rect_size );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , get_starts_on_viewport );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , set_starts_on_viewport );
+    REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , get_ignore_mouse );
+    REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , set_ignore_mouse );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , get_use_scene_node_transform );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , set_use_scene_node_transform );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , get_global_rect_pos );    

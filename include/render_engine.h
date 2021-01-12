@@ -54,6 +54,7 @@ class RenderEngine {
         GLuint              ignore_camera_atrib_location;
         GLuint              view_transf_attrib_location;
         GLuint              model_transf_attrib_location; 
+        GLuint              modulate_attrib_location; 
         GLuint              viewport_size_attrib_location;
         GLuint              tex_is_alpha_mask_attrib_location;
         GLuint              time_attrib_location;

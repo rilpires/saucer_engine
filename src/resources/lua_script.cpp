@@ -10,6 +10,9 @@ LuaScriptResource::~LuaScriptResource(){
     
 }
 
+bool    LuaScriptResource::has_callback( std::string callback_name ) const{
+    return existent_callbacks.find(callback_name) != existent_callbacks.end();
+}
 LuaScriptResource*   LuaScriptResource::get_resource( std::string filepath ){
     return (LuaScriptResource*)ResourceManager::get_resource(filepath);
 }

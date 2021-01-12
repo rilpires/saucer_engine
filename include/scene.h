@@ -8,6 +8,7 @@
 #include "collision.h"
 #include <vector>
 
+class AnchoredRect;
 class SceneNode;
 class Camera;
 
@@ -15,17 +16,20 @@ class Scene : public SaucerObject {
     REGISTER_SAUCER_OBJECT(Scene,SaucerObject);
 
     friend class Window; // access current_window    
-
+    friend class AnchoredRect; // To nullify current_hovered_anchored_rect if needed
 
     private:
         CollisionWorld* collision_world;
-        SceneNode*  root_node;
-        Camera*     current_camera;        
-        
+        SceneNode*      root_node;
+        Camera*         current_camera;   
+        AnchoredRect*   current_hovered_anchored_rect;
+
         void        loop_input();
         void        loop_draw();
         void        loop_script();
         void        loop_physics();
+
+        void        set_current_hovered_anchored_rect( AnchoredRect* r );
 
     public:
         Scene();
@@ -36,6 +40,7 @@ class Scene : public SaucerObject {
         void            set_root_node(SceneNode* p_root_node);
         SceneNode*      get_root_node();
         void            set_current_camera( Camera* new_camera );
+        AnchoredRect*   get_current_hovered_anchored_rect() const;
         Camera*         get_current_camera() const ;
         CollisionWorld* get_collision_world() const ;
         void            loop();

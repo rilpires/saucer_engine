@@ -12,6 +12,22 @@ lua_CFunction    LuaEngine::recover_nested_function( std::string function_name )
     return ret;
 }
 
+template < typename T_arg1 >
+void             LuaEngine::execute_callback( const char* callback_name , SceneNode* actor , T_arg1 arg1 ){
+    if( actor->get_script() == NULL || actor->get_script()->has_callback(std::string(callback_name)) == false )return;
+    SceneNode* old_actor = current_actor;
+    change_current_actor_env( actor );
+    lua_pushstring(ls,(std::string("_")+std::string(callback_name)).c_str());
+    lua_gettable(ls,LUA_GLOBALSINDEX);
+    push(ls,arg1);
+    int err = lua_pcall(ls,1,0,0);
+    if(err)saucer_err("Error during " , callback_name , " callback");
+    print_error(err,actor->get_script());
+    change_current_actor_env(old_actor);
+}
+
+
+
 // push signature for std::vectors
 template< typename T , typename C1  >
 void    LuaEngine::push( lua_State* ls , T v ){

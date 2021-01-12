@@ -19,10 +19,12 @@ class AnchoredRect : public RenderObject {
         Vector2         rect_pos;
         Vector2         rect_size;
         bool            starts_on_viewport;
+        bool            ignore_mouse;
         bool            use_scene_node_transform; // Doesn't have any effect if has AnchoredRect parent
         
     public:
         AnchoredRect();
+        ~AnchoredRect();
 
         std::vector<RenderData>  generate_render_data() override ;
 
@@ -34,6 +36,8 @@ class AnchoredRect : public RenderObject {
         void                set_rect_size( Vector2 new_val );
         bool                get_starts_on_viewport() const ;
         void                set_starts_on_viewport( bool new_val );
+        bool                get_ignore_mouse() const;
+        void                set_ignore_mouse(bool new_val);
         bool                get_use_scene_node_transform() const ;
         void                set_use_scene_node_transform( bool new_val );
         void                grow( int border , float amount );

@@ -66,14 +66,11 @@ class LuaEngine {
         static void             initialize();
         static void             finish();
 
-        static void             execute_collision_start( SceneNode* actor , SceneNode* other );
-        static void             execute_collision_end( SceneNode* actor , SceneNode* other );
-        static void             execute_frame_start( SceneNode* actor , float delta_seconds );
-        static void             execute_input( SceneNode* actor , Input::InputEvent* input_event );
-        static void             execute_entered_tree( SceneNode* actor );
-        static void             execute_exiting_tree( SceneNode* actor );
-        static void             execute_init( SceneNode* actor );
 
+
+        static void             execute_callback( const char* callback_name , SceneNode* actor );
+        template <typename T_arg1 >
+        static void             execute_callback( const char* callback_name , SceneNode* actor , T_arg1 arg1 );
 
         static void             create_actor_env( SceneNode* new_actor );
         static void             register_constant( std::string enum_name , std::string index_name , int i );

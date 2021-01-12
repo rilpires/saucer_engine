@@ -80,7 +80,6 @@ template<> std::string  LuaEngine::pop( lua_State* ls ){
     return ret; 
 } 
 
-
 const char*     LuaEngine::chunk_reader( lua_State* ls , void* data , size_t* size ){
     size_t total_size = strlen((char*)data);
     if( chunk_reader_offset < total_size ){
@@ -319,80 +318,6 @@ lua_CFunction   LuaEngine::recover_global_function( std::string function_name ){
         };
     } else return (function_find->second);
 }
-void            LuaEngine::execute_collision_start( SceneNode* actor , SceneNode* other ){
-    if( actor->get_script() == NULL || actor->get_script()->has_collision_start == false )return;
-    SceneNode* old_actor = current_actor;
-    change_current_actor_env( actor );
-    lua_pushstring(ls,"_collision_start");
-    lua_gettable(ls,LUA_GLOBALSINDEX);
-    push(ls,other);
-    int err = lua_pcall(ls,1,0,0);
-    print_error(err,actor->get_script());
-    change_current_actor_env(old_actor);
-}
-void            LuaEngine::execute_collision_end( SceneNode* actor , SceneNode* other ){
-    if( actor->get_script() == NULL || actor->get_script()->has_collision_end == false )return;
-    SceneNode* old_actor = current_actor;
-    change_current_actor_env( actor );
-    lua_pushstring(ls,"_collision_end");
-    lua_gettable(ls,LUA_GLOBALSINDEX);
-    push(ls,other);
-    int err = lua_pcall(ls,1,0,0);
-    print_error(err,actor->get_script());
-    change_current_actor_env(old_actor);
-}
-void            LuaEngine::execute_frame_start( SceneNode* actor , float delta_seconds ){
-    if( actor->get_script() == NULL || actor->get_script()->has_frame_start == false )return;
-    SceneNode* old_actor = current_actor;
-    change_current_actor_env( actor );
-    lua_pushstring(ls,"_frame_start");
-    lua_gettable(ls,LUA_GLOBALSINDEX);
-    lua_pushnumber(ls,delta_seconds);
-    int err = lua_pcall(ls,1,0,0);
-    print_error(err,actor->get_script());
-    change_current_actor_env(old_actor);
-}
-void            LuaEngine::execute_input( SceneNode* actor , Input::InputEvent* input_event ){
-    if( actor->get_script() == NULL || actor->get_script()->has_input == false )return;
-    SceneNode* old_actor = current_actor;
-    change_current_actor_env( actor );
-    lua_pushstring(ls,"_input");
-    lua_gettable(ls,LUA_GLOBALSINDEX);
-    push(ls,input_event);
-    int err = lua_pcall(ls,1,0,0);
-    print_error(err,actor->get_script());
-    change_current_actor_env(old_actor);
-}
-void            LuaEngine::execute_entered_tree( SceneNode* actor ){
-    if( actor->get_script() == NULL || actor->get_script()->has_entered_tree == false )return;
-    SceneNode* old_actor = current_actor;
-    change_current_actor_env( actor );
-    lua_pushstring(ls,"_entered_tree");
-    lua_gettable(ls,LUA_GLOBALSINDEX);
-    int err = lua_pcall(ls,0,0,0);
-    print_error(err,actor->get_script());
-    change_current_actor_env(old_actor);
-}
-void            LuaEngine::execute_exiting_tree( SceneNode* actor ){
-    if( actor->get_script() == NULL || actor->get_script()->has_exiting_tree == false )return;
-    SceneNode* old_actor = current_actor;
-    change_current_actor_env( actor );
-    lua_pushstring(ls,"_exiting_tree");
-    lua_gettable(ls,LUA_GLOBALSINDEX);
-    int err = lua_pcall(ls,0,0,0);
-    print_error(err,actor->get_script());
-    change_current_actor_env(old_actor);
-}
-void            LuaEngine::execute_init( SceneNode* actor ){
-    if( actor->get_script() == NULL || actor->get_script()->has_init == false )return;
-    SceneNode* old_actor = current_actor;
-    change_current_actor_env( actor );
-    lua_pushstring(ls,"_init");
-    lua_gettable(ls,LUA_GLOBALSINDEX);
-    int err = lua_pcall(ls,0,0,0);
-    print_error(err,actor->get_script());
-    change_current_actor_env(old_actor);
-}
 void            LuaEngine::create_actor_env( SceneNode* new_actor ){
     SceneNode* old_actor = current_actor;
     change_current_actor_env(NULL);
@@ -429,15 +354,10 @@ void            LuaEngine::create_actor_env( SceneNode* new_actor ){
             
             std::string key = lua_tostring(ls,-2);
 
-            // Saves in this script resource if it has any definition of functions "_frame_start","_input", etc
-            // So we don't need to access it's actor's table every time for it 
-            if( key == "_frame_start" )          script->has_frame_start = true;
-            else if( key == "_input" )           script->has_input = true;
-            else if( key == "_entered_tree" )    script->has_entered_tree = true;
-            else if( key == "_exiting_tree" )     script->has_exiting_tree = true;
-            else if( key == "_collision_start" ) script->has_collision_start = true;
-            else if( key == "_collision_end" )   script->has_collision_end = true;
-            else if( key == "_init" )            script->has_init = true;
+            // Functions starting with "_" are registered as callbacks. This way we dont need to check
+            // in lua every time if such script has a callback 
+            if( lua_isfunction(ls,-1) && key[0] == '_' )
+                script->existent_callbacks.insert( key.substr(1) );
             
 
             lua_pushvalue(ls,-2);
@@ -470,6 +390,17 @@ void            LuaEngine::create_actor_env( SceneNode* new_actor ){
     lua_settable(ls,-3);
     lua_pop(ls,3);
 
+    change_current_actor_env(old_actor);
+}
+void            LuaEngine::execute_callback( const char* callback_name , SceneNode* actor ){
+    if( actor->get_script() == NULL || actor->get_script()->has_callback(std::string(callback_name)) == false )return;
+    SceneNode* old_actor = current_actor;
+    change_current_actor_env( actor );
+    lua_pushstring( ls , (std::string("_")+std::string(callback_name)).c_str() );
+    lua_gettable(ls,LUA_GLOBALSINDEX);
+    int err = lua_pcall(ls,0,0,0);
+    if(err)saucer_err("Error during " , callback_name , " callback");
+    print_error(err,actor->get_script());
     change_current_actor_env(old_actor);
 }
 void    LuaEngine::register_constant( std::string enum_name , std::string index_name , int i ){

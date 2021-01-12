@@ -3,7 +3,7 @@
 
 #include "resources.h"
 #include "lua_engine.h"
-#include <string>
+#include <set>
 
 class LuaScriptResource : public Resource {
     REGISTER_SAUCER_OBJECT(LuaScriptResource,Resource)
@@ -12,19 +12,13 @@ class LuaScriptResource : public Resource {
 
     private:
         std::string src;
-        bool        has_collision_start = false;
-        bool        has_collision_end = false;
-        bool        has_entered_tree = false;
-        bool        has_exiting_tree = false;
-        bool        has_init = false;
-        bool        has_frame_start = false;
-        bool        has_input = false;
+        std::set<std::string> existent_callbacks;
     public:
         LuaScriptResource( std::string filepath );
         ~LuaScriptResource();
 
         const std::string&          get_src() const {return src;}
-
+        bool                        has_callback( std::string callback_name ) const ;  
         static LuaScriptResource*   get_resource( std::string filepath );
 
         static void                 bind_methods();

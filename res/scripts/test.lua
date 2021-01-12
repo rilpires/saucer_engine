@@ -1,5 +1,6 @@
 
 function _entered_tree()
+    this:set_modulate(Color(0.5,1,1,1))
     window_size = Engine.get_window_size()
     wall = SceneNode.new()
     wall_body = wall:create_body()
@@ -23,7 +24,7 @@ function _frame_start( dt_seconds )
     if (Input.is_key_pressed(KEY.DOWN))     then vel.y = vel.y + 1.0 end;
     this:set_global_position( this:get_global_position() + vel*5.0 )
     
-    print("FPS: " , Engine.get_fps() )
+    -- print("FPS: " , Engine.get_fps() )
 end
 
 current_spawn = nil
@@ -31,6 +32,7 @@ h_frames = 4;
 v_frames = 3;
 
 function _input( input_event )
+    nome = "Romeu"
     if( input_event:get_type() == InputEventType.MOUSE_BUTTON and input_event:is_pressed() ) then
         current_spawn = SceneNode.new()
         current_spawn:set_script( load("res/scripts/spawn.lua") )

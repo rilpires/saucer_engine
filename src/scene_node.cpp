@@ -154,12 +154,12 @@ void        SceneNode::entered_tree(){
     for( auto& child : children_nodes ) child->entered_tree();
     for( Component*& c : attached_components )
         c->entered_tree();
-    LuaEngine::execute_entered_tree( this );
+    LuaEngine::execute_callback( "entered_tree", this );
     
 }
 void        SceneNode::exiting_tree(){
     for( auto& child : children_nodes ) child->exiting_tree();
-    LuaEngine::execute_exiting_tree( this );
+    LuaEngine::execute_callback( "exiting_tree", this );
     for( Component*& c : attached_components )
         c->exiting_tree();
 }

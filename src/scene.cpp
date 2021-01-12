@@ -6,6 +6,8 @@
 
 Scene::Scene(){
     root_node = NULL;
+    current_hovered_anchored_rect = nullptr;
+    current_camera = nullptr;
     collision_world = new CollisionWorld();
 }
 Scene::~Scene(){
@@ -31,6 +33,9 @@ SceneNode*      Scene::get_root_node(){
 }
 void            Scene::set_current_camera( Camera* new_camera ){
     current_camera = new_camera;
+}
+AnchoredRect*   Scene::get_current_hovered_anchored_rect() const{
+    return current_hovered_anchored_rect;
 }
 Camera*         Scene::get_current_camera() const {
     return current_camera;
@@ -78,7 +83,7 @@ void            Scene::loop_draw(){
             for( RenderData& render_data : v ){
                 if(render_data.use_tree_transform) render_data.model_transform = tree_node.t;
                 render_data.final_modulate = tree_node.c * tree_node.n->get_self_modulate();
-                // render_data.fill_vertices_modulate();
+                // render_data.fill_vertices_modulate(); // This is actually insane right? I'll be using uniforms...
                 render_datas.push_back( render_data );
             }
         }
@@ -96,20 +101,41 @@ void            Scene::loop_draw(){
 
 }
 void            Scene::loop_input(){
+    
     std::queue< SceneNode* > nodes_queue;
     std::vector< SceneNode* > script_actors;
-    
+    Vector2 world_mouse_pos = Input::get_world_mouse_position();
+    AnchoredRect* next_hovered = nullptr;
+
     // Traversing the tree & finding the possible actors
+    // Also, looks for the hovered AnchoredRect  
     if( root_node )
         nodes_queue.push(root_node);
     while( nodes_queue.size() ){
-        SceneNode* scene_node = nodes_queue.front();;
+        SceneNode* scene_node = nodes_queue.front();
+        auto anchored_rects = AnchoredRect::recover_range_from_node(scene_node);
         if( scene_node->get_script() )
             script_actors.push_back(scene_node);
+        for( auto& it = anchored_rects.first ; it != anchored_rects.second ; it++ ){
+            AnchoredRect* rect = it->second;
+            if( rect->ignore_mouse ) continue;
+            Transform t = rect->get_parent_global_transform();
+            Vector2 rect_size       = rect->get_rect_size();
+            Vector2 rect_pos        = rect->get_rect_pos();
+            Vector2 world_top_left        = t*rect_pos;
+            Vector2 world_bottom_right    = t*(rect_pos+rect_size); // I hope it isn't rotated! won't work
+            if( world_mouse_pos.x > world_top_left.x 
+            &&  world_mouse_pos.x < world_bottom_right.x 
+            &&  world_mouse_pos.y > world_top_left.y 
+            &&  world_mouse_pos.y < world_bottom_right.y  ){
+                next_hovered = rect;
+            }
+        }
         for( auto child : scene_node->get_children() )
             nodes_queue.push( child );
         nodes_queue.pop();
     }
+    set_current_hovered_anchored_rect(next_hovered);
     // Solving inputs
     Input::InputEvent* next_input_event = Input::pop_event_queue();
     while(next_input_event){
@@ -117,13 +143,11 @@ void            Scene::loop_input(){
              it != script_actors.end() && !next_input_event->is_solved() ;
              it++ )
         {
-            SceneNode*& node_actor = *it;
-            LuaEngine::execute_input( node_actor , next_input_event );
+            LuaEngine::execute_callback( "input" , *it , next_input_event );
         }
         delete next_input_event;   
         next_input_event = Input::pop_event_queue();
     }
-
 
 }
 void            Scene::loop_script(){
@@ -136,12 +160,20 @@ void            Scene::loop_script(){
     while( nodes_queue.size() ){
         SceneNode* scene_node = nodes_queue.front();;
         if( scene_node->get_script() )
-            LuaEngine::execute_frame_start( scene_node , last_frame_duration );
+            LuaEngine::execute_callback("frame_start", scene_node , last_frame_duration );
         for( auto child : scene_node->get_children() )
             nodes_queue.push( child );
         nodes_queue.pop();
     }
 
+}
+void            Scene::set_current_hovered_anchored_rect( AnchoredRect* r ){
+    if( current_hovered_anchored_rect == r ) return;
+    if( current_hovered_anchored_rect )
+        LuaEngine::execute_callback("exiting_mouse",current_hovered_anchored_rect->get_node()); 
+    current_hovered_anchored_rect = r;
+    if( current_hovered_anchored_rect )
+        LuaEngine::execute_callback("entered_mouse",current_hovered_anchored_rect->get_node()); 
 }
 void            Scene::loop_physics(){
     collision_world->step();

@@ -113,6 +113,7 @@ void                RenderEngine::set_current_shader( ShaderResource* new_shader
             GL_CALL( viewport_size_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"viewport_size")  );
             GL_CALL( ignore_camera_atrib_location = glGetUniformLocation(current_shader_resource->shader_program,"ignore_camera")  );
             GL_CALL( tex_is_alpha_mask_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"tex_is_alpha_mask")  );
+            GL_CALL( modulate_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"uniform_modulate")  );
             GL_CALL( time_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"time")  );
             GL_CALL( glUniform2f( viewport_size_attrib_location , window_size.x , window_size.y ) );
             GL_CALL( glUniformMatrix4fv( view_transf_attrib_location , 1 , GL_FALSE , view_transform.m ) );
@@ -193,25 +194,21 @@ void                RenderEngine::update( const std::vector<RenderData>& draws )
             GL_CALL( glBindTexture( GL_TEXTURE_2D , render_data.texture_id ) );
             last_used_texture = render_data.texture_id;
         }
-        
+
+        float modulate_as_float[] = {
+            float(render_data.final_modulate.r)/255.0f,
+            float(render_data.final_modulate.g)/255.0f,
+            float(render_data.final_modulate.b)/255.0f,
+            float(render_data.final_modulate.a)/255.0f,
+        };
         GL_CALL( glUniform1i( ignore_camera_atrib_location , !render_data.use_view_transform  ) );
         GL_CALL( glUniform1i( tex_is_alpha_mask_attrib_location , render_data.tex_is_alpha_mask ) );
+        GL_CALL( glUniform4fv( modulate_attrib_location , 1 , modulate_as_float ) );
         GL_CALL( glUniformMatrix4fv( model_transf_attrib_location , 1 , false , render_data.model_transform.m ) );
         GL_CALL( glUnmapBuffer(GL_ARRAY_BUFFER) );
         GL_CALL( glDrawElements(GL_TRIANGLES,(render_data.vertex_data_count/4)*6,GL_UNSIGNED_SHORT,nullptr ) );
         GL_CALL( m_VBO = (VertexData*)glMapBuffer(GL_ARRAY_BUFFER , GL_WRITE_ONLY ) );
     }
-
-    // VertexData v1; v1.pos = Vector3(-300,-200,0)*0.001    ; v1.modulate = Color(1.0f,1.0f,1.0f,1.0f) ; v1.uv = Vector2(0,0);
-    // VertexData v2; v2.pos = Vector3(300,-200,0) *0.001    ; v2.modulate = Color(1.0f,0.0f,1.0f,1.0f) ; v2.uv = Vector2(1,0);
-    // VertexData v3; v3.pos = Vector3(-300,200,0) *0.001    ; v3.modulate = Color(0.0f,1.0f,1.0f,1.0f) ; v3.uv = Vector2(0,1);
-    // VertexData v4; v4.pos = Vector3(300,200,0)  *0.001    ; v4.modulate = Color(1.0f,1.0f,0.0f,1.0f) ; v4.uv = Vector2(1,1);
-    // m_VBO[0] = v1; m_VBO[1] = v2; m_VBO[2] = v3; m_VBO[3] = v4;
-    // GL_CALL( glUnmapBuffer(GL_ARRAY_BUFFER) );
-    // GL_CALL( glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_SHORT,nullptr ) );
-    // GL_CALL( m_VBO = (VertexData*)glMapBuffer(GL_ARRAY_BUFFER , GL_WRITE_ONLY ) );
-    
-    // GL_CALL( glUnmapBuffer(GL_ARRAY_BUFFER) )
 
     glfwSwapBuffers( glfw_window );
 

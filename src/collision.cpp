@@ -232,10 +232,10 @@ const   std::vector<CollisionBody*> CollisionBody::get_current_collisions() cons
 
 
 void    CollisionBody::collision_start( CollisionBody* other ){
-    LuaEngine::execute_collision_start( get_node() , other->get_node() );
+    LuaEngine::execute_callback( "collision_start" , get_node() , other->get_node() );
 }
 void    CollisionBody::collision_end( CollisionBody* other ){
-    LuaEngine::execute_collision_end( get_node() , other->get_node() );
+    LuaEngine::execute_callback( "collision_end" , get_node() , other->get_node() );
 }
 void    CollisionBody::entered_tree(){
     SceneNode* node = get_node();
