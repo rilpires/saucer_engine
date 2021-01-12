@@ -215,13 +215,27 @@ void            LuaEngine::change_current_actor_env( SceneNode* new_actor ){
             lua_pushvalue(ls,-2);
             lua_pushvalue(ls,-3);
             lua_gettable(ls,LUA_GLOBALSINDEX);
-            lua_settable(ls,-5);
+            lua_settable(ls,-5); // [_G][_SAUCER][_NODES][_ID][key] = [_G][_key]
             // Erasing it from LUA_GLOBALSINDEX
             lua_pushvalue(ls,-2);
             lua_pushnil(ls);
-            lua_settable(ls,LUA_GLOBALSINDEX);
+            lua_settable(ls,LUA_GLOBALSINDEX); // [_G][_key] = nil
             lua_pop(ls,1);
         }
+        
+        // Stack now:
+        // 1 - [_SAUCER]
+        // 2 - [_SAUCER][_NODES]
+        // 3 - [_SAUCER][_NODES][ID]
+        // Saving _LOADED variables into virtual environment too, and then cleaning _G[_LOADED]
+        lua_pushstring(ls,"_LOADED");
+        lua_pushstring(ls,"_LOADED");
+        lua_gettable(ls,LUA_GLOBALSINDEX);
+        lua_settable(ls,-3);
+        lua_pushstring(ls,"_LOADED");
+        lua_newtable(ls);
+        lua_settable(ls,LUA_GLOBALSINDEX);
+        
         lua_pop(ls,3);
     }
     current_actor = new_actor;
@@ -239,6 +253,17 @@ void            LuaEngine::change_current_actor_env( SceneNode* new_actor ){
             lua_settable(ls,LUA_GLOBALSINDEX);
             lua_pop(ls,1);
         }
+        
+        // Stack now:
+        // 1 - [_SAUCER]
+        // 2 - [_SAUCER][_NODES]
+        // 3 - [_SAUCER][_NODES][ID]
+        // Loading virtual _LOADED table into the real _LOADED table
+        lua_pushstring(ls,"_LOADED");
+        lua_pushstring(ls,"_LOADED");
+        lua_gettable(ls,-3);
+        lua_settable(ls,LUA_GLOBALSINDEX);
+
         lua_pop(ls,3);
     }
 }
@@ -430,6 +455,10 @@ void            LuaEngine::create_actor_env( SceneNode* new_actor ){
     lua_pushstring(ls,"this");
     push( ls , new_actor );
     lua_settable(ls,-3);
+    // Creating a virtual "_LOADED" table to save loaded modules only for this actor
+    lua_pushstring(ls,"_LOADED");
+    lua_newtable(ls);
+    lua_settable(ls,-3); 
 
     // Now inserting it into _G["_SAUCER"]["_NODES"][id]
     lua_pushstring(ls,"_SAUCER");
