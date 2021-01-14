@@ -19,8 +19,6 @@ int main( int argc , char** argv ){
     root->set_script( LuaScriptResource::get_resource("res/scripts/root.lua") );
     scene->set_root_node(root);
 
-    Engine::set_fullscreen(true);
-
     // for( int i = 0 ; i < 50000 ; i++ ){
     //     SceneNode* new_node = new SceneNode();
     //     root->add_child( new_node );
