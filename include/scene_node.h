@@ -5,7 +5,6 @@
 #include <vector>
 #include <list>
 #include <unordered_map>
-
 #include "input.h"
 #include "vector.h"
 #include "resources.h"
@@ -21,7 +20,8 @@ class SceneNode : public SaucerObject {
     friend class Scene;
     REGISTER_SAUCER_OBJECT(SceneNode,SaucerObject);
 
-    protected:
+    private:
+        std::string                 name;
         Vector2                     position;
         Vector2                     scale;
         float                       rotation_degrees; // Counter clock wise
@@ -36,13 +36,14 @@ class SceneNode : public SaucerObject {
         LuaScriptResource*          lua_script;
         std::list<Component*>       attached_components;
     
-    private:
         void                    set_scene(Scene* new_scene);
     public:
         SceneNode();
         ~SceneNode();
 
         static SceneNode*       lua_new();
+        std::string             get_name() const;
+        void                    set_name( std::string new_val );
         void                    set_position( const Vector2 new_pos );
         Vector2                 get_position( ) const;
         void                    set_scale( const Vector2 new_scale );
@@ -70,6 +71,7 @@ class SceneNode : public SaucerObject {
         void                    add_child( SceneNode* p_child_node );
         SceneNode*              get_parent( ) const ;
         Scene*                  get_scene() const;
+        void                    queue_free();
 
 
         std::vector<SceneNode*> const&  get_children() const;

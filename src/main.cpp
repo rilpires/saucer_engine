@@ -13,7 +13,7 @@ int main( int argc , char** argv ){
     Scene* scene = new Scene();
     SceneNode* root = new SceneNode();
     Engine::set_current_scene( scene );
-    root->set_script( LuaScriptResource::get_resource("res/scripts/test.lua") );
+    root->set_script( LuaScriptResource::get_resource("res/scripts/root.lua") );
     scene->set_root_node(root);
 
     // for( int i = 0 ; i < 50000 ; i++ ){
@@ -23,7 +23,7 @@ int main( int argc , char** argv ){
     //     new_node->set_position( Vector2( (float(random()%1000))-500 , (float(random()%1000))-500  ));
     // }
 
-    while( !Engine::should_close() ) 
+    while( !Engine::should_close() )
         Engine::update(); 
     Engine::close();
     

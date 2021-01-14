@@ -8,6 +8,7 @@ SceneNode::SceneNode(){
     scale = Vector2(1,1);
     rotation_degrees = 0.0f;
     z = 0;
+    name = std::to_string(get_saucer_id());
     relative_z = true;
     modulate = Color();
     self_modulate = Color();
@@ -24,12 +25,19 @@ SceneNode::~SceneNode(){
         LuaEngine::change_current_actor_env( nullptr );
     }
     get_out();
+    for( auto& component : attached_components ) delete component;
 }
 void                SceneNode::set_scene(Scene* new_scene){
     scene = new_scene;
     for( auto& child : children_nodes ) child->set_scene(new_scene);
 }
 SceneNode*          SceneNode::lua_new(){ return new SceneNode(); }
+std::string         SceneNode::get_name() const{
+    return name;
+}
+void                SceneNode::set_name( std::string new_val ){
+    name = new_val;
+}
 void                SceneNode::set_position( const Vector2 new_pos ){ position = new_pos; }
 Vector2             SceneNode::get_position( ) const{ return position; }
 void                SceneNode::set_scale( const Vector2 new_scale ){
@@ -143,7 +151,12 @@ SceneNode*          SceneNode::get_parent( ) const { return parent_node;};
 Scene*              SceneNode::get_scene() const{
     return scene;
 }
-std::vector<SceneNode*> const&  SceneNode::get_children() const { return children_nodes; }
+void                SceneNode::queue_free(){
+    Engine::get_current_scene()->queue_free_node(this);
+}
+std::vector<SceneNode*> const&  SceneNode::get_children() const { 
+    return children_nodes; 
+}
 bool                SceneNode::get_inherits_transform() const{
     return inherits_transform;
 }
@@ -167,6 +180,8 @@ void        SceneNode::bind_methods(){
     
     REGISTER_LUA_NESTED_STATIC_FUNCTION(SceneNode,lua_new);
     
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_name);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_name);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_position);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_position);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_scale);
@@ -192,6 +207,9 @@ void        SceneNode::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_parent);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_scene);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_children);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,queue_free);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_children);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,queue_free);
     
     REGISTER_COMPONENT_HELPERS(Sprite,"sprite");
     REGISTER_COMPONENT_HELPERS(Camera,"camera");

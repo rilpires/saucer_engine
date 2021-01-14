@@ -7,7 +7,7 @@ std::unordered_multimap< SaucerId , Sprite* > Sprite::component_from_node;
 
 Sprite::Sprite() {
     texture = nullptr;
-    centralized = true;
+    centralized = false;
     h_frames = 1;
     v_frames = 1;
     frame_index = 0;
@@ -23,9 +23,12 @@ std::vector<RenderData>  Sprite::generate_render_data(){
     if( texture ){
         RenderData render_data;
         
-        Vector2 top_left_uv = Vector2(  (1.0/h_frames)*(frame_index%h_frames) ,   (1.0/v_frames)*(frame_index/h_frames) );
-        Vector2 bottom_right_uv = top_left_uv + Vector2( 1.0/h_frames , 1.0/v_frames ) ;
-        Vector2 size = texture->get_size() * Vector2(1.0/h_frames,1.0/v_frames) ;
+        Vector2 region_top_left_uv = region_top_left / texture->get_size();
+        Vector2 region_bottom_right_uv = region_bottom_right / texture->get_size();
+        Vector2 uv_size = (region_bottom_right_uv-region_top_left_uv)/Vector2( h_frames , v_frames );
+        Vector2 top_left_uv = region_top_left_uv + uv_size * Vector2( frame_index%h_frames , frame_index/h_frames );
+        Vector2 bottom_right_uv = top_left_uv + uv_size;
+        Vector2 size = texture->get_size() * uv_size ;
 
         vertex_data[0].pos  = Vector3(0,0,0);
         vertex_data[0].uv   = top_left_uv;
@@ -39,7 +42,7 @@ std::vector<RenderData>  Sprite::generate_render_data(){
         vertex_data[3].pos  = Vector3(size.x,size.y,0);
         vertex_data[3].uv   = bottom_right_uv;
         
-        if( true ){ // centered
+        if( centralized ){ // centered
             vertex_data[0].pos -= Vector3( size.x*0.5 , size.y*0.5 , 0 );
             vertex_data[1].pos -= Vector3( size.x*0.5 , size.y*0.5 , 0 );
             vertex_data[2].pos -= Vector3( size.x*0.5 , size.y*0.5 , 0 );
@@ -62,6 +65,10 @@ TextureResource*  Sprite::get_texture() const{
 }
 void            Sprite::set_texture( TextureResource* tex ){
     texture = tex;
+    if( texture ){
+        region_top_left = Vector2(0,0);
+        region_bottom_right = texture->get_size();
+    }
 }
 short           Sprite::get_h_frames() const{
     return h_frames;
@@ -87,6 +94,18 @@ bool            Sprite::is_centralized() const {
 void            Sprite::set_centralized( bool new_val ){
     centralized = new_val;
 }
+Vector2         Sprite::get_region_top_left() const{
+    return region_top_left;
+}
+Vector2         Sprite::get_region_bottom_right() const{
+    return region_bottom_right;
+}
+void            Sprite::set_region_top_left(Vector2 new_val){
+    region_top_left = new_val;
+}
+void            Sprite::set_region_bottom_right(Vector2 new_val){
+    region_bottom_right = new_val;
+}
 void            Sprite::bind_methods(){
     
     REGISTER_LUA_MEMBER_FUNCTION(Sprite,get_texture);
@@ -99,5 +118,9 @@ void            Sprite::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(Sprite,set_frame_index);
     REGISTER_LUA_MEMBER_FUNCTION(Sprite,is_centralized);
     REGISTER_LUA_MEMBER_FUNCTION(Sprite,set_centralized);
+    REGISTER_LUA_MEMBER_FUNCTION(Sprite,get_region_top_left);
+    REGISTER_LUA_MEMBER_FUNCTION(Sprite,get_region_bottom_right);
+    REGISTER_LUA_MEMBER_FUNCTION(Sprite,set_region_top_left);
+    REGISTER_LUA_MEMBER_FUNCTION(Sprite,set_region_bottom_right);
 
 }

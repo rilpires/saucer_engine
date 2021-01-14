@@ -16,7 +16,7 @@ void RenderData::fill_vertices_modulate(){
 RenderEngine::RenderEngine(){
     
     if( !glfwInit() ) saucer_err( "Failed to glfwInit()" )
-    
+    glfwSetErrorCallback([](int n , const char* s ){ saucer_err( "GLFW error #" , n , ":" , s ) });
     window_size = INITIAL_WINDOW_SIZE;
     glfw_window = glfwCreateWindow( window_size.x , window_size.y , INITIAL_WINDOW_TITLE , NULL , NULL );
     
@@ -34,8 +34,8 @@ RenderEngine::RenderEngine(){
     if( ret_glewInit != GLEW_OK ) 
         saucer_err( "Failed to glewInit() :" , glewGetErrorString(ret_glewInit) )
     
-    saucer_print( "Renderer: " , glGetString( GL_RENDERER )  );
-    saucer_print( "Version: " , glGetString( GL_VERSION )  );
+    // saucer_print( "Renderer: " , glGetString( GL_RENDERER )  );
+    // saucer_print( "Version: " , glGetString( GL_VERSION )  );
 
     last_used_texture = 0;
     view_transform = Transform();
@@ -210,7 +210,7 @@ void                RenderEngine::update( const std::vector<RenderData>& draws )
         GL_CALL( m_VBO = (VertexData*)glMapBuffer(GL_ARRAY_BUFFER , GL_WRITE_ONLY ) );
     }
 
-    glfwSwapBuffers( glfw_window );
+    glfwSwapBuffers(glfw_window);
 
 };
 

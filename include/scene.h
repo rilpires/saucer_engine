@@ -6,6 +6,7 @@
 #include "transform.h"
 #include "saucer_object.h"
 #include "collision.h"
+#include <set>
 #include <vector>
 
 class AnchoredRect;
@@ -23,6 +24,7 @@ class Scene : public SaucerObject {
         SceneNode*      root_node;
         Camera*         current_camera;   
         AnchoredRect*   current_hovered_anchored_rect;
+        std::set<SceneNode*> to_free;
 
         void        loop_input();
         void        loop_draw();
@@ -43,6 +45,8 @@ class Scene : public SaucerObject {
         AnchoredRect*   get_current_hovered_anchored_rect() const;
         Camera*         get_current_camera() const ;
         CollisionWorld* get_collision_world() const ;
+
+        void            queue_free_node(SceneNode* node);
         void            loop();
 
         static void bind_methods();

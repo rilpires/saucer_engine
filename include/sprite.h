@@ -15,6 +15,8 @@ class Sprite : public RenderObject {
         short               v_frames;
         short               frame_index;
         bool                centralized;
+        Vector2             region_top_left;
+        Vector2             region_bottom_right;
     
     public:
         Sprite();
@@ -32,6 +34,11 @@ class Sprite : public RenderObject {
         void            set_frame_index( short new_val );
         bool            is_centralized() const ;
         void            set_centralized( bool new_val );
+        Vector2         get_region_top_left() const;
+        Vector2         get_region_bottom_right() const;
+        void            set_region_top_left(Vector2 new_val);
+        void            set_region_bottom_right(Vector2 new_val);
+        
 
         static void     bind_methods();
 

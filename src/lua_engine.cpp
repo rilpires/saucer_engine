@@ -15,16 +15,10 @@ std::unordered_map< std::string , std::unordered_map< std::string , lua_CFunctio
 std::unordered_map< std::string , std::unordered_map< std::string , int > > LuaEngine::constants;
 std::unordered_map< std::string , lua_CFunction > LuaEngine::global_functions_db;
 
-
-
 template<>
 lua_CFunction    LuaEngine::recover_nested_function<SaucerObject>( std::string function_name ){
     auto ret = recover_nested_function( "SaucerObject" , function_name );
-    if(!ret){
-        saucer_err( "Couldn't find function \"",function_name,"\" for class SaucerObject." )
-        return [](lua_State* ls ){return 0;};
-    }
-    else return ret;
+    return ret;
 }
 
 template<> void     LuaEngine::push( lua_State* ls , bool b ){
@@ -79,6 +73,52 @@ template<> std::string  LuaEngine::pop( lua_State* ls ){
     lua_pop(ls,1);
     return ret; 
 } 
+
+
+template<> void     LuaEngine::push_metatable<SceneNode>( lua_State* ls ){
+    lua_newtable(ls);
+    lua_pushstring(ls,"__index");
+    lua_pushcfunction(ls,[](lua_State* ls){
+        SceneNode* node = (SceneNode*)SaucerObject::from_saucer_id( *(SaucerId*)lua_touserdata(ls,-2) );
+        const char* arg = lua_tostring(ls,-1);
+        lua_pop(ls,2);
+        lua_CFunction nested_function = LuaEngine::recover_nested_function<SceneNode>(arg);
+        if( nested_function != nullptr ){
+            lua_pushcfunction( ls , nested_function );
+        } else {
+            lua_pushstring(ls,"_SAUCER");
+            lua_gettable(ls,LUA_GLOBALSINDEX);
+            lua_pushstring(ls,"_NODES");
+            lua_gettable(ls,-2);
+            lua_pushnumber(ls,node->get_saucer_id());
+            lua_gettable(ls,-2);
+            lua_pushstring(ls,arg);
+            lua_gettable(ls,-2);
+            lua_insert(ls,1);
+            lua_pop(ls,3);
+        }
+        return 1;
+    });
+    lua_settable(ls,-3);
+    lua_pushstring(ls,"__newindex");
+    lua_pushcfunction(ls,[](lua_State* ls){
+        SceneNode* node = (SceneNode*)SaucerObject::from_saucer_id( *(SaucerId*)lua_touserdata(ls,-3) );
+        const char* key = lua_tostring(ls,-2);
+        lua_pushstring(ls,"_SAUCER");
+        lua_gettable(ls,LUA_GLOBALSINDEX);
+        lua_pushstring(ls,"_NODES");
+        lua_gettable(ls,-2);
+        lua_pushnumber(ls,node->get_saucer_id());
+        lua_gettable(ls,-2);
+        lua_pushstring(ls,key);
+        lua_pushvalue(ls,-5);
+        lua_settable(ls,-3);
+        lua_pop(ls,6);
+        return 0;
+    });
+    lua_settable(ls,-3);
+}
+
 
 const char*     LuaEngine::chunk_reader( lua_State* ls , void* data , size_t* size ){
     size_t total_size = strlen((char*)data);
@@ -202,31 +242,14 @@ void            LuaEngine::create_global_env( ){
 void            LuaEngine::change_current_actor_env( SceneNode* new_actor ){
     if( current_actor == new_actor ) return;
     if( current_actor ){
-        lua_pushfstring(ls,"_SAUCER");
-        lua_gettable(ls,LUA_GLOBALSINDEX);
-        lua_pushfstring(ls,"_NODES");
-        lua_gettable(ls,-2);
-        lua_pushnumber(ls,current_actor->get_saucer_id());
-        lua_gettable(ls,-2);
+        // Nullifying "this"
+        lua_pushstring(ls,"this"),
         lua_pushnil(ls);
-        while( lua_next(ls,-2)!=0 ){
-            // Saving it into it's context table
-            lua_pushvalue(ls,-2);
-            lua_pushvalue(ls,-3);
-            lua_gettable(ls,LUA_GLOBALSINDEX);
-            lua_settable(ls,-5); // [_G][_SAUCER][_NODES][_ID][key] = [_G][_key]
-            // Erasing it from LUA_GLOBALSINDEX
-            lua_pushvalue(ls,-2);
-            lua_pushnil(ls);
-            lua_settable(ls,LUA_GLOBALSINDEX); // [_G][_key] = nil
-            lua_pop(ls,1);
-        }
+        lua_settable(ls,LUA_GLOBALSINDEX);
+
+        push_actor_table( ls , current_actor );
         
-        // Stack now:
-        // 1 - [_SAUCER]
-        // 2 - [_SAUCER][_NODES]
-        // 3 - [_SAUCER][_NODES][ID]
-        // Saving _LOADED variables into virtual environment too, and then cleaning _G[_LOADED]
+        // Saving _LOADED variables into virtual environment, then cleaning _G[_LOADED]
         lua_pushstring(ls,"_LOADED");
         lua_pushstring(ls,"_LOADED");
         lua_gettable(ls,LUA_GLOBALSINDEX);
@@ -235,36 +258,43 @@ void            LuaEngine::change_current_actor_env( SceneNode* new_actor ){
         lua_newtable(ls);
         lua_settable(ls,LUA_GLOBALSINDEX);
         
-        lua_pop(ls,3);
+        lua_pop(ls,1);
     }
     current_actor = new_actor;
     if( current_actor ){
-        lua_pushfstring(ls,"_SAUCER");
-        lua_gettable(ls,LUA_GLOBALSINDEX);
-        lua_pushfstring(ls,"_NODES");
-        lua_gettable(ls,-2);
-        lua_pushnumber(ls,current_actor->get_saucer_id());
-        lua_gettable(ls,-2);
-        lua_pushnil(ls);
-        while( lua_next(ls,-2)!=0 ){
-            lua_pushvalue(ls,-2);
-            lua_pushvalue(ls,-2);
-            lua_settable(ls,LUA_GLOBALSINDEX);
-            lua_pop(ls,1);
-        }
+
+        push_actor_table( ls , current_actor );
         
-        // Stack now:
-        // 1 - [_SAUCER]
-        // 2 - [_SAUCER][_NODES]
-        // 3 - [_SAUCER][_NODES][ID]
+        lua_pushstring(ls,"this");
+        lua_pushstring(ls,"this");
+        lua_gettable(ls,-3);
+        lua_settable(ls,LUA_GLOBALSINDEX);
+
         // Loading virtual _LOADED table into the real _LOADED table
         lua_pushstring(ls,"_LOADED");
         lua_pushstring(ls,"_LOADED");
         lua_gettable(ls,-3);
         lua_settable(ls,LUA_GLOBALSINDEX);
 
-        lua_pop(ls,3);
+        lua_pop(ls,1);
     }
+}
+void            LuaEngine::push_actor_table( lua_State* ls, SceneNode* actor){
+    lua_pushstring(ls,"_SAUCER");
+    lua_gettable(ls,LUA_GLOBALSINDEX);
+    lua_pushstring(ls,"_NODES");
+    lua_gettable(ls,-2);
+    lua_pushnumber(ls,actor->get_saucer_id());
+    lua_gettable(ls,-2);
+    lua_insert(ls,-3);
+    lua_pop(ls,2);
+}
+void            LuaEngine::push_actor_userdata( lua_State* ls, SceneNode* actor){
+    push_actor_table(ls,actor);
+    lua_pushstring(ls,"this");
+    lua_gettable(ls,-2);
+    lua_insert(ls,-2);
+    lua_pop(ls,1);
 }
 void            LuaEngine::describe_stack(){
     saucer_print( "Stack (size=" , lua_gettop(ls) , ")" )
@@ -393,14 +423,19 @@ void            LuaEngine::create_actor_env( SceneNode* new_actor ){
     change_current_actor_env(old_actor);
 }
 void            LuaEngine::execute_callback( const char* callback_name , SceneNode* actor ){
-    if( actor->get_script() == NULL || actor->get_script()->has_callback(std::string(callback_name)) == false )return;
+    if( actor->get_script() == NULL ) return;
     SceneNode* old_actor = current_actor;
     change_current_actor_env( actor );
+    push_actor_userdata( ls , actor );
     lua_pushstring( ls , (std::string("_")+std::string(callback_name)).c_str() );
-    lua_gettable(ls,LUA_GLOBALSINDEX);
-    int err = lua_pcall(ls,0,0,0);
-    if(err)saucer_err("Error during " , callback_name , " callback");
-    print_error(err,actor->get_script());
+    lua_gettable(ls,-2);
+    lua_insert(ls,-2);
+    lua_pop(ls,1);
+    if( !lua_isnil(ls,-1) ){
+        int err = lua_pcall(ls,0,0,0);
+        if(err)saucer_err("Error during " , callback_name , " callback");
+        print_error(err,actor->get_script());
+    } else lua_pop(ls,1);
     change_current_actor_env(old_actor);
 }
 void    LuaEngine::register_constant( std::string enum_name , std::string index_name , int i ){

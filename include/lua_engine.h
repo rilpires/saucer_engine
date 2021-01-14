@@ -51,6 +51,8 @@ class LuaEngine {
         static const char*      chunk_reader( lua_State* ls , void* data , size_t* size );
         static void             create_global_env();
         static void             change_current_actor_env( SceneNode* new_actor );
+        static void             push_actor_table(  lua_State* ls , SceneNode* actor);
+        static void             push_actor_userdata(   lua_State* ls , SceneNode* actor);
         static void             describe_stack();
         static void             print_error( int err , LuaScriptResource* script );
         static lua_CFunction    recover_nested_function( std::string class_name , std::string function_name );
@@ -138,6 +140,7 @@ template<> bool                 LuaEngine::pop( lua_State* ls );
 template<> std::string          LuaEngine::pop( lua_State* ls );
 template<> Input::InputEvent*   LuaEngine::pop(lua_State* ls );
 
+template<> void     LuaEngine::push_metatable<SceneNode>( lua_State* ls );
 
 
 

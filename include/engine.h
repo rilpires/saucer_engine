@@ -16,13 +16,14 @@ class RenderEngine;
 
 class Engine : public SaucerObject{
     REGISTER_SAUCER_OBJECT(Engine,SaucerObject);
-    
+
+    friend class Scene;    
     private:
         static RenderEngine*        render_engine;
         static AudioEngine*         audio_engine;
         static Scene*               current_scene;
         static std::list<double>    last_uptimes;
-        
+        static double               next_frame_time;
     public:
         static void             initialize( );
         static void             close();

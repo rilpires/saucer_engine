@@ -3,26 +3,29 @@
 
 #include "lua_engine.h"
 
-
 template< typename C >
 lua_CFunction    LuaEngine::recover_nested_function( std::string function_name ){
     lua_CFunction ret = recover_nested_function( C::class_name , function_name );
     if (!ret) ret = recover_nested_function< typename C::parent_type>( function_name );
-    if (!ret) saucer_err( "Couldn't find function \"" , function_name , "\" in class \"" , C::class_name , "\"." )
     return ret;
 }
 
 template < typename T_arg1 >
 void             LuaEngine::execute_callback( const char* callback_name , SceneNode* actor , T_arg1 arg1 ){
-    if( actor->get_script() == NULL || actor->get_script()->has_callback(std::string(callback_name)) == false )return;
+    if( actor->get_script() == NULL )return;
     SceneNode* old_actor = current_actor;
     change_current_actor_env( actor );
-    lua_pushstring(ls,(std::string("_")+std::string(callback_name)).c_str());
-    lua_gettable(ls,LUA_GLOBALSINDEX);
+    push_actor_userdata( ls , actor );
+    lua_pushstring( ls , (std::string("_")+std::string(callback_name)).c_str() );
+    lua_gettable(ls,-2);
+    lua_insert(ls,-2);
+    lua_pop(ls,1);
     push(ls,arg1);
-    int err = lua_pcall(ls,1,0,0);
-    if(err)saucer_err("Error during " , callback_name , " callback");
-    print_error(err,actor->get_script());
+    if( !lua_isnil(ls,-2) ){
+        int err = lua_pcall(ls,1,0,0);
+        if(err)saucer_err("Error during " , callback_name , " callback");
+        print_error(err,actor->get_script());
+    } else lua_pop(ls,2);
     change_current_actor_env(old_actor);
 }
 

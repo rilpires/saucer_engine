@@ -188,10 +188,16 @@ void            Scene::loop_physics(){
     }
     collision_world->delete_disableds();   
 }
+void            Scene::queue_free_node(SceneNode* node){
+    to_free.insert(node);
+}
 void            Scene::loop(){
     loop_input();
+    for( auto& it : to_free ){ delete it; } to_free.clear();
     loop_script();
+    for( auto& it : to_free ){ delete it; } to_free.clear();
     loop_physics();
+    for( auto& it : to_free ){ delete it; } to_free.clear();
     loop_draw();
 }
 void            Scene::bind_methods(){

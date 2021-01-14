@@ -1,12 +1,15 @@
 #include "engine.h"
 #include "core.h"
 
+#include <unistd.h>
+
 // How many last frames should be accounted to calculate frames per second
 #define FPS_FRAMES_TO_ACCOUNT 30
 
 RenderEngine*       Engine::render_engine   = nullptr;
 AudioEngine*        Engine::audio_engine    = nullptr;
 Scene*              Engine::current_scene   = nullptr;
+double              Engine::next_frame_time   = 0;
 std::list<double>   Engine::last_uptimes;
 
 
@@ -20,7 +23,7 @@ void        Engine::initialize(){
     glfwSetCursorPosCallback( render_engine->get_glfw_window() , Input::mouse_pos_callback );
     glfwSetKeyCallback( render_engine->get_glfw_window() , Input::key_callback );
     glfwSetMouseButtonCallback( render_engine->get_glfw_window() , Input::mouse_button_callback );
-
+    
 }
 
 void        Engine::close(){
@@ -30,9 +33,12 @@ void        Engine::close(){
 }
 
 void            Engine::update(){
+    double remaining_time = next_frame_time - get_uptime(); 
+    if( remaining_time>0 ) usleep( remaining_time * 1000000 );
+    next_frame_time = get_uptime() + 1.0/60.0;
+    glfwPollEvents();
     last_uptimes.push_front( get_uptime() );
     if( last_uptimes.size() > FPS_FRAMES_TO_ACCOUNT ) last_uptimes.pop_back();
-    glfwPollEvents();
     if (current_scene) current_scene->loop();
 }
 double          Engine::get_uptime(){
@@ -48,7 +54,7 @@ double          Engine::get_fps(){
 double          Engine::get_last_frame_duration(){
     if( last_uptimes.size() >= 2 ){
         auto begin = last_uptimes.begin();
-        double ret = *(begin) - *(begin++);
+        double ret = *(begin) - *(++begin);
         return ret;
     }
     else return 0.0;
@@ -77,10 +83,10 @@ void            Engine::set_fullscreen( bool fs ){
 bool            Engine::is_fullscreen(){
     return render_engine->is_fullscreen();
 }
-std::string      Engine::get_window_title(){
+std::string     Engine::get_window_title(){
     return render_engine->get_window_title();
 }
-void             Engine::set_window_title( std::string new_title ){
+void            Engine::set_window_title( std::string new_title ){
     render_engine->set_window_title(new_title);
 }
 RenderEngine*   Engine::get_render_engine(){

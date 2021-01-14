@@ -51,39 +51,44 @@ out vec4 outColor;
 
 void main(){
     vec4 temp_modulate = modulate;
-    bool aesthetics_90s_wave = true;
+    bool aesthetics_90s_wave = false;
 
+    if( aesthetics_90s_wave ){
+        temp_modulate.r *=  0.9 + 0.1*sin(time*100);
 
-    if( !tex_is_alpha_mask ){
-        if( aesthetics_90s_wave ){
-            // AESTHETICS 90's WAVE
-            temp_modulate.r *=  0.9 + 0.1*sin(time*100);
-            float dist = 0.011;
-            float r = texture(tex,uv + vec2(  dist, dist) ).r;
-            float g = texture(tex,uv + vec2( -dist, dist) ).g;
-            float b = texture(tex,uv + vec2(     0, dist) ).b;
+        vec2    tex_size = textureSize(tex,0);
+        float   dist_in_pixels = 1;
+        float   r_angle = 0;
+        float   g_angle = 3.1415;
+        vec2    r_uv_vec = (vec2(cos(r_angle),sin(r_angle)) / tex_size) * dist_in_pixels ;
+        vec2    g_uv_vec = (vec2(cos(g_angle),sin(g_angle)) / tex_size) * dist_in_pixels ;
+            
+        if(!tex_is_alpha_mask){
+            
+            float r = texture(tex,uv + r_uv_vec ).r;
+            float g = texture(tex,uv + g_uv_vec ).g;
+            float b = texture(tex,uv ).b;
             outColor.rgba = vec4( temp_modulate.r * r,
                                 temp_modulate.g * g,
                                 temp_modulate.b * b,
                                 temp_modulate.a * texture(tex,uv).a );
-        } else {
-            outColor.rgba = temp_modulate * texture(tex,uv);
-        }
-    }
-    else {
-        if( aesthetics_90s_wave ){
-            // AESTHETICS 90's WAVE
-            temp_modulate.b *=  0.8 + 0.2*sin(time*80);
-            float dist = 0.005;
-            float r = texture(tex,uv + vec2(  dist, dist) ).r;
-            float g = texture(tex,uv + vec2( -dist, dist) ).r;
-            float b = texture(tex,uv + vec2(     0, dist) ).r;
+
+        }else{
+            float r = texture(tex,uv + r_uv_vec ).r;
+            float g = texture(tex,uv + g_uv_vec ).r;
+            float a = texture(tex,uv).r;
             outColor.rgba = vec4(   temp_modulate.r * r,
                                     temp_modulate.g * g,
-                                    temp_modulate.b * b,
-                                    temp_modulate.a * texture(tex,uv).r );
-        } else {
+                                    temp_modulate.b,
+                                    temp_modulate.a * a );
+        }
+    }
+    else{
+        if(!tex_is_alpha_mask){
+            outColor.rgba = temp_modulate * texture(tex,uv);
+        }else{
             outColor.rgba = vec4(temp_modulate.rgb, temp_modulate.a * texture(tex,uv).r);
         }
     }
+
 };
