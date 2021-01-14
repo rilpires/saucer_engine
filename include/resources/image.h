@@ -29,6 +29,7 @@ class TextureResource : public Resource {
         Vector2                 get_size() const;
         int                     get_wrap_mode() const;
         void                    set_wrap_mode( int new_mode );
+        unsigned char*          get_data() const;
 
         static void             bind_methods();
 };

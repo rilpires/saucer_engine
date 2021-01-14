@@ -59,24 +59,32 @@ Resource*           ResourceManager::load_resource(std::string filepath){
     Resource* ret = NULL;
     std::string extension = str_filepath.substr( str_filepath.find_last_of('.') );
     
-    if( extension == ".png" ){
-        ret = new TextureResource( filepath );
+    try
+    {
+        if( extension == ".png" ){
+            ret = new TextureResource( filepath );
+        }
+        else if (extension == ".wav"){
+            ret = new WavAudioResource( filepath.c_str() );
+        }
+        else if (extension == ".lua"){
+            ret = new LuaScriptResource( filepath );
+        }
+        else if (extension == ".ttf"){
+            ret = new FontResource( filepath );
+        }
+        else if (extension == ".glsl"){
+            ret = new ShaderResource( filepath );
+        } else {
+            saucer_err( "What is this? Couldn't load resource for filepath: " , filepath )
+        }
     }
-    else if (extension == ".wav"){
-        ret = new WavAudioResource( filepath.c_str() );
+    catch(const std::exception& e)
+    {
+        ret = nullptr;
+        saucer_err("Error loading resource " , filepath , ": " , e.what() );
     }
-    else if (extension == ".lua"){
-        ret = new LuaScriptResource( filepath );
-    }
-    else if (extension == ".ttf"){
-        ret = new FontResource( filepath );
-    }
-    else if (extension == ".glsl"){
-        ret = new ShaderResource( filepath );
-    } else {
-        saucer_err( "What is this? Couldn't load resource for filepath: " , filepath )
-    }
-    id_by_path.insert(std::pair<std::string,SaucerId>(ret->path ,ret->get_saucer_id()));
+    if(ret) id_by_path.insert(std::pair<std::string,SaucerId>(ret->path ,ret->get_saucer_id()));
     return ret;
 }
 void    ResourceManager::free_resource(Resource* p_resource){

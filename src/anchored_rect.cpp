@@ -12,7 +12,7 @@ AnchoredRect::AnchoredRect() {
     rect_pos = Vector2(0,0);
     rect_size = Vector2(0,0);
     starts_on_viewport = false;
-    ignore_mouse = false;
+    ignore_mouse = true;
     use_scene_node_transform = false;
 }
 AnchoredRect::~AnchoredRect() {
@@ -126,10 +126,10 @@ Transform   AnchoredRect::get_parent_global_transform() const{
     AnchoredRect* parent_rect = get_parent_rect();
     if( starts_on_viewport ){
         return Transform() ;
-    } else if( parent_rect ){
-        return parent_rect->get_parent_global_transform().translate(parent_rect->rect_pos);
     } else if( use_scene_node_transform ){
         return get_node()->get_global_transform();
+    } else if( parent_rect ){
+        return parent_rect->get_parent_global_transform().translate(parent_rect->rect_pos);
     } else {
         // Well.. the same as starts_on_viewport
         return Transform();

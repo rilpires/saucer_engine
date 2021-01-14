@@ -1,8 +1,5 @@
 #include "render_engine.h"
-#include "debug.h"
-#include "resources/shader.h"
-#include "render_object.h"
-#include "collision.h"
+#include "core.h"
 
 #include <algorithm>
 
@@ -19,7 +16,7 @@ RenderEngine::RenderEngine(){
     glfwSetErrorCallback([](int n , const char* s ){ saucer_err( "GLFW error #" , n , ":" , s ) });
     window_size = INITIAL_WINDOW_SIZE;
     glfw_window = glfwCreateWindow( window_size.x , window_size.y , INITIAL_WINDOW_TITLE , NULL , NULL );
-    
+
     // Defining context variables & other stuffs
     glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR , 3 );
     glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR , 0 );
@@ -81,6 +78,8 @@ RenderEngine::RenderEngine(){
     GL_CALL( glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) );  
     GL_CALL( glDepthFunc(GL_LEQUAL) );
 
+    glfw_custom_cursor = nullptr;
+
     //GLint d = 0;
     //GL_CALL( glGetIntegerv(GL_CONTEXT_PROFILE_MASK,&d))
     //GL_CALL( saucer_log( "GL_CONTEXT_COMPATIBILITY_PROFILE_BIT = " , (d & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT)))
@@ -124,6 +123,7 @@ void                RenderEngine::set_current_shader( ShaderResource* new_shader
 void                RenderEngine::set_window_size( Vector2 new_size ){
     window_size = new_size;
     glfwSetWindowSize( glfw_window , window_size.x , window_size.y );
+    
     GL_CALL( glUniform2f( viewport_size_attrib_location , window_size.x , window_size.y ) );
 };
 Vector2             RenderEngine::get_window_size() const {
@@ -173,6 +173,20 @@ GLuint              RenderEngine::get_last_used_texture() const{
 }
 ShaderResource*     RenderEngine::get_basic_shader() const{
     return basic_shader_resource;
+}
+void                RenderEngine::set_custom_cursor( TextureResource* img , int xhot , int yhot ){
+    if( glfw_custom_cursor ){
+        glfwDestroyCursor(glfw_custom_cursor);
+        glfw_custom_cursor = nullptr;
+    }
+    if( img ){
+        GLFWimage glfw_img;
+        glfw_img.height = img->get_size().y;
+        glfw_img.width = img->get_size().x;
+        glfw_img.pixels = img->get_data();
+        glfw_custom_cursor = glfwCreateCursor(&glfw_img,xhot,yhot);
+        glfwSetCursor(glfw_window,glfw_custom_cursor);
+    }
 }
 void                RenderEngine::update( const std::vector<RenderData>& draws ){
     

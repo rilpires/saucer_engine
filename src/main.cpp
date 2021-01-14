@@ -10,11 +10,16 @@ int main( int argc , char** argv ){
     Engine::set_window_title("SaucerEngine");
     LuaEngine::initialize();
 
+    auto cursor_texture = (TextureResource*)ResourceManager::get_resource("res/cursor.png");
+    if( cursor_texture ) Engine::get_render_engine()->set_custom_cursor(cursor_texture,4,1);
+
     Scene* scene = new Scene();
     SceneNode* root = new SceneNode();
     Engine::set_current_scene( scene );
     root->set_script( LuaScriptResource::get_resource("res/scripts/root.lua") );
     scene->set_root_node(root);
+
+    Engine::set_fullscreen(true);
 
     // for( int i = 0 ; i < 50000 ; i++ ){
     //     SceneNode* new_node = new SceneNode();

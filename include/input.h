@@ -49,13 +49,15 @@ class Input {
             InputEventMouseButton   input_event_mouse_button;
             InputEventMouseMotion   input_event_mouse_motion;
             
-            int                 get_type();
+            int                 get_type() const ;
+            int                 get_button() const ;
+            int                 get_key() const ;
             std::string         get_type_str() const;
-            void                solve();
-            bool                is_solved() const;
             Vector2             get_mouse_position() const;
             bool                is_pressed() const;
             bool                is_echo() const;
+            void                solve();
+            bool                is_solved() const;
             
             operator            InputEventKey(){ return input_event_key;}
             operator            InputEventMouseButton(){ return input_event_mouse_button;}

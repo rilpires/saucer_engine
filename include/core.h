@@ -23,6 +23,7 @@
 #include "patch_rect.h"
 #include "resources/font.h"
 #include "resources/image.h"
+#include "resources/shader.h"
 #include "resources/lua_script.h"
 #include "resources/audiofile.h"
 #include "input.h"

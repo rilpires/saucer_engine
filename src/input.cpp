@@ -40,8 +40,14 @@ Vector2      Input::window_mouse_position;
 std::list<Input::InputEvent*> Input::event_queue;    
 
 
-int         Input::InputEvent::get_type(){
+int         Input::InputEvent::get_type() const {
     return input_event_key.type;
+}
+int         Input::InputEvent::get_button() const {
+    return input_event_mouse_button.mouse_button;
+}
+int         Input::InputEvent::get_key() const{
+    return input_event_key.key_unicode;
 }
 std::string Input::InputEvent::get_type_str() const { 
     switch(input_event_key.type){
@@ -78,7 +84,7 @@ Vector2      Input::get_world_mouse_position(){
     if( Engine::get_current_scene() ){
         Vector2 temp = window_mouse_position;
         temp -= Engine::get_window_size() * 0.5;
-        return Engine::get_render_engine()->get_view_transform() * temp;
+        return Engine::get_current_scene()->get_current_camera()->get_node()->get_global_transform() * temp;
     } else return window_mouse_position;
 }
 Input::InputEvent* Input::pop_event_queue(){
@@ -129,6 +135,8 @@ void    Input::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION( InputEvent , get_type );
     REGISTER_LUA_MEMBER_FUNCTION( InputEvent , get_type_str );
     REGISTER_LUA_MEMBER_FUNCTION( InputEvent , get_mouse_position );
+    REGISTER_LUA_MEMBER_FUNCTION( InputEvent , get_button );
+    REGISTER_LUA_MEMBER_FUNCTION( InputEvent , get_key );
 
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Input , is_key_pressed );
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Input , is_mouse_button_pressed );

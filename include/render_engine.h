@@ -13,6 +13,7 @@
 
 class RenderObject;
 class ShaderResource;
+class TextureResource;
 
 #define MAX_VERTEX_COUNT 50000 // We only aim for 2D so
 
@@ -40,6 +41,7 @@ class RenderEngine {
         GLFWwindow*         glfw_window;
         std::string         window_title;
         Vector2             window_size;
+        GLFWcursor*         glfw_custom_cursor;
         
         Transform           view_transform;
         
@@ -79,8 +81,8 @@ class RenderEngine {
         void                set_window_title( std::string new_title );
         GLuint              get_last_used_texture() const;
         ShaderResource*     get_basic_shader() const;
+        void                set_custom_cursor( TextureResource* img , int xhot , int yhot );
         void                update( const std::vector<RenderData>& draws );
-
 
 };
 

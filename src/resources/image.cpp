@@ -38,7 +38,7 @@ TextureResource::TextureResource( std::string filepath ) : Resource(filepath) {
             return;
         }
     }
-    else saucer_err( "Error loading image from " , filepath )    
+    else saucer_err( "Error loading image from " , filepath )
 }
 TextureResource::~TextureResource(){
     delete[] data;
@@ -86,6 +86,9 @@ void TextureResource::set_wrap_mode( int new_mode ){
             saucer_err("Invalid wrap mode for texture.");
     }
     GL_CALL( glBindTexture(GL_TEXTURE_2D,old_binded_tex) );
+}
+unsigned char*    TextureResource::get_data() const{
+    return data;
 }
 void TextureResource::bind_methods(){
     REGISTER_LUA_CONSTANT( TextureWrapMode , REPEAT , REPEAT );
