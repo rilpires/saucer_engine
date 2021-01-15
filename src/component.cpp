@@ -6,7 +6,6 @@ Component::Component(){
 
 }
 Component::~Component(){
-
 }
 
 SceneNode*  Component::get_node() const{
@@ -14,6 +13,9 @@ SceneNode*  Component::get_node() const{
 }
 void        Component::attach_node( SceneNode* node ){
     // saucer_err("Do we care?"); // No we do not care
+}
+void        Component::erase_from_component_map(){
+
 }
 void        Component::entered_tree(){
 

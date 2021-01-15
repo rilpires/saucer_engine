@@ -9,6 +9,8 @@ RenderObject::RenderObject(){
     current_shader = nullptr;
     use_parent_shader = false;
 }
+RenderObject::~RenderObject(){
+}
 std::vector<RenderData>  RenderObject::generate_render_data(){
     return std::vector<RenderData>();
 }

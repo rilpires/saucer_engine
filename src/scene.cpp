@@ -107,8 +107,7 @@ void            Scene::loop_input(){
     Vector2 world_mouse_pos = Input::get_world_mouse_position();
     AnchoredRect* next_hovered = nullptr;
 
-    // Traversing the tree & finding the possible actors
-    // Also, looks for the hovered AnchoredRect  
+    // Traversing the tree & finding the possible actors. Also, looks for the hovered AnchoredRect  
     if( root_node )
         nodes_queue.push(root_node);
     while( nodes_queue.size() ){

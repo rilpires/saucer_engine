@@ -32,6 +32,7 @@ void    SceneNode::destroy_component( ){
         auto it = attached_components.begin();
         while( *it != (Component*)current_comp ) it++;
         attached_components.erase(it);
+        current_comp->erase_from_component_map();
         delete current_comp;
     }
 }

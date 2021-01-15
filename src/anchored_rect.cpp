@@ -16,6 +16,7 @@ AnchoredRect::AnchoredRect() {
     use_scene_node_transform = false;
 }
 AnchoredRect::~AnchoredRect() {
+    component_from_node.erase( attached_node->get_saucer_id() );
     if( attached_node && attached_node->get_scene() && attached_node->get_scene()->get_current_hovered_anchored_rect() == this ){
         attached_node->get_scene()->set_current_hovered_anchored_rect(nullptr);
     }

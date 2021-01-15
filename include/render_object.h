@@ -19,6 +19,7 @@ class RenderObject : public Component {
         unsigned short      vertex_data_count;
         bool                dirty_vertex_data; // useful for some big VBOs
         RenderObject();
+        ~RenderObject();
         
     public:
         virtual std::vector<RenderData>  generate_render_data() ;

@@ -26,7 +26,14 @@ class Component : public SaucerObject {
         static std::pair<iterator,iterator>  recover_range_from_node( const SceneNode* node ){              \
             return component_from_node.equal_range( node->get_saucer_id() );                                \
         }                                                                                                   \
-                                                                                                            \
+        virtual void  erase_from_component_map(){                                                           \
+            auto it_range = component_from_node.equal_range(attached_node->get_saucer_id());                \
+            for( auto it = it_range.first ; it != it_range.second ; it++ )                                  \
+            if( it->second == this ){                                                                       \
+                component_from_node.erase(it);break;                                                        \
+            }                                                                                               \
+            parent_type::erase_from_component_map();                                                        \
+        }                                                                                                   \
     protected:                                                                                              \
         void        attach_node( SceneNode* node ){                                                         \
             attached_node = node;                                                                           \
@@ -44,7 +51,7 @@ class Component : public SaucerObject {
     friend class SceneNode;
     protected:
         virtual void        attach_node( SceneNode* node );
-
+        virtual void        erase_from_component_map();
     protected:
         SceneNode*  attached_node = nullptr;
         Component();

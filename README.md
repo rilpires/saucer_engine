@@ -17,9 +17,8 @@ Currently, apart from C++ STL libs, these are all third-party dependencies:
 - [FreeType 2.10.4](https://www.freetype.org/index.html), for loading fonts.
 
 Nexts TO-DO's for sure:
-- Text rendering
 - Networking module
-- Packing resources to a proper export
+- Packing resources to a proper release build
 - More audio formats, cursor and possibly positioning("3D") sound.
 Possibly TO-DO's:
 - Saving Scene/SceneNodes templates in files, JSON or YAML maybe
