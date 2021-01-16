@@ -4,6 +4,15 @@
 #include "anchored_rect.h"
 #include "resources/font.h"
 
+enum LABEL_ALIGN {
+    HORIZONTAL_ALIGN_LEFT   = 0b000001 ,
+    HORIZONTAL_ALIGN_CENTER = 0b000010 ,
+    HORIZONTAL_ALIGN_RIGHT  = 0b000100 ,
+    VERTICAL_ALIGN_TOP      = 0b001000 ,
+    VERTICAL_ALIGN_CENTER   = 0b010000 ,
+    VERTICAL_ALIGN_BOTTOM   = 0b100000 ,
+};
+
 class LabelRect : public AnchoredRect {
     
     REGISTER_AS_INHERITED_COMPONENT(LabelRect,AnchoredRect);
@@ -13,6 +22,7 @@ class LabelRect : public AnchoredRect {
         FontResource*       font;
         int                 font_size;
         int                 line_gap;
+        unsigned char       align_flags;
 
     public:
         LabelRect();
@@ -29,6 +39,7 @@ class LabelRect : public AnchoredRect {
         void                set_font_size(int new_val);
         int                 get_line_gap() const;
         void                set_line_gap(int new_val);
+        void                set_align_flags( int new_val );
         
         static void         bind_methods();
 

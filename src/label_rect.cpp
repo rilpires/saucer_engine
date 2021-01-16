@@ -11,6 +11,7 @@ LabelRect::LabelRect(){
     vertex_data = nullptr;
     vertex_data_count = 0;
     dirty_vertex_data = true;
+    align_flags = HORIZONTAL_ALIGN_CENTER + VERTICAL_ALIGN_CENTER;
 }
 LabelRect::~LabelRect(){
     if(vertex_data)delete[] vertex_data;
@@ -28,7 +29,7 @@ std::vector<RenderData>  LabelRect::generate_render_data(){
         render_data.shader_program = get_current_shader();
         render_data.texture_id = font->get_texture_id();
         render_data.use_tree_transform = false;
-        render_data.use_view_transform = false;
+        render_data.use_view_transform = get_use_scene_node_transform();;
         render_data.tex_is_alpha_mask = true;
         
         render_data.model_transform = get_parent_global_transform() * Transform().translate(   get_rect_pos() );
@@ -44,9 +45,12 @@ void    LabelRect::update_vertex_data(){
     vertex_data = new VertexData[ vertex_data_count ];
     dirty_vertex_data = false;
 
+    Vector2 rect_size = get_rect_size();
     int     max_height  = font->get_max_pixels_height();
     float   scale       = float(font_size) / max_height;
     char    last_char   = 0;
+    int     last_line_index = 0;
+    std::vector<int> lines_index;
     Vector2 pixel_advance = Vector2(0,0);
     for( size_t char_index = 0 ; char_index < text.size() ; char_index++ ){
         
@@ -61,9 +65,11 @@ void    LabelRect::update_vertex_data(){
                 size_t estimated_pixel_advance = 0;
                 for( size_t i = char_index ; i < next_space ; i++ )
                     estimated_pixel_advance += font->get_char_data(text[i]).pixels_advance * scale;
-                if( pixel_advance.x + estimated_pixel_advance >= get_rect_size().x ){
+                if( pixel_advance.x + estimated_pixel_advance >= rect_size.x ){
+                    lines_index.push_back( last_line_index );
                     pixel_advance.x = 0;
                     pixel_advance.y += (max_height)*scale + line_gap;
+                    last_line_index = char_index;
                 }
             }
         }
@@ -86,6 +92,38 @@ void    LabelRect::update_vertex_data(){
 
         pixel_advance.x += char_data.pixels_advance * scale;
         last_char = text[char_index];
+    }
+    lines_index.push_back(last_line_index);
+
+    float final_y_offset;
+    if( align_flags & VERTICAL_ALIGN_TOP )
+        final_y_offset = 0;
+    if( align_flags & VERTICAL_ALIGN_CENTER )
+        final_y_offset = (rect_size.y - vertex_data[vertex_data_count-1].pos.y)*0.5;
+    if( align_flags & VERTICAL_ALIGN_BOTTOM )
+        final_y_offset = (rect_size.y - vertex_data[vertex_data_count-1].pos.y);
+    
+    // Now that the text is "horizontal left aligned", transform all it's vertex now, knowing line widths
+    for( size_t i = 0 ; i < lines_index.size() ; i++ ){
+        size_t vertex_data_begin = lines_index[i] * 4;
+        size_t vertex_data_end = (i<lines_index.size()-1) ? (lines_index[i+1] * 4) : (text.size()*4);
+        int line_width = vertex_data[vertex_data_end-1].pos.x;
+        float final_x_offset;
+
+        if( align_flags & HORIZONTAL_ALIGN_LEFT )
+            final_x_offset = 0;
+        else 
+        if( align_flags & HORIZONTAL_ALIGN_CENTER )
+            final_x_offset = (rect_size.x - line_width)*0.5;
+        else
+        if( align_flags & HORIZONTAL_ALIGN_RIGHT )
+            final_x_offset = rect_size.x - line_width;
+        
+        for( size_t j = vertex_data_begin ; j < vertex_data_end ; j++ )
+            vertex_data[j].pos = Vector3(   vertex_data[j].pos.x + final_x_offset , 
+                                            vertex_data[j].pos.y + final_y_offset , 
+                                            vertex_data[j].pos.z ) ;
+
     }
 }
 
@@ -119,8 +157,23 @@ void   LabelRect::set_line_gap(int new_val){
     line_gap = new_val;
     dirty_vertex_data = true;
 }
+void    LabelRect::set_align_flags( int new_val ){
+    if( (new_val&(HORIZONTAL_ALIGN_LEFT|HORIZONTAL_ALIGN_CENTER|HORIZONTAL_ALIGN_RIGHT)) == 0 )
+        new_val |= HORIZONTAL_ALIGN_LEFT;
+    if( (new_val&(VERTICAL_ALIGN_TOP|VERTICAL_ALIGN_CENTER|VERTICAL_ALIGN_BOTTOM)) == 0 )
+        new_val |= VERTICAL_ALIGN_TOP;
+    align_flags = new_val;
+    dirty_vertex_data = true;
+}
 
 void LabelRect::bind_methods() {
+
+    REGISTER_LUA_CONSTANT( LABEL_ALIGN , HORIZONTAL_ALIGN_LEFT   , HORIZONTAL_ALIGN_LEFT    );
+    REGISTER_LUA_CONSTANT( LABEL_ALIGN , HORIZONTAL_ALIGN_CENTER , HORIZONTAL_ALIGN_CENTER  );
+    REGISTER_LUA_CONSTANT( LABEL_ALIGN , HORIZONTAL_ALIGN_RIGHT  , HORIZONTAL_ALIGN_RIGHT   );
+    REGISTER_LUA_CONSTANT( LABEL_ALIGN , VERTICAL_ALIGN_TOP      , VERTICAL_ALIGN_TOP       );
+    REGISTER_LUA_CONSTANT( LABEL_ALIGN , VERTICAL_ALIGN_CENTER   , VERTICAL_ALIGN_CENTER    );
+    REGISTER_LUA_CONSTANT( LABEL_ALIGN , VERTICAL_ALIGN_BOTTOM   , VERTICAL_ALIGN_BOTTOM    );
 
     REGISTER_LUA_MEMBER_FUNCTION( LabelRect , get_text );
     REGISTER_LUA_MEMBER_FUNCTION( LabelRect , set_text );
@@ -130,5 +183,6 @@ void LabelRect::bind_methods() {
     REGISTER_LUA_MEMBER_FUNCTION( LabelRect , set_font_size );
     REGISTER_LUA_MEMBER_FUNCTION( LabelRect , get_line_gap );
     REGISTER_LUA_MEMBER_FUNCTION( LabelRect , set_line_gap );
+    REGISTER_LUA_MEMBER_FUNCTION( LabelRect , set_align_flags );
 
 }

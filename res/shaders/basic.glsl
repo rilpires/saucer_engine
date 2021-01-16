@@ -25,7 +25,7 @@ void main(){
     gl_Position *= model_transf;
     if(!ignore_camera) gl_Position *= view_transf;
     gl_Position.xy /= ( viewport_size.xy/2 );
-    gl_Position.y *= -1;
+    gl_Position.yz *= -1;
     uv = in_uv;
     // modulate = vec4(in_modulate.x/255.0f,
     //                 in_modulate.y/255.0f,
