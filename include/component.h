@@ -53,7 +53,7 @@ class Component : public SaucerObject {
         virtual void        attach_node( SceneNode* node );
         virtual void        erase_from_component_map();
     protected:
-        SceneNode*  attached_node = nullptr;
+        SceneNode*          attached_node = nullptr;
         Component();
         ~Component();
 

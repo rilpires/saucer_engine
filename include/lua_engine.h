@@ -138,7 +138,7 @@ template<> short                LuaEngine::pop( lua_State* ls );
 template<> double               LuaEngine::pop( lua_State* ls );
 template<> bool                 LuaEngine::pop( lua_State* ls );
 template<> std::string          LuaEngine::pop( lua_State* ls );
-template<> Input::InputEvent*   LuaEngine::pop(lua_State* ls );
+template<> Input::InputEvent*   LuaEngine::pop( lua_State* ls );
 
 template<> void     LuaEngine::push_metatable<SceneNode>( lua_State* ls );
 

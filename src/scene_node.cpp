@@ -18,14 +18,17 @@ SceneNode::SceneNode(){
     lua_script = NULL;
 }
 SceneNode::~SceneNode(){
-    for(auto it = children_nodes.begin() ; it != children_nodes.end() ; it++ )
-        delete (*it);
+    for( Component* component : attached_components ){
+        component->erase_from_component_map();
+        delete component;
+    }
+    attached_components.clear();
+    for( SceneNode* child : children_nodes ) delete child;
     children_nodes.clear();
     if( LuaEngine::current_actor == this ){
         LuaEngine::change_current_actor_env( nullptr );
     }
     get_out();
-    for( auto& component : attached_components ) delete component;
 }
 void                SceneNode::set_scene(Scene* new_scene){
     scene = new_scene;

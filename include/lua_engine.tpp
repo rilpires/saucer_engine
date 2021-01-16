@@ -20,7 +20,7 @@ void             LuaEngine::execute_callback( const char* callback_name , SceneN
     lua_gettable(ls,-2);
     lua_insert(ls,-2);
     lua_pop(ls,1);
-    push(ls,arg1);
+    push(ls,arg1); // Stack now is: [the function][arg1]
     if( !lua_isnil(ls,-2) ){
         int err = lua_pcall(ls,1,0,0);
         if(err)saucer_err("Error during " , callback_name , " callback");
@@ -71,7 +71,7 @@ T       LuaEngine::pop( lua_State* ls ){
     return ret;
 }
 
-// pop for types that is passed by value
+// pop for types that is passed by value.
 template< typename T , class C1 , class C2 >
 T       LuaEngine::pop( lua_State* ls ){
     T ret = *(T*)lua_touserdata(ls,-1);

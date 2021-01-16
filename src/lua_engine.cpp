@@ -429,8 +429,8 @@ void            LuaEngine::execute_callback( const char* callback_name , SceneNo
     push_actor_userdata( ls , actor );
     lua_pushstring( ls , (std::string("_")+std::string(callback_name)).c_str() );
     lua_gettable(ls,-2);
-    lua_insert(ls,-2);
-    lua_pop(ls,1);
+    lua_insert(ls,-2); // Stack now is: [the function][the actor userdata]
+    lua_pop(ls,1); // Stack now is: [the function]
     if( !lua_isnil(ls,-1) ){
         int err = lua_pcall(ls,0,0,0);
         if(err)saucer_err("Error during " , callback_name , " callback");
