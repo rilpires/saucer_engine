@@ -93,249 +93,186 @@ void    LuaEngine::push_metatable( lua_State* ls ){
     lua_settable(ls,-3);
 }
 
+/*
+Be aware of some....
+ _________                            __          _             ___        ____    ____                                
+|  _   _  |                          [  |        / |_         .' _ '.     |_   \  /   _|                               
+|_/ | | \_|.---.  _ .--..--.  _ .--.  | |  ,--. `| |-'.---.   | (_) '___    |   \/   |   ,--.   .---.  _ .--.   .--.   
+    | |   / /__\\[ `.-. .-. |[ '/'`\ \| | `'_\ : | | / /__\\  .`___'/ _/    | |\  /| |  `'_\ : / /'`\][ `/'`\]/ .'`\ \ 
+   _| |_  | \__., | | | | | | | \__/ || | // | |,| |,| \__., | (___)  \_   _| |_\/_| |_ // | |,| \__.  | |    | \__. | 
+  |_____|  '.__.'[___||__||__]| ;.__/[___]\'-;__/\__/ '.__.' `._____.\__| |_____||_____|\'-;__/'.___.'[___]    '.__.'  
+                             [__|    ____  ____  ________  _____     _____                                             
+                                    |_   ||   _||_   __  ||_   _|   |_   _|                                            
+                                      | |__| |    | |_ \_|  | |       | |                                              
+                                      |  __  |    |  _| _   | |   _   | |   _                                          
+                                     _| |  | |_  _| |__/ | _| |__/ | _| |__/ |                                         
+                                    |____||____||________||________||________|    
 
-template< typename R >
-struct LuaEngine::to_lua_cfunction<R()>{
-    using function_type = R();
-    
-    template< typename ret_type , function_type f , class = typename std::enable_if< !std::is_same<ret_type,void>::value >::type >
-    static lua_CFunction generate_lambda(){
-        return []( lua_State* ls ){
-            LuaEngine::push<R>( ls , f() ); return 1;
-        };
-    }
-    template< typename ret_type , function_type f , class = typename std::enable_if< std::is_same<ret_type,void>::value >::type , class = int >
-    static lua_CFunction generate_lambda(){
-        return []( lua_State* ls ){
-            f(); return 0;
-        };
-    }
-};
-template< typename R , typename T_arg1 >
-struct LuaEngine::to_lua_cfunction<R(T_arg1)>{
-    using function_type = R(T_arg1);
-    
-    template< typename ret_type , function_type f , class = typename std::enable_if< !std::is_same<ret_type,void>::value >::type >
-    static lua_CFunction generate_lambda(){
-        return []( lua_State* ls ){
-            T_arg1 arg1 = LuaEngine::pop<T_arg1>(ls);
-            LuaEngine::push<R>( ls , f(arg1) ); return 1;
-        };
-    }
-    template< typename ret_type , function_type f , class = typename std::enable_if< std::is_same<ret_type,void>::value >::type , class=int >
-    static lua_CFunction generate_lambda(){
-        return []( lua_State* ls ){
-            T_arg1 arg1 = LuaEngine::pop<T_arg1>(ls);
-            f( arg1 ); return 0;
-        };
-    }
-};
 
-template< typename R , typename C >
-struct LuaEngine::to_lua_cfunction<R(C::*)()>{
-    using function_type = R(C::*)();
-    using const_function_type = R(C::*)() const;
-    using class_type = typename to_used_type<C>::type;
+*/
 
-    template< typename ret_type , function_type f , class = typename std::enable_if<std::is_same< ret_type ,void>::value>::type >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            (obj_ref.*f)();
-            return 0;
-        };
-    }
-    template< typename ret_type , const_function_type f , class = typename std::enable_if<std::is_same< ret_type ,void>::value>::type >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            (obj_ref.*f)();
-            return 0;
-        };
-    }
-    template< typename ret_type , function_type f , class = typename std::enable_if<!std::is_same< ret_type ,void>::value>::type , class=int >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            R ret = (obj_ref.*f)();
-            LuaEngine::push<R>(ls,ret);
-            return 1;
-        };
-    }
-    template< typename ret_type , const_function_type f , class = typename std::enable_if<!std::is_same< ret_type ,void>::value>::type , class=int >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            R ret = (obj_ref.*f)();
-            LuaEngine::push<R>(ls,ret);
-            return 1;
-        };
-    }
-};
-template< typename R , typename C , typename T_arg1 >
-struct LuaEngine::to_lua_cfunction<R(C::*)(T_arg1)>{
-    using function_type = R(C::*)(T_arg1);
-    using const_function_type = R(C::*)(T_arg1) const;
-    using class_type = typename to_used_type<C>::type;
 
-    template< typename ret_type , function_type f , class = typename std::enable_if<std::is_same< ret_type ,void>::value>::type >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            (obj_ref.*f)(arg1);
-            return 0;
-        };
-    }
-    template< typename ret_type , const_function_type f , class = typename std::enable_if<std::is_same< ret_type ,void>::value>::type >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            (obj_ref.*f)(arg1);
-            return 0;
-        };
-    }
-    template< typename ret_type , function_type f , class = typename std::enable_if<!std::is_same< ret_type ,void>::value>::type , class=int >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            R ret = (obj_ref.*f)(arg1);
-            LuaEngine::push<R>(ls,ret);
-            return 1;
-        };
-    }
-    template< typename ret_type , const_function_type f , class = typename std::enable_if<!std::is_same< ret_type ,void>::value>::type , class=int >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            R ret = (obj_ref.*f)(arg1);
-            LuaEngine::push<R>(ls,ret);
-            return 1;
-        };
-    }
-};
-template< typename R , typename C , typename T_arg1, typename T_arg2 >
-struct LuaEngine::to_lua_cfunction<R(C::*)(T_arg1,T_arg2)>{
-    using function_type = R(C::*)(T_arg1,T_arg2);
-    using const_function_type = R(C::*)(T_arg1,T_arg2) const;
-    using class_type = typename to_used_type<C>::type;
-
-    template< typename ret_type , function_type f , class = typename std::enable_if<std::is_same< ret_type ,void>::value>::type >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            T_arg2      arg2    = LuaEngine::pop<T_arg2>(ls);
-            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            (obj_ref.*f)(arg1,arg2);
-            return 0;
-        };
-    }
-    template< typename ret_type , const_function_type f , class = typename std::enable_if<std::is_same< ret_type ,void>::value>::type >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            T_arg2      arg2    = LuaEngine::pop<T_arg2>(ls);
-            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            (obj_ref.*f)(arg1,arg2);
-            return 0;
-        };
-    }
-    template< typename ret_type , function_type f , class = typename std::enable_if<!std::is_same< ret_type ,void>::value>::type , class=int >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            T_arg2      arg2    = LuaEngine::pop<T_arg2>(ls);
-            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            R ret = (obj_ref.*f)(arg1,arg2);
-            LuaEngine::push<R>(ls,ret);
-            return 1;
-        };
-    }
-    template< typename ret_type , const_function_type f , class = typename std::enable_if<!std::is_same< ret_type ,void>::value>::type , class=int >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            T_arg2      arg2    = LuaEngine::pop<T_arg2>(ls);
-            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            R ret = (obj_ref.*f)(arg1,arg2);
-            LuaEngine::push<R>(ls,ret);
-            return 1;
-        };
-    }
+#define STATIC_METHOD_BOILERPLATE                                                                                                               \
+TEMPLATE_SIGNATURE                                                                                                                              \
+struct LuaEngine::to_lua_cfunction<FUNCTION_SIGNATURE>{                                                                                         \
+    using function_type = FUNCTION_SIGNATURE;                                                                                                   \
+                                                                                                                                                \
+    template< typename ret_type , function_type f , class = typename std::enable_if< !std::is_same<ret_type,void>::value >::type >              \
+    static lua_CFunction generate_lambda(){                                                                                                     \
+        return []( lua_State* ls ){                                                                                                             \
+            ARGUMENTS_POPPING                                                                                                                   \
+            NON_VOID_RETURN                                                                                                                     \
+        };                                                                                                                                      \
+    }                                                                                                                                           \
+    template< typename ret_type , function_type f , class = typename std::enable_if< std::is_same<ret_type,void>::value >::type , class=int >   \
+    static lua_CFunction generate_lambda(){                                                                                                     \
+        return []( lua_State* ls ){                                                                                                             \
+            ARGUMENTS_POPPING                                                                                                                   \
+            VOID_RETURN                                                                                                                         \
+        };                                                                                                                                      \
+    }                                                                                                                                           \
 };
 
-template< typename R , typename C , typename T_arg1, typename T_arg2, typename T_arg3 >
-struct LuaEngine::to_lua_cfunction<R(C::*)(T_arg1,T_arg2,T_arg3)>{
-    using function_type = R(C::*)(T_arg1,T_arg2,T_arg3);
-    using const_function_type = R(C::*)(T_arg1,T_arg2,T_arg3) const;
-    using class_type = typename to_used_type<C>::type;
 
-    template< typename ret_type , function_type f , class = typename std::enable_if<std::is_same< ret_type ,void>::value>::type >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            T_arg3      arg3    = LuaEngine::pop<T_arg3>(ls);
-            T_arg2      arg2    = LuaEngine::pop<T_arg2>(ls);
-            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            (obj_ref.*f)(arg1,arg2,arg3);
-            return 0;
-        };
-    }
-    template< typename ret_type , const_function_type f , class = typename std::enable_if<std::is_same< ret_type ,void>::value>::type >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            T_arg3      arg3    = LuaEngine::pop<T_arg3>(ls);
-            T_arg2      arg2    = LuaEngine::pop<T_arg2>(ls);
-            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            (obj_ref.*f)(arg1,arg2,arg3);
-            return 0;
-        };
-    }
-    template< typename ret_type , function_type f , class = typename std::enable_if<!std::is_same< ret_type ,void>::value>::type , class=int >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            T_arg3      arg3    = LuaEngine::pop<T_arg3>(ls);
-            T_arg2      arg2    = LuaEngine::pop<T_arg2>(ls);
-            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            R ret = (obj_ref.*f)(arg1,arg2,arg3);
-            LuaEngine::push<R>(ls,ret);
-            return 1;
-        };
-    }
-    template< typename ret_type , const_function_type f , class = typename std::enable_if<!std::is_same< ret_type ,void>::value>::type , class=int >
-    static lua_CFunction   generate_lambda( ){
-        return []( lua_State* ls ) {
-            T_arg3      arg3    = LuaEngine::pop<T_arg3>(ls);
-            T_arg2      arg2    = LuaEngine::pop<T_arg2>(ls);
-            T_arg1      arg1    = LuaEngine::pop<T_arg1>(ls);
-            class_type  obj     = LuaEngine::pop<class_type>(ls);
-            C& obj_ref = to_ref<C>(obj);
-            R ret = (obj_ref.*f)(arg1,arg2,arg3);
-            LuaEngine::push<R>(ls,ret);
-            return 1;
-        };
-    }
+#define TEMPLATE_SIGNATURE template< typename R >
+#define FUNCTION_SIGNATURE R()
+#define ARGUMENTS_POPPING ;
+#define VOID_RETURN f( ); return 0;   
+#define NON_VOID_RETURN LuaEngine::push<R>( ls , f() ); return 1;   
+STATIC_METHOD_BOILERPLATE
+#undef TEMPLATE_SIGNATURE
+#undef FUNCTION_SIGNATURE
+#undef ARGUMENTS_POPPING 
+#undef VOID_RETURN       
+#undef NON_VOID_RETURN
+
+
+
+#define TEMPLATE_SIGNATURE template< typename R , typename T_arg1 >
+#define FUNCTION_SIGNATURE R(T_arg1)
+#define ARGUMENTS_POPPING T_arg1 arg1 = LuaEngine::pop<T_arg1>(ls);
+#define VOID_RETURN f( arg1 ); return 0;   
+#define NON_VOID_RETURN LuaEngine::push<R>( ls , f(arg1) ); return 1;   
+STATIC_METHOD_BOILERPLATE
+#undef TEMPLATE_SIGNATURE
+#undef FUNCTION_SIGNATURE
+#undef ARGUMENTS_POPPING 
+#undef VOID_RETURN       
+#undef NON_VOID_RETURN
+
+
+#define TEMPLATE_SIGNATURE template< typename R , typename T_arg1 , typename T_arg2 >
+#define FUNCTION_SIGNATURE R(T_arg1,T_arg2)
+#define ARGUMENTS_POPPING auto arg2 = LuaEngine::pop<T_arg2>(ls); auto arg1 = LuaEngine::pop<T_arg1>(ls);
+#define VOID_RETURN f( arg1 , arg2 ); return 0;   
+#define NON_VOID_RETURN LuaEngine::push<R>( ls , f(arg1,arg2) ); return 1;   
+STATIC_METHOD_BOILERPLATE
+#undef TEMPLATE_SIGNATURE
+#undef FUNCTION_SIGNATURE
+#undef ARGUMENTS_POPPING 
+#undef VOID_RETURN       
+#undef NON_VOID_RETURN
+
+#define TEMPLATE_SIGNATURE template< typename R , typename T_arg1 , typename T_arg2 , typename T_arg3 >
+#define FUNCTION_SIGNATURE R(T_arg1,T_arg2,T_arg3)
+#define ARGUMENTS_POPPING auto arg3 = LuaEngine::pop<T_arg3>(ls);auto arg2 = LuaEngine::pop<T_arg2>(ls);auto arg1 = LuaEngine::pop<T_arg1>(ls);
+#define VOID_RETURN f( arg1 , arg2 , arg3 ); return 0;   
+#define NON_VOID_RETURN LuaEngine::push<R>( ls , f(arg1,arg2,arg3) ); return 1;   
+STATIC_METHOD_BOILERPLATE
+#undef TEMPLATE_SIGNATURE
+#undef FUNCTION_SIGNATURE
+#undef ARGUMENTS_POPPING 
+#undef VOID_RETURN       
+#undef NON_VOID_RETURN
+
+
+#define CLASS_METHOD_BOILERPLATE                                                                                                                     \
+TEMPLATE_SIGNATURE                                                                                                                                   \
+struct LuaEngine::to_lua_cfunction<FUNCTION_SIGNATURE>{                                                                                              \
+    using function_type = FUNCTION_SIGNATURE;                                                                                                        \
+    using const_function_type = FUNCTION_SIGNATURE const;                                                                                        \
+    using class_type = typename to_used_type<C>::type;                                                                                               \
+                                                                                                                                                     \
+    template< typename ret_type , function_type f , class = typename std::enable_if<std::is_same< ret_type ,void>::value>::type >                    \
+    static lua_CFunction   generate_lambda( ){                                                                                                       \
+        return []( lua_State* ls ) {                                                                                                                 \
+            ARGUMENTS_POPPING                                                                                                                        \
+            C& obj_ref = to_ref<C>(obj);                                                                                                             \
+            VOID_RETURN                                                                                                                              \
+        };                                                                                                                                           \
+    }                                                                                                                                                \
+    template< typename ret_type , const_function_type f , class = typename std::enable_if<std::is_same< ret_type ,void>::value>::type >              \
+    static lua_CFunction   generate_lambda( ){                                                                                                       \
+        return []( lua_State* ls ) {                                                                                                                 \
+            ARGUMENTS_POPPING                                                                                                                        \
+            C& obj_ref = to_ref<C>(obj);                                                                                                             \
+            VOID_RETURN                                                                                                                              \
+        };                                                                                                                                           \
+    }                                                                                                                                                \
+    template< typename ret_type , function_type f , class = typename std::enable_if<!std::is_same< ret_type ,void>::value>::type , class=int >       \
+    static lua_CFunction   generate_lambda( ){                                                                                                       \
+        return []( lua_State* ls ) {                                                                                                                 \
+            ARGUMENTS_POPPING                                                                                                                        \
+            C& obj_ref = to_ref<C>(obj);                                                                                                             \
+            NON_VOID_RETURN                                                                                                                          \
+        };                                                                                                                                           \
+    }                                                                                                                                                \
+    template< typename ret_type , const_function_type f , class = typename std::enable_if<!std::is_same< ret_type ,void>::value>::type , class=int > \
+    static lua_CFunction   generate_lambda( ){                                                                                                       \
+        return []( lua_State* ls ) {                                                                                                                 \
+            ARGUMENTS_POPPING                                                                                                                        \
+            C& obj_ref = to_ref<C>(obj);                                                                                                             \
+            NON_VOID_RETURN                                                                                                                          \
+        };                                                                                                                                           \
+    }                                                                                                                                                \
 };
 
+#define TEMPLATE_SIGNATURE template< typename R , typename C >
+#define FUNCTION_SIGNATURE R(C::*)()
+#define ARGUMENTS_POPPING auto obj = LuaEngine::pop<class_type>(ls);
+#define VOID_RETURN (obj_ref.*f)(); return 0;
+#define NON_VOID_RETURN R ret = (obj_ref.*f)(); LuaEngine::push<R>(ls,ret); return 1;
+CLASS_METHOD_BOILERPLATE
+#undef TEMPLATE_SIGNATURE
+#undef FUNCTION_SIGNATURE
+#undef ARGUMENTS_POPPING 
+#undef VOID_RETURN       
+#undef NON_VOID_RETURN
+
+#define TEMPLATE_SIGNATURE template< typename R , typename C , typename T_arg1 >
+#define FUNCTION_SIGNATURE R(C::*)(T_arg1)
+#define ARGUMENTS_POPPING auto arg1 = LuaEngine::pop<T_arg1>(ls); auto obj = LuaEngine::pop<class_type>(ls);
+#define VOID_RETURN (obj_ref.*f)(arg1); return 0;
+#define NON_VOID_RETURN R ret = (obj_ref.*f)(arg1); LuaEngine::push<R>(ls,ret); return 1;
+CLASS_METHOD_BOILERPLATE
+#undef TEMPLATE_SIGNATURE
+#undef FUNCTION_SIGNATURE
+#undef ARGUMENTS_POPPING 
+#undef VOID_RETURN       
+#undef NON_VOID_RETURN
+
+#define TEMPLATE_SIGNATURE template< typename R , typename C , typename T_arg1, typename T_arg2 >
+#define FUNCTION_SIGNATURE R(C::*)(T_arg1,T_arg2)
+#define ARGUMENTS_POPPING auto arg2 = LuaEngine::pop<T_arg2>(ls); auto arg1 = LuaEngine::pop<T_arg1>(ls); auto obj = LuaEngine::pop<class_type>(ls);
+#define VOID_RETURN (obj_ref.*f)(arg1,arg2); return 0;
+#define NON_VOID_RETURN R ret = (obj_ref.*f)(arg1,arg2); LuaEngine::push<R>(ls,ret); return 1;
+CLASS_METHOD_BOILERPLATE
+#undef TEMPLATE_SIGNATURE
+#undef FUNCTION_SIGNATURE
+#undef ARGUMENTS_POPPING 
+#undef VOID_RETURN       
+#undef NON_VOID_RETURN
+
+#define TEMPLATE_SIGNATURE template< typename R , typename C , typename T_arg1, typename T_arg2, typename T_arg3 >
+#define FUNCTION_SIGNATURE R(C::*)(T_arg1,T_arg2,T_arg3)
+#define ARGUMENTS_POPPING auto arg3 = LuaEngine::pop<T_arg3>(ls); auto arg2 = LuaEngine::pop<T_arg2>(ls); auto arg1 = LuaEngine::pop<T_arg1>(ls); auto obj = LuaEngine::pop<class_type>(ls);
+#define VOID_RETURN (obj_ref.*f)(arg1,arg2,arg3); return 0;
+#define NON_VOID_RETURN R ret = (obj_ref.*f)(arg1,arg2,arg3); LuaEngine::push<R>(ls,ret); return 1;
+CLASS_METHOD_BOILERPLATE
+#undef TEMPLATE_SIGNATURE
+#undef FUNCTION_SIGNATURE
+#undef ARGUMENTS_POPPING 
+#undef VOID_RETURN       
+#undef NON_VOID_RETURN
 
 #endif
