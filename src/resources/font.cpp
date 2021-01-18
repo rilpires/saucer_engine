@@ -59,6 +59,10 @@ FontResource::FontResource(std::string filepath) : Resource(filepath) {
         
         char_datas.insert( std::pair<uint64_t,FontResource::CharData>( i , char_data ) );
     }
+    // Overriding some newline character's attributes
+    uint64_t newline_glyph_index = FT_Get_Char_Index( face , '\n' );
+    char_datas[newline_glyph_index].pixel_size.x = 0;
+    char_datas[newline_glyph_index].pixels_advance = 0;
 
     GL_CALL( glActiveTexture( GL_TEXTURE15 ) );
     GL_CALL( glGenTextures(1,&tex_id) );

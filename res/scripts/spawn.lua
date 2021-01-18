@@ -65,8 +65,8 @@ function _collision_start( other )
     local audio_emitter = this:get_audio_emitter()
     if not audio_emitter then
         audio_emitter = this:create_audio_emitter()
-        i = math.random(1,table.getn(list_of_sounds))
-        audio_emitter:set_audio_resource( list_of_sounds[i] )
+        i = math.random(1,table.getn(this.list_of_sounds))
+        audio_emitter:set_audio_resource( this.list_of_sounds[i] )
     end
     -- audio_emitter:play()
     sprite = this:get_sprite()

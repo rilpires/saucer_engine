@@ -29,7 +29,7 @@ std::vector<RenderData>  LabelRect::generate_render_data(){
         render_data.shader_program = get_current_shader();
         render_data.texture_id = font->get_texture_id();
         render_data.use_tree_transform = false;
-        render_data.use_view_transform = get_use_scene_node_transform();;
+        render_data.use_view_transform = !get_starts_on_viewport();
         render_data.tex_is_alpha_mask = true;
         
         render_data.model_transform = get_parent_global_transform() * Transform().translate(   get_rect_pos() );
@@ -53,25 +53,29 @@ void    LabelRect::update_vertex_data(){
     std::vector<int> lines_index;
     Vector2 pixel_advance = Vector2(0,0);
     for( size_t char_index = 0 ; char_index < text.size() ; char_index++ ){
-        
-        auto char_data = font->get_char_data( text[char_index] );
+        const char current_char = text[char_index];
+        auto char_data = font->get_char_data( current_char );
 
         // Line breaking logic
-        if( text[char_index]!=last_char && last_char == ' '  ){
+        if( last_char==' ' && current_char!=last_char ){
             size_t next_space = text.find_first_of(' ',char_index);
-            if( next_space == std::string::npos )
-                next_space = text.size();
-            if( next_space != std::string::npos ){
-                size_t estimated_pixel_advance = 0;
-                for( size_t i = char_index ; i < next_space ; i++ )
-                    estimated_pixel_advance += font->get_char_data(text[i]).pixels_advance * scale;
-                if( pixel_advance.x + estimated_pixel_advance >= rect_size.x ){
-                    lines_index.push_back( last_line_index );
-                    pixel_advance.x = 0;
-                    pixel_advance.y += (max_height)*scale + line_gap;
-                    last_line_index = char_index;
-                }
+            size_t next_newline = text.find_first_of('\n',char_index); 
+            size_t sequence_end = std::min<size_t>(next_space,next_newline);
+            sequence_end = std::min<size_t>(text.size(),sequence_end);
+            size_t estimated_pixel_advance = 0;
+            for( size_t i = char_index ; i < sequence_end ; i++ )
+                estimated_pixel_advance += font->get_char_data(text[i]).pixels_advance * scale;
+            if( pixel_advance.x + estimated_pixel_advance >= rect_size.x ){
+                lines_index.push_back( last_line_index );
+                pixel_advance.x = 0;
+                pixel_advance.y += (max_height)*scale + line_gap;
+                last_line_index = char_index;
             }
+        } if( current_char == '\n' ){
+            lines_index.push_back( last_line_index );
+            pixel_advance.x = 0;
+            pixel_advance.y += (max_height)*scale + line_gap;
+            last_line_index = char_index;
         }
 
         Vector2 size = char_data.pixel_size * scale;

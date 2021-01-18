@@ -83,7 +83,7 @@ std::vector<RenderData> PatchRect::generate_render_data() {
         render_data.vertex_data = vertex_data;
         render_data.vertex_data_count = vertex_data_count;
         render_data.use_tree_transform = false;
-        render_data.use_view_transform = get_use_scene_node_transform();
+        render_data.use_view_transform = !get_starts_on_viewport();
         render_data.model_transform = get_parent_global_transform() * Transform().translate( get_rect_pos() );
         render_data.texture_id = texture->get_texture_id();
         render_data.shader_program = get_current_shader();

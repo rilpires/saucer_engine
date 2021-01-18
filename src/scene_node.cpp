@@ -23,7 +23,8 @@ SceneNode::~SceneNode(){
         delete component;
     }
     attached_components.clear();
-    for( SceneNode* child : children_nodes ) delete child;
+    for( size_t i = 0 ; i < children_nodes.size() ; i++ ) 
+        delete children_nodes[i];
     children_nodes.clear();
     if( LuaEngine::current_actor == this ){
         LuaEngine::change_current_actor_env( nullptr );

@@ -47,7 +47,7 @@ void AnchoredRect::set_rect_size(Vector2 new_val) {
     grow(BOTTOM_BORDER,new_val.y - rect_size.y);
 }
 bool    AnchoredRect::get_starts_on_viewport() const {
-    return starts_on_viewport;
+    return starts_on_viewport || ( use_scene_node_transform==false && get_parent_rect()==nullptr );
 }
 void    AnchoredRect::set_starts_on_viewport(bool new_val) {
     starts_on_viewport = new_val;
@@ -61,7 +61,6 @@ void    AnchoredRect::set_ignore_mouse(bool new_val){
 bool    AnchoredRect::get_use_scene_node_transform() const {
     return use_scene_node_transform;
 }
-
 void AnchoredRect::set_use_scene_node_transform(bool new_val) {
     use_scene_node_transform = new_val;
 }
