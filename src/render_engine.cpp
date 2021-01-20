@@ -79,6 +79,7 @@ RenderEngine::RenderEngine(){
     GL_CALL( glDepthFunc(GL_LEQUAL) );
 
     glfw_custom_cursor = nullptr;
+    clear_color = Color( (unsigned char)25 , (unsigned char)24 , (unsigned char)43 , (unsigned char)0 );
 
     //GLint d = 0;
     //GL_CALL( glGetIntegerv(GL_CONTEXT_PROFILE_MASK,&d))
@@ -188,10 +189,19 @@ void                RenderEngine::set_custom_cursor( TextureResource* img , int 
         glfwSetCursor(glfw_window,glfw_custom_cursor);
     }
 }
-void                RenderEngine::update( const std::vector<RenderData>& draws ){
+void                RenderEngine::set_clear_color(Color new_val){
+    clear_color = new_val;
+}
+Color               RenderEngine::get_clear_color() const{
+    return clear_color;
+}
+void                RenderEngine::update( const std::vector<RenderData>& draws  ){
     
     GL_CALL( glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
-    GL_CALL( glClearColor( 0,0,0,1 ) );
+    GL_CALL( glClearColor(  float(clear_color.r)/255.0f,
+                            float(clear_color.g)/255.0f,
+                            float(clear_color.b)/255.0f,
+                            float(clear_color.a)/255.0f) );
     GL_CALL( glUniform1f( time_attrib_location , Engine::get_uptime() ) );
     
     size_t first=0 , batch_size=MAX_VERTEX_COUNT+1;

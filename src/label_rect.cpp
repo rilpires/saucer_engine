@@ -12,6 +12,8 @@ LabelRect::LabelRect(){
     vertex_data_count = 0;
     dirty_vertex_data = true;
     align_flags = HORIZONTAL_ALIGN_CENTER + VERTICAL_ALIGN_CENTER;
+    editable = false;
+    set_editable(true);
 }
 LabelRect::~LabelRect(){
     if(vertex_data)delete[] vertex_data;
@@ -39,7 +41,7 @@ std::vector<RenderData>  LabelRect::generate_render_data(){
     return ret;
 }
 
-void    LabelRect::update_vertex_data(){
+void            LabelRect::update_vertex_data(){
     if( vertex_data ) delete[] vertex_data;
     vertex_data_count = 4*text.size();
     vertex_data = new VertexData[ vertex_data_count ];
@@ -130,38 +132,43 @@ void    LabelRect::update_vertex_data(){
 
     }
 }
-
-std::string LabelRect::get_text() const {
+std::string     LabelRect::get_text() const {
     return text;
 }
-
-void LabelRect::set_text(std::string s) {
-    text = s;
-    dirty_vertex_data = true;
+void            LabelRect::set_text(std::string s) {
+    if( (text.size()!=s.size()) || (text != s) ){
+        text = s;
+        dirty_vertex_data = true;
+    }
 }
-
-FontResource* LabelRect::get_font() const {
+FontResource*   LabelRect::get_font() const {
     return font;
 }
-
-void LabelRect::set_font(FontResource* f) {
-    font = f;
-    dirty_vertex_data = true;
+void            LabelRect::set_font(FontResource* f) {
+    if(font != f){
+        font = f;
+        dirty_vertex_data = true;
+    }
 }
-int     LabelRect::get_font_size() const{
+int             LabelRect::get_font_size() const{
     return font_size;
 }
-void    LabelRect::set_font_size(int new_val){
-    font_size = new_val;
+void            LabelRect::set_font_size(int new_val){
+    if( font_size != new_val ){
+        font_size = new_val;
+        dirty_vertex_data = true;
+    }
 }
-int    LabelRect::get_line_gap() const{
+int             LabelRect::get_line_gap() const{
     return line_gap;
 }
-void   LabelRect::set_line_gap(int new_val){
-    line_gap = new_val;
-    dirty_vertex_data = true;
+void            LabelRect::set_line_gap(int new_val){
+    if( line_gap != new_val ){
+        line_gap = new_val;
+        dirty_vertex_data = true;
+    }
 }
-void    LabelRect::set_align_flags( int new_val ){
+void            LabelRect::set_align_flags( int new_val ){
     if( (new_val&(HORIZONTAL_ALIGN_LEFT|HORIZONTAL_ALIGN_CENTER|HORIZONTAL_ALIGN_RIGHT)) == 0 )
         new_val |= HORIZONTAL_ALIGN_LEFT;
     if( (new_val&(VERTICAL_ALIGN_TOP|VERTICAL_ALIGN_CENTER|VERTICAL_ALIGN_BOTTOM)) == 0 )
@@ -169,8 +176,45 @@ void    LabelRect::set_align_flags( int new_val ){
     align_flags = new_val;
     dirty_vertex_data = true;
 }
-
-void LabelRect::bind_methods() {
+bool            LabelRect::get_editable() const{
+    return editable;
+}
+void            LabelRect::set_editable( bool new_val ){
+    if( editable != new_val ){
+        editable = new_val;
+        dirty_vertex_data = true;
+        this->set_ignore_mouse(!new_val);
+    }
+}
+void            LabelRect::cb_key( Input::InputEventKey& ev ){
+    if( !editable ) return;
+    if( ev.action == INPUT_EVENT_ACTION::PRESSED ){
+        switch (ev.key_unicode)
+        {
+            case GLFW_KEY_ENTER:
+                set_text( text + '\n' );
+                ev.is_solved = true;
+                break;
+            
+            case GLFW_KEY_BACKSPACE:
+                if( text.size() > 0 )
+                    set_text( text.substr(0,text.size()-1) );
+                ev.is_solved = true;
+                break;
+            
+            default: break;
+        }
+    }
+}
+void            LabelRect::cb_mouse_button( Input::InputEventMouseButton& ev ){
+    // Cursor aiming at a specific location
+}
+void            LabelRect::cb_char( Input::InputEventChar& ev ){
+    if( !editable ) return;
+    set_text( text + (char)ev.unicode );
+    ev.is_solved = true;
+}
+void            LabelRect::bind_methods() {
 
     REGISTER_LUA_CONSTANT( LABEL_ALIGN , HORIZONTAL_ALIGN_LEFT   , HORIZONTAL_ALIGN_LEFT    );
     REGISTER_LUA_CONSTANT( LABEL_ALIGN , HORIZONTAL_ALIGN_CENTER , HORIZONTAL_ALIGN_CENTER  );
@@ -188,5 +232,8 @@ void LabelRect::bind_methods() {
     REGISTER_LUA_MEMBER_FUNCTION( LabelRect , get_line_gap );
     REGISTER_LUA_MEMBER_FUNCTION( LabelRect , set_line_gap );
     REGISTER_LUA_MEMBER_FUNCTION( LabelRect , set_align_flags );
+    REGISTER_LUA_MEMBER_FUNCTION( LabelRect , get_editable );
+    REGISTER_LUA_MEMBER_FUNCTION( LabelRect , set_editable );
 
 }
+

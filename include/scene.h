@@ -24,6 +24,7 @@ class Scene : public SaucerObject {
         SceneNode*      root_node;
         Camera*         current_camera;   
         AnchoredRect*   current_hovered_anchored_rect;
+        AnchoredRect*   current_focused_anchored_rect;
         std::set<SceneNode*> to_free;
 
         void        loop_input();
@@ -32,6 +33,7 @@ class Scene : public SaucerObject {
         void        loop_physics();
 
         void        set_current_hovered_anchored_rect( AnchoredRect* r );
+        void        set_current_focused_anchored_rect( AnchoredRect* r );
 
     public:
         Scene();
@@ -43,6 +45,7 @@ class Scene : public SaucerObject {
         SceneNode*      get_root_node();
         void            set_current_camera( Camera* new_camera );
         AnchoredRect*   get_current_hovered_anchored_rect() const;
+        AnchoredRect*   get_current_focused_anchored_rect() const;
         Camera*         get_current_camera() const ;
         CollisionWorld* get_collision_world() const ;
 

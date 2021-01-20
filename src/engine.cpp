@@ -13,7 +13,7 @@ double              Engine::next_frame_time   = 0;
 std::list<double>   Engine::last_uptimes;
 
 
-void        Engine::initialize(){
+void            Engine::initialize(){
     
     render_engine = new RenderEngine();
     audio_engine = new AudioEngine();
@@ -23,15 +23,14 @@ void        Engine::initialize(){
     glfwSetCursorPosCallback( render_engine->get_glfw_window() , Input::mouse_pos_callback );
     glfwSetKeyCallback( render_engine->get_glfw_window() , Input::key_callback );
     glfwSetMouseButtonCallback( render_engine->get_glfw_window() , Input::mouse_button_callback );
-    
-}
+    glfwSetCharCallback( render_engine->get_glfw_window() , Input::char_callback );
 
-void        Engine::close(){
+}
+void            Engine::close(){
     if(current_scene) delete current_scene;
     delete render_engine;
     delete audio_engine;
 }
-
 void            Engine::update(){
     double remaining_time = next_frame_time - get_uptime(); 
     if( remaining_time>0 ) usleep( remaining_time * 1000000 );

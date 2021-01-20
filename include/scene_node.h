@@ -35,6 +35,7 @@ class SceneNode : public SaucerObject {
         Scene*                      scene;
         LuaScriptResource*          lua_script;
         std::list<Component*>       attached_components;
+        bool                        visible;
     
         void                    set_scene(Scene* new_scene);
     public:
@@ -65,6 +66,8 @@ class SceneNode : public SaucerObject {
         Color                   get_global_modulate() const ;
         void                    set_relative_z(bool new_val);
         bool                    is_z_relative() const ;
+        bool                    is_visible() const;
+        void                    set_visible( bool new_val );
         void                    set_script( LuaScriptResource* ls );
         LuaScriptResource*      get_script() const ;
         void                    get_out();

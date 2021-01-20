@@ -7,6 +7,7 @@
 Scene::Scene(){
     root_node = NULL;
     current_hovered_anchored_rect = nullptr;
+    current_focused_anchored_rect = nullptr;
     current_camera = nullptr;
     collision_world = new CollisionWorld();
 }
@@ -37,6 +38,9 @@ void            Scene::set_current_camera( Camera* new_camera ){
 AnchoredRect*   Scene::get_current_hovered_anchored_rect() const{
     return current_hovered_anchored_rect;
 }
+AnchoredRect*   Scene::get_current_focused_anchored_rect() const{
+    return current_focused_anchored_rect;
+}
 Camera*         Scene::get_current_camera() const {
     return current_camera;
 }
@@ -49,7 +53,7 @@ void            Scene::loop_draw(){
     std::queue< AccumulatedTreeNode > nodes_queue;
     std::vector< AccumulatedTreeNode > render_objs;
     std::vector< RenderData > render_datas;
-    if( root_node ){
+    if( root_node && root_node->is_visible() ){
         AccumulatedTreeNode tree_node;
         tree_node.n = root_node;
         tree_node.t = root_node->get_transform();
@@ -61,11 +65,13 @@ void            Scene::loop_draw(){
         SceneNode* scene_node = tree_node.n;
         render_objs.push_back(tree_node);
         for( auto child : scene_node->get_children() ){
-            AccumulatedTreeNode child_tree_node;
-            child_tree_node.n = child;
-            child_tree_node.t = (child->get_inherits_transform()) ? (tree_node.t*child->get_transform() ):(child->get_transform());
-            child_tree_node.c = tree_node.c * child->get_modulate();
-            nodes_queue.push( child_tree_node );
+            if( child->is_visible() ){
+                AccumulatedTreeNode child_tree_node;
+                child_tree_node.n = child;
+                child_tree_node.t = (child->get_inherits_transform()) ? (tree_node.t*child->get_transform() ):(child->get_transform());
+                child_tree_node.c = tree_node.c * child->get_modulate();
+                nodes_queue.push( child_tree_node );
+            }
         }
         nodes_queue.pop();
     }
@@ -107,14 +113,12 @@ void            Scene::loop_input(){
     Vector2 world_mouse_pos = Input::get_world_mouse_position();
     AnchoredRect* next_hovered = nullptr;
 
-    // Traversing the tree & finding the possible actors. Also, looks for the hovered AnchoredRect  
-    if( root_node )
+    // Traversing the tree looking for the hovered AnchoredRect  
+    if( root_node && root_node->is_visible() )
         nodes_queue.push(root_node);
     while( nodes_queue.size() ){
         SceneNode* scene_node = nodes_queue.front();
         auto anchored_rects = AnchoredRect::recover_range_from_node(scene_node);
-        if( scene_node->get_script() )
-            script_actors.push_back(scene_node);
         for( auto& it = anchored_rects.first ; it != anchored_rects.second ; it++ ){
             AnchoredRect* rect = it->second;
             if( rect->ignore_mouse ) continue;
@@ -131,19 +135,61 @@ void            Scene::loop_input(){
             }
         }
         for( auto child : scene_node->get_children() )
-            nodes_queue.push( child );
+            if( child->is_visible() )
+                nodes_queue.push( child );
         nodes_queue.pop();
     }
     set_current_hovered_anchored_rect(next_hovered);
-    // Solving inputs
+    
+    // Traversing the tree solving input.
+    // Note we make a new traversing for each input event
     Input::InputEvent* next_input_event = Input::pop_event_queue();
     while(next_input_event){
-        for( auto it = script_actors.begin() ; 
-             it != script_actors.end() && !next_input_event->is_solved() ;
-             it++ )
-        {
-            LuaEngine::execute_callback( "input" , *it , next_input_event );
+
+        // We may have a new focused rect:
+        if( next_input_event->get_type() == INPUT_EVENT_TYPE::MOUSE_BUTTON 
+        && next_input_event->is_pressed() 
+        && next_input_event->get_button() == INPUT_EVENT_MOUSE_BUTTON::BUTTON_LEFT ){
+            set_current_focused_anchored_rect( current_hovered_anchored_rect );
         }
+
+        // Checking cb_mouse_button/key/char of the focused rect
+        if( current_focused_anchored_rect ){
+            switch (next_input_event->get_type())
+            {
+                case INPUT_EVENT_TYPE::MOUSE_BUTTON:
+                    current_focused_anchored_rect->cb_mouse_button(next_input_event->input_event_mouse_button);
+                    break;
+                case INPUT_EVENT_TYPE::KEY:
+                    current_focused_anchored_rect->cb_key(next_input_event->input_event_key);
+                    break;
+                case INPUT_EVENT_TYPE::CHAR:
+                    current_focused_anchored_rect->cb_char(next_input_event->input_event_char);
+                    break;
+                default: break;
+            }
+        }
+        
+        if( root_node && !(next_input_event->is_solved()) )
+            nodes_queue.push(root_node);
+        while( nodes_queue.size() ){
+            SceneNode* scene_node = nodes_queue.front();
+            auto anchored_rects = AnchoredRect::recover_range_from_node(scene_node);
+
+            if( scene_node->get_script() )
+                LuaEngine::execute_callback( "input" , scene_node , next_input_event );
+            
+            if( next_input_event->is_solved() ) {
+                while( nodes_queue.size() ) 
+                    nodes_queue.pop();
+            } 
+            else {
+                for( auto child : scene_node->get_children() )
+                    nodes_queue.push( child );
+                nodes_queue.pop();
+            }
+        }
+
         delete next_input_event;   
         next_input_event = Input::pop_event_queue();
     }
@@ -168,11 +214,18 @@ void            Scene::loop_script(){
 }
 void            Scene::set_current_hovered_anchored_rect( AnchoredRect* r ){
     if( current_hovered_anchored_rect == r ) return;
-    if( current_hovered_anchored_rect )
+    if( current_hovered_anchored_rect ){
+        current_hovered_anchored_rect->cb_mouse_exiting();
         LuaEngine::execute_callback("exiting_mouse",current_hovered_anchored_rect->get_node()); 
+    }
     current_hovered_anchored_rect = r;
-    if( current_hovered_anchored_rect )
+    if( current_hovered_anchored_rect ){
+        current_hovered_anchored_rect->cb_mouse_entered();
         LuaEngine::execute_callback("entered_mouse",current_hovered_anchored_rect->get_node()); 
+    }
+}
+void            Scene::set_current_focused_anchored_rect( AnchoredRect* r ){
+    current_focused_anchored_rect = r;
 }
 void            Scene::loop_physics(){
     collision_world->step();

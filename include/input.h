@@ -7,9 +7,10 @@
 #include "debug.h"
 #include <list>
 
-enum INPUT_EVENT_TYPE {         INPUT_EVENT_TYPE_KEY , 
-                                INPUT_EVENT_TYPE_MOUSE_BUTTON , 
-                                INPUT_EVENT_TYPE_MOUSE_MOTION };
+enum INPUT_EVENT_TYPE { KEY , 
+                        MOUSE_BUTTON , 
+                        MOUSE_MOTION , 
+                        CHAR };
 
 enum INPUT_EVENT_ACTION {       PRESSED=1 , 
                                 RELEASED=0,
@@ -42,27 +43,34 @@ class Input {
             bool                        is_solved;        
             float                       window_x,window_y;
         };
+        struct InputEventChar {
+            INPUT_EVENT_TYPE            type;
+            bool                        is_solved;        
+            unsigned int                unicode;
+        };
 
         union InputEvent {
             static constexpr const char* class_name = "InputEvent";
             InputEventKey           input_event_key;
             InputEventMouseButton   input_event_mouse_button;
             InputEventMouseMotion   input_event_mouse_motion;
+            InputEventChar          input_event_char;
             
-            int                 get_type() const ;
-            int                 get_button() const ;
-            int                 get_key() const ;
-            std::string         get_type_str() const;
-            Vector2             get_mouse_position() const;
-            bool                is_pressed() const;
-            bool                is_echo() const;
-            void                solve();
-            bool                is_solved() const;
+            int                     get_type() const ;
+            int                     get_button() const ;
+            int                     get_key() const ;
+            unsigned int            get_unicode() const;
+            std::string             get_type_str() const;
+            Vector2                 get_mouse_position() const;
+            bool                    is_pressed() const;
+            bool                    is_echo() const;
+            void                    solve();
+            bool                    is_solved() const;
             
-            operator            InputEventKey(){ return input_event_key;}
-            operator            InputEventMouseButton(){ return input_event_mouse_button;}
-            operator            InputEventMouseMotion(){ return input_event_mouse_motion;}
-        
+            operator                InputEventKey(){ return input_event_key;}
+            operator                InputEventMouseButton(){ return input_event_mouse_button;}
+            operator                InputEventMouseMotion(){ return input_event_mouse_motion;}
+            operator                InputEventChar(){ return input_event_char;}
         };
 
 
@@ -85,6 +93,7 @@ class Input {
         static void         mouse_pos_callback( GLFWwindow* glfw_window , double x_pos , double y_pos );
         static void         key_callback( GLFWwindow* glfw_window , int key, int scancode, int action, int mods );
         static void         mouse_button_callback( GLFWwindow* glfw_window , int button , int action , int mods );
+        static void         char_callback( GLFWwindow* glfw_window , unsigned int unicode );
 
 
         static void         bind_methods();

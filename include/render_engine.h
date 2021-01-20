@@ -42,7 +42,8 @@ class RenderEngine {
         std::string         window_title;
         Vector2             window_size;
         GLFWcursor*         glfw_custom_cursor;
-        
+        Color               clear_color;
+
         Transform           view_transform;
         
         ShaderResource*     basic_shader_resource;
@@ -82,7 +83,9 @@ class RenderEngine {
         GLuint              get_last_used_texture() const;
         ShaderResource*     get_basic_shader() const;
         void                set_custom_cursor( TextureResource* img , int xhot , int yhot );
-        void                update( const std::vector<RenderData>& draws );
+        void                set_clear_color(Color new_val);
+        Color               get_clear_color() const;
+        void                update( const std::vector<RenderData>& draws);
 
 };
 

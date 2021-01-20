@@ -20,7 +20,7 @@ class AnchoredRect : public RenderObject {
         Vector2         rect_size;
         bool            starts_on_viewport;
         bool            ignore_mouse;
-        bool            use_scene_node_transform; // Doesn't have any effect if has AnchoredRect parent
+        bool            use_scene_node_transform;
         
     public:
         AnchoredRect();
@@ -41,14 +41,20 @@ class AnchoredRect : public RenderObject {
         bool                get_use_scene_node_transform() const ;
         void                set_use_scene_node_transform( bool new_val );
         void                grow( int border , float amount );
+        AnchoredRect*       get_parent_rect() const;
+        Vector2             get_global_rect_pos() const;
+        Transform           get_parent_global_transform() const;
 
         static void         bind_methods();
 
     protected:
+        virtual void        cb_mouse_entered( );
+        virtual void        cb_mouse_exiting( );
+        virtual void        cb_mouse_button( Input::InputEventMouseButton& ev );
+        virtual void        cb_key( Input::InputEventKey& ev );
+        virtual void        cb_char( Input::InputEventChar& ev );
+
         const std::vector<AnchoredRect*>    get_children_rects() const;
-        AnchoredRect*                       get_parent_rect() const;
-        Vector2                 get_global_rect_pos() const;
-        Transform               get_parent_global_transform() const;
         
 };
 

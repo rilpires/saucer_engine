@@ -16,6 +16,7 @@ SceneNode::SceneNode(){
     parent_node = NULL;
     scene = NULL;
     lua_script = NULL;
+    visible = true;
 }
 SceneNode::~SceneNode(){
     for( Component* component : attached_components ){
@@ -110,6 +111,12 @@ Color               SceneNode::get_global_modulate() const{
 }
 void                SceneNode::set_relative_z(bool new_val){relative_z=new_val;}
 bool                SceneNode::is_z_relative() const {return relative_z;}
+bool                SceneNode::is_visible() const{
+    return visible;
+}
+void                SceneNode::set_visible( bool new_val ){
+    visible = new_val;
+}
 LuaScriptResource*  SceneNode::get_script() const { return lua_script;};
 void                SceneNode::set_script( LuaScriptResource* ls ){
     if( lua_script ){
@@ -204,6 +211,8 @@ void        SceneNode::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_modulate );
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_self_modulate );
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_self_modulate );
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_visible);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,is_visible);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_script);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_script);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_out);

@@ -16,8 +16,14 @@ AnchoredRect::AnchoredRect() {
     use_scene_node_transform = false;
 }
 AnchoredRect::~AnchoredRect() {
-    if( attached_node && attached_node->get_scene() && attached_node->get_scene()->get_current_hovered_anchored_rect() == this ){
-        attached_node->get_scene()->set_current_hovered_anchored_rect(nullptr);
+    if( attached_node && attached_node->get_scene() ){
+        Scene* scene = attached_node->get_scene();
+        if(  scene->get_current_hovered_anchored_rect() == this ){
+            scene->set_current_hovered_anchored_rect(nullptr);
+        }
+        if( scene->get_current_focused_anchored_rect() == this ){
+            scene->set_current_focused_anchored_rect(nullptr);
+        }
     }
 }
 std::vector<RenderData>  AnchoredRect::generate_render_data(){
@@ -120,6 +126,21 @@ AnchoredRect*                       AnchoredRect::get_parent_rect() const{
     if( attached_node && attached_node->get_parent() )
         return attached_node->get_parent()->get_component<AnchoredRect>();
     return nullptr;
+}
+void        AnchoredRect::cb_mouse_entered( ){
+    //    
+}
+void        AnchoredRect::cb_mouse_exiting( ){
+    //    
+}
+void        AnchoredRect::cb_mouse_button( Input::InputEventMouseButton& ev ){
+    //    
+}
+void        AnchoredRect::cb_key( Input::InputEventKey& ev ){
+    //    
+}
+void        AnchoredRect::cb_char( Input::InputEventChar& ev ){
+    //    
 }
 Transform   AnchoredRect::get_parent_global_transform() const{
     AnchoredRect* parent_rect = get_parent_rect();

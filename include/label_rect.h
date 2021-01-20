@@ -23,6 +23,7 @@ class LabelRect : public AnchoredRect {
         int                 font_size;
         int                 line_gap;
         unsigned char       align_flags;
+        bool                editable;
 
     public:
         LabelRect();
@@ -40,8 +41,19 @@ class LabelRect : public AnchoredRect {
         int                 get_line_gap() const;
         void                set_line_gap(int new_val);
         void                set_align_flags( int new_val );
-        
+        bool                get_editable() const;
+        void                set_editable( bool new_val );
+
+    protected:
+        void        cb_key( Input::InputEventKey& ev ) override ;
+        void        cb_mouse_button( Input::InputEventMouseButton& ev ) override ;
+        void        cb_char( Input::InputEventChar& ev ) override ;
+
+    public:
         static void         bind_methods();
+
+
+
 
 };
 
