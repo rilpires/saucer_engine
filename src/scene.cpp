@@ -53,7 +53,7 @@ void            Scene::loop_draw(){
     std::queue< AccumulatedTreeNode > nodes_queue;
     std::vector< AccumulatedTreeNode > render_objs;
     std::vector< RenderData > render_datas;
-    if( root_node && root_node->is_visible() ){
+    if( root_node && root_node->get_visible() ){
         AccumulatedTreeNode tree_node;
         tree_node.n = root_node;
         tree_node.t = root_node->get_transform();
@@ -65,7 +65,7 @@ void            Scene::loop_draw(){
         SceneNode* scene_node = tree_node.n;
         render_objs.push_back(tree_node);
         for( auto child : scene_node->get_children() ){
-            if( child->is_visible() ){
+            if( child->get_visible() ){
                 AccumulatedTreeNode child_tree_node;
                 child_tree_node.n = child;
                 child_tree_node.t = (child->get_inherits_transform()) ? (tree_node.t*child->get_transform() ):(child->get_transform());
@@ -114,7 +114,7 @@ void            Scene::loop_input(){
     AnchoredRect* next_hovered = nullptr;
 
     // Traversing the tree looking for the hovered AnchoredRect  
-    if( root_node && root_node->is_visible() )
+    if( root_node && root_node->get_visible() )
         nodes_queue.push(root_node);
     while( nodes_queue.size() ){
         SceneNode* scene_node = nodes_queue.front();
@@ -135,7 +135,7 @@ void            Scene::loop_input(){
             }
         }
         for( auto child : scene_node->get_children() )
-            if( child->is_visible() )
+            if( child->get_visible() )
                 nodes_queue.push( child );
         nodes_queue.pop();
     }

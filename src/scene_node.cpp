@@ -110,8 +110,8 @@ Color               SceneNode::get_global_modulate() const{
     return ret;
 }
 void                SceneNode::set_relative_z(bool new_val){relative_z=new_val;}
-bool                SceneNode::is_z_relative() const {return relative_z;}
-bool                SceneNode::is_visible() const{
+bool                SceneNode::get_relative_z() const {return relative_z;}
+bool                SceneNode::get_visible() const{
     return visible;
 }
 void                SceneNode::set_visible( bool new_val ){
@@ -206,13 +206,13 @@ void        SceneNode::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_z);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_global_z);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_relative_z);
-    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,is_z_relative);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_relative_z);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_modulate );
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_modulate );
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_self_modulate );
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_self_modulate );
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_visible);
-    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,is_visible);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_visible);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_script);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_script);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_out);

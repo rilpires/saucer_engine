@@ -30,7 +30,7 @@ INCLUDE_PATHS := \
 	deps/audiofile \
 	deps/freetype/include \
 	deps/openal_soft/include \
-	deps/imgui deps/imgui/examples \
+	deps/imgui deps/imgui/examples deps/imgui/misc/cpp \
 	deps/box2d/include
 
 RELEASE ?= 0
@@ -51,6 +51,7 @@ ifeq ($(RELEASE),0)
 				 	obj/imgui_widgets.o \
 				 	obj/imgui_demo.o \
 				 	obj/imgui_impl_glfw.o \
+				 	obj/imgui_stdlib.o \
 				 	obj/imgui_impl_opengl3.o
 
 else
@@ -64,6 +65,9 @@ main_release main_debug : $(OBJ_FILES)
 	@echo Linking everything
 	$(CXX) $(CXX_FLAGS) $(OBJ_FILES) -Bstatic -o $(EXEC_NAME) $(patsubst %, -L%, $(LINKER_FOLDERS) ) $(patsubst %, -l%, $(LIBS) ) $(patsubst %, -I%, $(INCLUDE_PATHS))
 
+obj/imgui_stdlib.o : deps/imgui/misc/cpp/imgui_stdlib.cpp
+	@echo Compiling DearImGui implementation $@
+	$(CXX) $(CXX_FLAGS) $< -c -o $@  $(patsubst %, -I%, $(INCLUDE_PATHS))
 obj/imgui_impl_%.o : deps/imgui/examples/imgui_impl_%.cpp
 	@echo Compiling DearImGui implementation $@
 	$(CXX) $(CXX_FLAGS) $< -c -o $@  $(patsubst %, -I%, $(INCLUDE_PATHS))

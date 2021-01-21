@@ -65,8 +65,8 @@ class SceneNode : public SaucerObject {
         void                    set_self_modulate( Color new_col );
         Color                   get_global_modulate() const ;
         void                    set_relative_z(bool new_val);
-        bool                    is_z_relative() const ;
-        bool                    is_visible() const;
+        bool                    get_relative_z() const ;
+        bool                    get_visible() const;
         void                    set_visible( bool new_val );
         void                    set_script( LuaScriptResource* ls );
         LuaScriptResource*      get_script() const ;
