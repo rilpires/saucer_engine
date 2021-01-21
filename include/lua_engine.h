@@ -75,13 +75,16 @@ class LuaEngine {
         static void             execute_callback( const char* callback_name , SceneNode* actor , T_arg1 arg1 );
 
         static void             create_actor_env( SceneNode* new_actor );
+        static void             destroy_actor_env( SceneNode* new_actor );
+
         static void             register_constant( std::string enum_name , std::string index_name , int i );
         static void             register_function( std::string global_function_name , lua_CFunction f );
         static void             register_function( std::string class_name , std::string function_name , lua_CFunction f );
 
+        // Some types will have a custom constructor for Lua. This is the case of raw data types like Vector2 and Color
+        // Others types like SceneNode and Components will only have a default basic constructor  
         template< typename T >
         static lua_CFunction    create_lua_constructor();    
-        
 
         // push signature for std::vectors (const vector& only!)
         template< typename T , typename value_type = typename std::enable_if< is_vector<T>::value , typename is_vector<T>::value_type >::type >
@@ -104,12 +107,12 @@ class LuaEngine {
         template< typename T , class = typename std::enable_if< !std::is_pointer<T>::value >::type , typename=void  >
         static T                pop( lua_State* );
         
-        // By default, the metatable of a type will only have it's functions members, in __index
+        // By default, the metatable of a type will only have it's functions members in __index
         template< typename T >
         static void             push_metatable( lua_State* ls );
         
-        template< typename F > 
-        struct to_lua_cfunction;
+        // This converts C++ functions into lua functions: (int)*f(lua_State* )
+        template< typename F > struct to_lua_cfunction;
 
 };
 

@@ -27,7 +27,7 @@ class Camera : public Component {
         void        set_top_limit( float new_val );
         float       get_bottom_limit() const;
         void        set_bottom_limit( float new_val );
-        bool        is_active() const ;
+        bool        get_active() const ;
         void        set_active( bool new_val);
         void        entered_tree();
         void        exiting_tree();
