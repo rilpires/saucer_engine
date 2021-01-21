@@ -25,6 +25,5 @@ Nexts TO-DO's for sure:
 - Networking module
 - Packing resources to a proper release build
 - More audio formats, cursor and possibly positioning("3D") sound.
-
-Possibly TO-DO's:
+- Supporting Lua to the most recent version (5.4.2).
 - Imports for some popular tools (Aseprite, Tiled, ... )

@@ -341,7 +341,6 @@ lua_CFunction   LuaEngine::recover_global_function( std::string function_name ){
     auto function_find = global_functions_db.find( function_name );
     if( function_find == global_functions_db.end() ){
         saucer_err( "Couldn't find any global function named " , function_name )
-        // exit(1);
         return [](lua_State* ls ){ 
             saucer_err( "This function should not exist!" );
             return 0; 
@@ -421,6 +420,20 @@ void            LuaEngine::create_actor_env( SceneNode* new_actor ){
     lua_pop(ls,3);
 
     change_current_actor_env(old_actor);
+}
+void            LuaEngine::destroy_actor_env( SceneNode* actor ){
+    SAUCER_ASSERT(actor);
+    describe_stack();
+    if(current_actor==actor) change_current_actor_env(nullptr);
+    lua_pushstring(ls,"_SAUCER");
+    lua_gettable(ls,LUA_GLOBALSINDEX);
+    lua_pushstring(ls,"_NODES");
+    lua_gettable(ls,-2);
+    lua_pushnumber(ls,actor->get_saucer_id());
+    lua_pushnil(ls);
+    lua_settable(ls,-3);
+    lua_pop(ls,2);
+    describe_stack();
 }
 void            LuaEngine::execute_callback( const char* callback_name , SceneNode* actor ){
     if( actor->get_script() == NULL ) return;

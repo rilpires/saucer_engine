@@ -88,7 +88,13 @@ Vector2      Input::get_world_mouse_position(){
     if( Engine::get_current_scene() ){
         Vector2 temp = window_mouse_position;
         temp -= Engine::get_window_size() * 0.5;
-        return Engine::get_current_scene()->get_current_camera()->get_node()->get_global_transform() * temp;
+        Transform camera_global_transform = Transform();
+        
+        if( Engine::get_current_scene() )
+            if( Engine::get_current_scene()->get_current_camera() )
+                camera_global_transform = Engine::get_current_scene()->get_current_camera()->get_node()->get_global_transform();
+            
+        return camera_global_transform * temp;
     } else return window_mouse_position;
 }
 Input::InputEvent* Input::pop_event_queue(){

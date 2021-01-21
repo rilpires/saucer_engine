@@ -27,10 +27,8 @@ SceneNode::~SceneNode(){
     for( size_t i = 0 ; i < children_nodes.size() ; i++ ) 
         delete children_nodes[i];
     children_nodes.clear();
-    if( LuaEngine::current_actor == this ){
-        LuaEngine::change_current_actor_env( nullptr );
-    }
     get_out();
+    LuaEngine::destroy_actor_env(this);
 }
 void                SceneNode::set_scene(Scene* new_scene){
     scene = new_scene;
@@ -147,6 +145,7 @@ void                SceneNode::get_out(){
     set_scene(nullptr);
 }
 void                SceneNode::add_child( SceneNode* p_child_node ){
+    SAUCER_ASSERT(p_child_node!=nullptr);
     if(p_child_node->parent_node) saucer_err( "Trying to add a node as a child but it already has a parent. " ) 
     else{
         p_child_node->parent_node = this;
