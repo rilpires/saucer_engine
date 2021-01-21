@@ -30,6 +30,7 @@ INCLUDE_PATHS := \
 	deps/audiofile \
 	deps/freetype/include \
 	deps/openal_soft/include \
+	deps/imgui deps/imgui/examples \
 	deps/box2d/include
 
 RELEASE ?= 0
@@ -41,18 +42,34 @@ OBJ_FILES := $(patsubst src/%.cpp, obj/%.o, $(SRC_FILES) )
 EXEC_NAME := main
 
 ifeq ($(RELEASE),0)
-	CXX_FLAGS += -g -DDEBUG
-	EXEC_NAME := $(EXEC_NAME)_debug
+	CXX_FLAGS += -g -DDEBUG -DSAUCER_EDITOR
+	EXEC_NAME := $(EXEC_NAME)_debug	
 	OBJ_FILES := $(patsubst %.o, %.debug.o, $(OBJ_FILES) )
+	
+	OBJ_FILES +=  	obj/imgui.o \
+				 	obj/imgui_draw.o \
+				 	obj/imgui_widgets.o \
+				 	obj/imgui_demo.o \
+				 	obj/imgui_impl_glfw.o \
+				 	obj/imgui_impl_opengl3.o
+
 else
 	CXX_FLAGS += -O3
 	EXEC_NAME := $(EXEC_NAME)_release
 	OBJ_FILES := $(patsubst %.o, %.release.o, $(OBJ_FILES) )
+	OBJ_FILES := $(filter-out obj/editor.release.o, $(OBJ_FILES) )
 endif
 
 main_release main_debug : $(OBJ_FILES)
 	@echo Linking everything
 	$(CXX) $(CXX_FLAGS) $(OBJ_FILES) -Bstatic -o $(EXEC_NAME) $(patsubst %, -L%, $(LINKER_FOLDERS) ) $(patsubst %, -l%, $(LIBS) ) $(patsubst %, -I%, $(INCLUDE_PATHS))
+
+obj/imgui_impl_%.o : deps/imgui/examples/imgui_impl_%.cpp
+	@echo Compiling DearImGui implementation $@
+	$(CXX) $(CXX_FLAGS) $< -c -o $@  $(patsubst %, -I%, $(INCLUDE_PATHS))
+obj/imgu%.o : deps/imgui/imgu%.cpp
+	@echo Compiling DearImGui implementation $@
+	$(CXX) $(CXX_FLAGS) $< -c -o $@  $(patsubst %, -I%, $(INCLUDE_PATHS))
 
 obj/%.release.o obj/%.debug.o : src/%.cpp
 	@echo Compiling $@

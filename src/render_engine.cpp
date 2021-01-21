@@ -196,7 +196,7 @@ Color               RenderEngine::get_clear_color() const{
     return clear_color;
 }
 void                RenderEngine::update( const std::vector<RenderData>& draws  ){
-    
+
     GL_CALL( glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
     GL_CALL( glClearColor(  float(clear_color.r)/255.0f,
                             float(clear_color.g)/255.0f,
@@ -233,8 +233,6 @@ void                RenderEngine::update( const std::vector<RenderData>& draws  
         GL_CALL( glDrawElements(GL_TRIANGLES,(render_data.vertex_data_count/4)*6,GL_UNSIGNED_SHORT,nullptr ) );
         GL_CALL( m_VBO = (VertexData*)glMapBuffer(GL_ARRAY_BUFFER , GL_WRITE_ONLY ) );
     }
-
-    glfwSwapBuffers(glfw_window);
 
 };
 

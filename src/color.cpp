@@ -54,11 +54,6 @@ template<> lua_CFunction    LuaEngine::create_lua_constructor<Color>( ){
 }
 
 
-template<> float    Color::as_float<'r'>() const{ return float(r)/255.0f; }
-template<> float    Color::as_float<'g'>() const{ return float(g)/255.0f; }
-template<> float    Color::as_float<'b'>() const{ return float(b)/255.0f; }
-template<> float    Color::as_float<'a'>() const{ return float(a)/255.0f; }
-
 Color::Color( float r , float g , float b , float a ){
     this->r = r * 255U;
     this->g = g * 255U;
@@ -77,6 +72,13 @@ Color::Color( int color ){
     this->b = (color >> 8)  | 255;
     this->a = (color >> 0)  | 255;
 }
+Color::Color( int r , int g , int b , int a ){
+    this->r = r;
+    this->g = g;
+    this->b = b;
+    this->a = a;
+}
+    
 Color   Color::operator*   (const Color  c     ) const {
     return Color( r*c.r / (65025.0f) ,
                   g*c.g / (65025.0f) ,
@@ -94,6 +96,23 @@ Color::operator std::string() const{
     sprintf(buff,"(%d, %d, %d)",r,g,b);
     return std::string(buff);
 }
+
+Color::ColorFloat  Color::to_float() const{
+    ColorFloat ret;
+    ret.r = float(r)/255.0f;
+    ret.g = float(g)/255.0f;
+    ret.b = float(b)/255.0f;
+    ret.a = float(a)/255.0f;
+    return ret;
+};
+Color  Color::ColorFloat::to_color() const{
+    Color ret;
+    ret.r = r*255U;
+    ret.g = g*255U;
+    ret.b = b*255U;
+    ret.a = a*255U;
+    return ret;
+};
 
 
 void Color::bind_methods(){

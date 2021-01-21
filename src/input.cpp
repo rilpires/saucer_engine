@@ -99,6 +99,9 @@ Input::InputEvent* Input::pop_event_queue(){
     } else return NULL;
 }
 void Input::mouse_pos_callback( GLFWwindow* glfw_window , double x_pos , double y_pos ){
+    #ifdef SAUCER_EDITOR
+        if(ImGui::GetIO().WantCaptureMouse) return;
+    #endif
     window_mouse_position = Vector2(x_pos,y_pos);
     Input::InputEvent* new_input_event = new Input::InputEvent();
     new_input_event->input_event_mouse_motion.is_solved = false;
@@ -113,6 +116,9 @@ void Input::mouse_pos_callback( GLFWwindow* glfw_window , double x_pos , double 
     event_queue.push_back( new_input_event );
 }
 void Input::key_callback( GLFWwindow* glfw_window , int key, int scancode, int action, int mods ){
+    #ifdef SAUCER_EDITOR
+        if(ImGui::GetIO().WantCaptureKeyboard) return;
+    #endif
     key_pressed[key] = (action!=RELEASED);
     Input::InputEvent* new_input_event = new Input::InputEvent();
     new_input_event->input_event_key.is_solved = false;
@@ -122,6 +128,9 @@ void Input::key_callback( GLFWwindow* glfw_window , int key, int scancode, int a
     event_queue.push_back( new_input_event );
 }
 void Input::mouse_button_callback( GLFWwindow* glfw_window , int button , int action , int mods ){
+    #ifdef SAUCER_EDITOR
+        if(ImGui::GetIO().WantCaptureMouse) return;
+    #endif
     mouse_pressed[button] = (action!=RELEASED);
     Input::InputEvent* new_input_event = new Input::InputEvent();
     new_input_event->input_event_mouse_button.is_solved = false;
@@ -131,6 +140,9 @@ void Input::mouse_button_callback( GLFWwindow* glfw_window , int button , int ac
     event_queue.push_back( new_input_event );
 }
 void    Input::char_callback( GLFWwindow* glfw_window , unsigned int unicode ){
+    #ifdef SAUCER_EDITOR
+        if(ImGui::GetIO().WantCaptureKeyboard) return;
+    #endif
     Input::InputEvent* new_input_event = new Input::InputEvent();
     new_input_event->input_event_char.is_solved = false;
     new_input_event->input_event_char.type = INPUT_EVENT_TYPE::CHAR;

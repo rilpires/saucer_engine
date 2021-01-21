@@ -10,3 +10,8 @@ deps/
 *.o
 *.obj
 
+# Executables
+main_debug
+main_release
+
+imgui.ini

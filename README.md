@@ -1,5 +1,5 @@
 # saucer_engine
-Game engine made with C++11, using OpenGL 3.1.
+Game engine made with C++11, using OpenGL 3.0 as rendering back-end.
 The focus on this engine was primarily for learning graphics programming, and then some low level game development in general. I'll be trying to do the best pratices to make this engine in a very modular way, so anyone can feel free to mess with some core features like physics.
 
 Currently I'm developing this engine alongside a simple game I'm making with it. My plan is to develop this engine until then.
@@ -17,12 +17,13 @@ Currently, apart from C++ STL libs, these are all third-party dependencies:
 - [OpenAL-soft 1.21.0](https://github.com/kcat/openal-soft/tree/openal-soft-1.21.0), for audio rendering.
 - [AudioFile 1.0.8](https://github.com/adamstark/AudioFile/tree/1.0.8) , for loading .WAV files.
 - [FreeType 2.10.4](https://www.freetype.org/index.html), for loading fonts.
+- [Dear ImGui 1.79](https://github.com/ocornut/imgui/tree/v1.79), for graphic editor interface
 
 Nexts TO-DO's for sure:
+- A very basic editor for setting up scenes, since scripts is being very verbose in this task. This come up suddenly because I tried Dear ImGui and it was very easy to construct an editor interface. Open source community is awesome!
 - Networking module
 - Packing resources to a proper release build
 - More audio formats, cursor and possibly positioning("3D") sound.
 Possibly TO-DO's:
 - Saving Scene/SceneNodes templates in files, JSON or YAML maybe
 - Imports for some popular tools (Aseprite, Tiled, ... )
-- A very basic editor (probably very very far)

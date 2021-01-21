@@ -1,8 +1,10 @@
 #ifndef CORE_H
 #define CORE_H
 
-#define GLEW_STATIC
-#include <math.h>
+
+#ifdef SAUCER_EDITOR
+    #include "editor.h"
+#endif
 
 #include "saucer_object.h"
 

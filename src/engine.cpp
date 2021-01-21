@@ -6,6 +6,12 @@
 // How many last frames should be accounted to calculate frames per second
 #define FPS_FRAMES_TO_ACCOUNT 30
 
+#ifdef SAUCER_EDITOR
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+#endif
+
 RenderEngine*       Engine::render_engine   = nullptr;
 AudioEngine*        Engine::audio_engine    = nullptr;
 Scene*              Engine::current_scene   = nullptr;
@@ -24,7 +30,10 @@ void            Engine::initialize(){
     glfwSetKeyCallback( render_engine->get_glfw_window() , Input::key_callback );
     glfwSetMouseButtonCallback( render_engine->get_glfw_window() , Input::mouse_button_callback );
     glfwSetCharCallback( render_engine->get_glfw_window() , Input::char_callback );
-
+    
+    #ifdef SAUCER_EDITOR
+    SaucerEditor::setup();
+    #endif
 }
 void            Engine::close(){
     if(current_scene) delete current_scene;
@@ -39,6 +48,13 @@ void            Engine::update(){
     last_uptimes.push_front( get_uptime() );
     if( last_uptimes.size() > FPS_FRAMES_TO_ACCOUNT ) last_uptimes.pop_back();
     if (current_scene) current_scene->loop();
+
+    #ifdef SAUCER_EDITOR
+        SaucerEditor::update();
+    #endif
+
+    glfwSwapBuffers( render_engine->get_glfw_window() );
+
 }
 double          Engine::get_uptime(){
     return glfwGetTime();
