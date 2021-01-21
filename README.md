@@ -21,9 +21,10 @@ Currently, apart from C++ STL libs, these are all third-party dependencies:
 
 Nexts TO-DO's for sure:
 - A very basic editor for setting up scenes, since scripts is being very verbose in this task. This come up suddenly because I tried Dear ImGui and it was very easy to construct an editor interface. Open source community is awesome!
+- Saving Scene/SceneNodes templates in files, JSON or YAML maybe
 - Networking module
 - Packing resources to a proper release build
 - More audio formats, cursor and possibly positioning("3D") sound.
+
 Possibly TO-DO's:
-- Saving Scene/SceneNodes templates in files, JSON or YAML maybe
 - Imports for some popular tools (Aseprite, Tiled, ... )
