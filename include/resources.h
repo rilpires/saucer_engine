@@ -25,7 +25,9 @@ class Resource : public SaucerObject {
 };
 
 
-class ResourceManager {
+class ResourceManager : public SaucerObject {
+    REGISTER_SAUCER_OBJECT(ResourceManager,SaucerObject);
+    
     private:        
         static std::unordered_map<std::string,SaucerObject::SaucerId> id_by_path;
         

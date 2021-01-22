@@ -6,7 +6,6 @@ int main( int argc , char** argv ){
     for( int i = 0 ; i < argc ; i++ )
         saucer_print( "argv[" , i , "] = " , argv[i] );  
     
-
     Engine::initialize();
     Engine::set_window_size( Vector2(640,480) );
     Engine::set_window_title("SaucerEngine");
@@ -20,7 +19,7 @@ int main( int argc , char** argv ){
     Engine::set_current_scene( scene );
     root->set_script( LuaScriptResource::get_resource("res/scripts/test.lua") );
     scene->set_root_node(root);
-
+    
     while( !Engine::should_close() )
         Engine::update();
     Engine::close();

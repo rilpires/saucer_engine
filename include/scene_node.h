@@ -85,13 +85,21 @@ class SceneNode : public SaucerObject {
         template< typename T> 
         T*                      get_component() const;
         template< typename T> 
-        T*                      create_component( );
+        void                    create_component( );
         template< typename T> 
         void                    destroy_component( );
+        void                    destroy_component( Component* c );
 
+        // These are public but should not be binded to lua:
+
+        std::vector<Component*> get_attached_components() const;
+
+        static const std::unordered_map<std::string, void(SceneNode::*)() >& __get_component_constructors();
     private:
-        void                exiting_tree();
+        static std::unordered_map<std::string, void(SceneNode::*)() > __component_constructors;
+
         void                entered_tree();
+        void                exiting_tree();
 
     public:
         static void         bind_methods();

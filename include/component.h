@@ -79,13 +79,16 @@ LuaEngine::register_function( "SceneNode" , std::string("get_")+std::string(lowe
 });                                                                                                                     \
 LuaEngine::register_function( "SceneNode" , std::string("create_")+std::string(lowercase_name) , [](lua_State* ls){     \
     SceneNode* node = LuaEngine::pop<SceneNode*>(ls);                                                                   \
-    LuaEngine::push( ls , node->create_component<C>() );                                                                \
+    node->create_component<C>();                                                                                        \
+    LuaEngine::push( ls , node->get_component<C>() );                                                                   \
     return 1;                                                                                                           \
 });                                                                                                                     \
 LuaEngine::register_function( "SceneNode" , std::string("destroy_")+std::string(lowercase_name) , [](lua_State* ls){    \
     SceneNode* node = LuaEngine::pop<SceneNode*>(ls);                                                                   \
     node->destroy_component<C>();                                                                                       \
     return 0;                                                                                                           \
-});   
+});                                                                                                                     \
+__component_constructors[C::class_name] = (void(SceneNode::*)())&SceneNode::create_component<C>;  
+
 
 #endif

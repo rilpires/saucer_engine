@@ -5,7 +5,10 @@
 #include <vector>  // std
 #include "vector.h" // Vector2
 #include "debug.h"
+#include "saucer_object.h"
+
 #include <list>
+
 
 enum INPUT_EVENT_TYPE { KEY , 
                         MOUSE_BUTTON , 
@@ -22,7 +25,8 @@ enum INPUT_EVENT_MOUSE_BUTTON { BUTTON_LEFT     = GLFW_MOUSE_BUTTON_LEFT ,
 
 
 
-class Input {
+class Input : public SaucerObject {
+    REGISTER_SAUCER_OBJECT(Input,SaucerObject)
     
     public:
 

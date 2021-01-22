@@ -3,7 +3,12 @@
 
 SaucerObject::SaucerId SaucerObject::open_id = 1;
 std::unordered_map<SaucerObject::SaucerId,SaucerObject*> SaucerObject::saucer_objs;
+uint32_t __open_saucer_class_id = 1;
 
+std::vector<void*>& __class_bind_methods(){
+    static std::vector<void*> ret;
+    return ret;
+}
 
 SaucerObject::SaucerObject(){
     id = open_id++;

@@ -3,6 +3,9 @@
 
 #define SHORT_MAX 0b0111111111111111
 
+std::unordered_map<std::string, void(SceneNode::*)() > SceneNode::__component_constructors;
+        
+
 SceneNode::SceneNode(){
     position = Vector2(0,0);
     scale = Vector2(1,1);
@@ -145,7 +148,7 @@ void                SceneNode::get_out(){
     set_scene(nullptr);
 }
 void                SceneNode::add_child( SceneNode* p_child_node ){
-    SAUCER_ASSERT(p_child_node!=nullptr);
+    SAUCER_ASSERT(p_child_node!=nullptr , "Trying to add a child SceneNode but it is null.");
     if(p_child_node->parent_node) saucer_err( "Trying to add a node as a child but it already has a parent. " ) 
     else{
         p_child_node->parent_node = this;
@@ -172,6 +175,27 @@ bool                SceneNode::get_inherits_transform() const{
 }
 void                SceneNode::set_inherits_transform(bool new_val){
     inherits_transform = new_val;
+}
+void                SceneNode::destroy_component( Component* c ){
+    SAUCER_ASSERT(c->get_node()==this , "Trying to destroy a component that isn't attached to the right SceneNode.");
+    auto it = attached_components.begin();
+    for( ; it != attached_components.end() ; it++ )
+        if( *it == c ) break;
+    if( it == attached_components.end() ){
+        saucer_err("Trying to destroy a component that isn't attached to a SceneNode.");
+        return;
+    }
+    attached_components.erase(it);
+    (*it)->erase_from_component_map();
+    delete (*it);
+}
+std::vector<Component*>   SceneNode::get_attached_components() const{
+    std::vector<Component*> ret;
+    for( Component* c : attached_components ) ret.push_back(c);
+    return ret;
+}
+const std::unordered_map<std::string, void(SceneNode::*)() >& SceneNode::__get_component_constructors() {
+    return __component_constructors;
 }
 void        SceneNode::entered_tree(){
     for( auto& child : children_nodes ) child->entered_tree();
@@ -230,6 +254,8 @@ void        SceneNode::bind_methods(){
     REGISTER_COMPONENT_HELPERS(AnchoredRect,"anchored_rect");
     REGISTER_COMPONENT_HELPERS(PatchRect,"patch_rect");
     REGISTER_COMPONENT_HELPERS(LabelRect,"label_rect");
+
+    
 
 }
 

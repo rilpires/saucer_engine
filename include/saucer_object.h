@@ -3,23 +3,40 @@
 
 #include <unordered_map>
 #include <vector>
+#include "debug.h"
 
+extern uint32_t __open_saucer_class_id;
+std::vector<void*>& __class_bind_methods();
+
+template<typename T>
+uint32_t get_next_saucer_class_id();
+
+
+template<typename T>
+struct SaucerClassId {
+    static const uint32_t value;
+};
+template<typename T>
+const uint32_t SaucerClassId<T>::value = get_next_saucer_class_id<T>(); 
 
 class SaucerObject {
 
-
     #define REGISTER_SAUCER_OBJECT(Class,ParentClass)\
-    public:                                                                         \
-        static constexpr const char* parent_class_name = ParentClass::class_name;   \
-        static constexpr const char* class_name = #Class;                           \
-        using parent_type = ParentClass;                                            \
+    public:                                                                                             \
+        static constexpr const char* parent_class_name = ParentClass::class_name;                       \
+        static constexpr const char* class_name = #Class;                                               \
+        using parent_type = ParentClass;                                                                \
+        virtual uint32_t my_saucer_class_id() const { return SaucerClassId<Class>::value; }             \
+        virtual const char* my_saucer_class_name() const { return #Class; }                             \
     ;
+
 
     public:
         using SaucerId = uint32_t ; 
         static constexpr const char* parent_class_name  = "";  
         static constexpr const char* class_name         = "SaucerObject";
         using parent_type = SaucerObject;
+    
     private:
 
         static SaucerId open_id;
@@ -39,5 +56,14 @@ class SaucerObject {
 };
 
 typedef SaucerObject::SaucerId SaucerId;
+
+
+template<typename T>
+uint32_t get_next_saucer_class_id(){
+    __class_bind_methods().push_back( (void*)(T::bind_methods) );
+    saucer_print("Generating class id = " , __open_saucer_class_id , " for class " , T::class_name );
+    return __open_saucer_class_id++;
+}
+
 
 #endif

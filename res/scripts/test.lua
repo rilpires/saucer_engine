@@ -1,16 +1,22 @@
 
 function _entered_tree()
+    this:set_name("gold")
     this:set_modulate(Color(0.5,1,1,1))
     window_size = Engine.get_window_size()
     wall = SceneNode.new()
+    wall:set_name("Wall")
     wall_body = wall:create_body()
     wall_body:set_body_type( BodyType.STATIC )
     for index,center in { Vector2(-window_size.x,0) , Vector2(window_size.x,0) , Vector2(0,window_size.y) } do
         wall_body:create_rectangle_shape( window_size , center )
     end
     this:add_child(wall)
-    this:create_camera():set_active(true)
-    this:get_camera():set_zoom(Vector2(1,1))
+    
+    this.camera_node = SceneNode.new()
+    this.camera_node:set_name("Camera")
+    this.camera_node:create_camera()
+    this:add_child(this.camera_node)
+    
 end
 
 function _frame_start( dt_seconds )

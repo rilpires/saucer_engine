@@ -13,9 +13,9 @@
 
 // Runtime assert. Enabled only if DEBUG is defined
 #ifdef DEBUG
-#define SAUCER_ASSERT(x) ;\
+#define SAUCER_ASSERT(x,msg) ;\
     if( ((bool)(x)) == false ){                 \
-        saucer_err("Assertion failed: " , #x ); \
+        saucer_err("Assertion failed: " , #x , "\n" , msg ); \
     }                                           
 #else
     #define SAUCER_ASSERT(x) ;

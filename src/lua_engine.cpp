@@ -4,7 +4,6 @@
 #include "debug.h"
 #include <set>
 
-
 lua_State*  LuaEngine::ls = NULL;
 int         LuaEngine::kb_memory_used = 0;
 int         LuaEngine::kb_memory_threshold = 0;
@@ -80,6 +79,7 @@ template<> void     LuaEngine::push_metatable<SceneNode>( lua_State* ls ){
     lua_pushstring(ls,"__index");
     lua_pushcfunction(ls,[](lua_State* ls){
         SceneNode* node = (SceneNode*)SaucerObject::from_saucer_id( *(SaucerId*)lua_touserdata(ls,-2) );
+        SAUCER_ASSERT(node , "Trying to access a SceneNode that was previously freed.");
         const char* arg = lua_tostring(ls,-1);
         lua_pop(ls,2);
         lua_CFunction nested_function = LuaEngine::recover_nested_function<SceneNode>(arg);
@@ -140,31 +140,17 @@ void            LuaEngine::initialize(){
     luaopen_math(ls);
     luaopen_table(ls);
     lua_settop(ls,0); // idk why but previous luaopen_[lib] changes the stack so I clean it
-    saucer_print( "Loading lua binded methods..." )
+    saucer_print( "Loading lua binded methods..." , __class_bind_methods().size() , " on total" );
+
+    for( void* bind_method_pointer : __class_bind_methods() ) 
+        (*(void(*)())(bind_method_pointer))(); // Ugh
+    
+    // These aren't saucer objects so are not included in __class_bind_methods
     Color::bind_methods();
-    Input::bind_methods();
-    Scene::bind_methods();
-    Engine::bind_methods();
-    Camera::bind_methods();
-    Sprite::bind_methods();
     Vector2::bind_methods();
     Vector3::bind_methods();
-    Resource::bind_methods();
-    PatchRect::bind_methods();
-    Component::bind_methods();
-    SceneNode::bind_methods();
     Transform::bind_methods();
-    LabelRect::bind_methods();    
-    SaucerObject::bind_methods();
-    FontResource::bind_methods();
-    RenderObject::bind_methods();
-    AudioEmitter::bind_methods();
-    AnchoredRect::bind_methods();
-    CollisionBody::bind_methods();
-    AudioResource::bind_methods();
-    ResourceManager::bind_methods();
-    TextureResource::bind_methods();
-    LuaScriptResource::bind_methods();
+    
     kb_memory_threshold = lua_getgcthreshold(ls);
     kb_memory_used = lua_getgccount(ls);
     saucer_print( "Creating lua enviroment..." )
@@ -422,8 +408,7 @@ void            LuaEngine::create_actor_env( SceneNode* new_actor ){
     change_current_actor_env(old_actor);
 }
 void            LuaEngine::destroy_actor_env( SceneNode* actor ){
-    SAUCER_ASSERT(actor);
-    describe_stack();
+    SAUCER_ASSERT(actor,"Trying to destroy a Lua actor env but actor is null.");
     if(current_actor==actor) change_current_actor_env(nullptr);
     lua_pushstring(ls,"_SAUCER");
     lua_gettable(ls,LUA_GLOBALSINDEX);
@@ -433,7 +418,6 @@ void            LuaEngine::destroy_actor_env( SceneNode* actor ){
     lua_pushnil(ls);
     lua_settable(ls,-3);
     lua_pop(ls,2);
-    describe_stack();
 }
 void            LuaEngine::execute_callback( const char* callback_name , SceneNode* actor ){
     if( actor->get_script() == NULL ) return;

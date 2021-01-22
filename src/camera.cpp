@@ -13,6 +13,7 @@ Camera::Camera() {
     bottom_limit = -999999;   
 }
 Camera::~Camera(){
+    if( get_node() && get_node()->get_scene() ) set_active(false);
 }
 Vector2 Camera::get_zoom() const {
     return zoom;

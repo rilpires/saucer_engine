@@ -94,12 +94,12 @@ std::vector<RenderData> PatchRect::generate_render_data() {
 }
 
 short PatchRect::get_margin(int border) const {
-    SAUCER_ASSERT( border >= 0 && border <= 4 );
+    SAUCER_ASSERT( border >= 0 && border <= 4 , "Invalid border index(get_margin)");
     return margins[border];
 }
 
 void PatchRect::set_margin(int border, short new_val) {
-    SAUCER_ASSERT( border >= 0 && border <= 4 );
+    SAUCER_ASSERT( border >= 0 && border <= 4 , "Invalid border index(set_margin)");
     margins[border] = new_val;
 }
 

@@ -18,12 +18,10 @@ AnchoredRect::AnchoredRect() {
 AnchoredRect::~AnchoredRect() {
     if( attached_node && attached_node->get_scene() ){
         Scene* scene = attached_node->get_scene();
-        if(  scene->get_current_hovered_anchored_rect() == this ){
+        if( scene->get_current_hovered_anchored_rect() == this )
             scene->set_current_hovered_anchored_rect(nullptr);
-        }
-        if( scene->get_current_focused_anchored_rect() == this ){
+        if( scene->get_current_focused_anchored_rect() == this )
             scene->set_current_focused_anchored_rect(nullptr);
-        }
     }
 }
 std::vector<RenderData>  AnchoredRect::generate_render_data(){
