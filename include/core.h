@@ -2,12 +2,7 @@
 #define CORE_H
 
 
-#ifdef SAUCER_EDITOR
-    #include "editor.h"
-#endif
-
 #include "saucer_object.h"
-
 #include "saucer_object.h"
 #include "engine.h"
 #include "lua_engine.h"
@@ -32,6 +27,8 @@
 #include "debug.h"
 #include "scene.h"
 #include "scene_node.h"
+#include "file.h"
+#include "editor.h"
 
 
 #endif

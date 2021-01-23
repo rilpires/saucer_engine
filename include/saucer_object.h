@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <vector>
 #include "debug.h"
+#include "yaml-cpp/yaml.h"
 
 extern uint32_t __open_saucer_class_id;
 std::vector<void*>& __class_bind_methods();
@@ -18,6 +19,8 @@ struct SaucerClassId {
 };
 template<typename T>
 const uint32_t SaucerClassId<T>::value = get_next_saucer_class_id<T>(); 
+
+typedef YAML::Node YamlNode; 
 
 class SaucerObject {
 
@@ -48,7 +51,9 @@ class SaucerObject {
         SaucerObject();
         SaucerId                get_saucer_id() const ;
         static SaucerObject*    from_saucer_id( const SaucerId& ); 
-        static void             bind_methods();        
+        static void             bind_methods();
+        virtual YamlNode        to_yaml_node() const ;
+        virtual void            from_yaml_node( YamlNode );
 
     protected:
         virtual ~SaucerObject();

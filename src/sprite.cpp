@@ -1,6 +1,5 @@
 #include "sprite.h"
-#include "resources/image.h"
-#include "lua_engine.h"
+#include "core.h"
 #include <algorithm>
 
 std::unordered_multimap< SaucerId , Sprite* > Sprite::component_from_node;
@@ -54,7 +53,6 @@ std::vector<RenderData>  Sprite::generate_render_data(){
         render_data.texture_id  = texture->get_texture_id();
         render_data.shader_program = get_current_shader();
         render_data.use_tree_transform = true;
-        render_data.use_view_transform = true;
 
         ret.push_back(render_data);
     }
@@ -123,4 +121,25 @@ void            Sprite::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(Sprite,set_region_top_left);
     REGISTER_LUA_MEMBER_FUNCTION(Sprite,set_region_bottom_right);
 
+}
+YamlNode        Sprite::to_yaml_node() const {
+    YamlNode ret;
+    if(texture) ret["texture"] = texture->get_path();
+    ret["h_frames"] = h_frames;
+    ret["v_frames"] = v_frames;
+    ret["frame_index"] = frame_index;
+    ret["centralized"] = centralized;
+    ret["region_top_left"] = region_top_left;
+    ret["region_bottom_right"] = region_bottom_right;
+    return ret;
+}
+void            Sprite::from_yaml_node( YamlNode yaml_node ){
+    if( yaml_node["texture"].IsDefined() )
+        set_texture((TextureResource*)ResourceManager::get_resource(yaml_node["texture"].as<std::string>()));
+    set_h_frames( yaml_node["h_frames"].as<decltype(h_frames)>() );
+    set_v_frames( yaml_node["v_frames"].as<decltype(v_frames)>() );
+    set_frame_index( yaml_node["frame_index"].as<decltype(frame_index)>() );
+    set_centralized( yaml_node["centralized"].as<decltype(centralized)>() );
+    set_region_top_left( yaml_node["region_top_left"].as<decltype(region_top_left)>() );
+    set_region_bottom_right( yaml_node["region_bottom_right"].as<decltype(region_bottom_right)>() );
 }

@@ -90,6 +90,19 @@ class Engine : public SaucerObject{
          * @return Vector2 
          */
         static Vector2          get_window_size();
+        /**
+         * @brief Set the window size. Note that this is only a shortcut for RenderEngine::set_viewport_size()
+         * 
+         * @param new_size Vector2
+         */
+        static void             set_viewport_size( Vector2 new_size );
+        
+        /**
+         * @brief Get the window size object. Note that this is only a shortcut for RenderEngine::get_viewport_size()
+         * 
+         * @return Vector2 
+         */
+        static Vector2          get_viewport_size();
         
         /**
          * @brief Set the window position if not fullscreen. (0,0) is the top-left corner of the monitor.

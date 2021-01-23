@@ -31,7 +31,6 @@ std::vector<RenderData>  LabelRect::generate_render_data(){
         render_data.shader_program = get_current_shader();
         render_data.texture_id = font->get_texture_id();
         render_data.use_tree_transform = false;
-        render_data.use_view_transform = !get_starts_on_viewport();
         render_data.tex_is_alpha_mask = true;
         
         render_data.model_transform = get_parent_global_transform() * Transform().translate(   get_rect_pos() );
@@ -236,4 +235,27 @@ void            LabelRect::bind_methods() {
     REGISTER_LUA_MEMBER_FUNCTION( LabelRect , set_editable );
 
 }
+YamlNode        LabelRect::to_yaml_node() const {
+    YamlNode ret = AnchoredRect::to_yaml_node();
+    
+    ret["text"] = text;
+    ret["font_size"] = font_size;
+    ret["line_gap"] = line_gap;
+    ret["align_flags"] = align_flags;
+    ret["editable"] = editable;
+    if(font)ret["font"] = font->get_path();
+    
+    return ret;
+}
+void            LabelRect::from_yaml_node( YamlNode yaml_node ){
+    AnchoredRect::from_yaml_node(yaml_node);
 
+    set_text( yaml_node["text"].as<decltype(text)>() );
+    set_font_size( yaml_node["font_size"].as<decltype(font_size)>() );
+    set_line_gap( yaml_node["line_gap"].as<decltype(line_gap)>() );
+    set_align_flags( yaml_node["align_flags"].as<decltype(align_flags)>() );
+    set_editable( yaml_node["editable"].as<decltype(editable)>() );
+
+    if( yaml_node["font"].IsDefined() )
+        font = (FontResource*)ResourceManager::get_resource( yaml_node["font"].as<std::string>() );
+}

@@ -169,3 +169,16 @@ void         AudioEmitter::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION( AudioEmitter , pause )
 
 }
+YamlNode        AudioEmitter::to_yaml_node() const {
+    YamlNode ret;
+    if(audio_resource) ret["audio_resource"] = audio_resource->get_path();
+    ret["looping"] = looping;
+    ret["positional"] = positional; 
+    return ret;
+}
+void            AudioEmitter::from_yaml_node( YamlNode yaml_node ) {
+    if( yaml_node["audio_resource"].IsDefined() )
+        set_audio_resource( (AudioResource*)ResourceManager::get_resource(yaml_node["audio_resource"].as<std::string>()) );
+    set_positional( yaml_node["positional"].as<decltype(positional)>() );
+    set_looping(    yaml_node["looping"].as<decltype(looping)>() );
+}

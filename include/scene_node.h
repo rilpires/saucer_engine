@@ -72,6 +72,7 @@ class SceneNode : public SaucerObject {
         LuaScriptResource*      get_script() const ;
         void                    get_out();
         void                    add_child( SceneNode* p_child_node );
+        SceneNode*              get_node( std::string child_name ) const;
         SceneNode*              get_parent( ) const ;
         Scene*                  get_scene() const;
         void                    queue_free();
@@ -103,6 +104,8 @@ class SceneNode : public SaucerObject {
 
     public:
         static void         bind_methods();
+        YamlNode            to_yaml_node() const override ;
+        void                from_yaml_node( YamlNode ) override ;
 
 };
 

@@ -41,6 +41,8 @@ class Sprite : public RenderObject {
         
 
         static void     bind_methods();
+        YamlNode        to_yaml_node() const override ;
+        void            from_yaml_node( YamlNode ) override ;
 
 };
 

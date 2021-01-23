@@ -160,6 +160,10 @@ void                SceneNode::add_child( SceneNode* p_child_node ){
     }
 
 }
+SceneNode*          SceneNode::get_node( std::string child_name ) const{
+    for( auto c : children_nodes ) if(c->get_name()==child_name) return c;
+    return nullptr;
+}
 SceneNode*          SceneNode::get_parent( ) const { return parent_node;};
 Scene*              SceneNode::get_scene() const{
     return scene;
@@ -240,6 +244,7 @@ void        SceneNode::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_script);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_out);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,add_child);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_node);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_parent);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_scene);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_children);
@@ -258,5 +263,54 @@ void        SceneNode::bind_methods(){
     
 
 }
+YamlNode    SceneNode::to_yaml_node() const{
+    YamlNode ret;
+    
+    ret["name"] = name;
+    ret["position"] = position;
+    ret["scale"] = scale;
+    ret["rotation_degrees"] = rotation_degrees;
+    ret["z"] = z;
+    ret["relative_z"] = relative_z;
+    ret["modulate"] = modulate;
+    ret["self_modulate"] = self_modulate;
+    ret["inherits_transform"] = inherits_transform;
+    ret["visible"] = visible;
+    if( lua_script ) ret["lua"] = lua_script->get_path();
+    
 
+    for( auto c : children_nodes ) ret["children"].push_back(c->to_yaml_node());
+    for( auto c : attached_components) ret["components"][c->get_component_name()] = c->to_yaml_node();
 
+    return ret;
+}
+void    SceneNode::from_yaml_node( YamlNode yaml_node ) {
+    SAUCER_ASSERT( children_nodes.size()==0 , "A SceneNode when instantied from YamlNode should not have any children." );
+    SAUCER_ASSERT( attached_components.size()==0 , "A SceneNode when instantied from YamlNode should not have any component."  );
+    SAUCER_ASSERT( lua_script==nullptr , "A SceneNode when instantied from YamlNode should not have a lua script attached." );
+    SAUCER_ASSERT( scene==nullptr , "A SceneNode when instantied from YamlNode should not be inside a scene." );
+    set_name               ( yaml_node["name"].as<decltype(name)>()                             );
+    set_position           ( yaml_node["position"].as<decltype(position)>()                     );
+    set_scale              ( yaml_node["scale"].as<decltype(scale)>()                           );
+    set_rotation_degrees   ( yaml_node["rotation_degrees"].as<float>()                          );
+    set_z                  ( yaml_node["z"].as<decltype(z)>()                                   );
+    set_relative_z         ( yaml_node["relative_z"].as<decltype(relative_z)>()                 );
+    set_modulate           ( yaml_node["modulate"].as<decltype(modulate)>()                     );
+    set_self_modulate      ( yaml_node["self_modulate"].as<decltype(self_modulate)>()           );
+    set_inherits_transform ( yaml_node["inherits_transform"].as<decltype(inherits_transform)>() );
+    set_visible            ( yaml_node["visible"].as<decltype(visible)>()                       );
+    if( yaml_node["lua"].IsDefined() )
+        set_script( (LuaScriptResource*)ResourceManager::get_resource(yaml_node["lua"].as<std::string>())); 
+    for( auto c : yaml_node["children"] ){
+        SceneNode* new_child = new SceneNode();
+        new_child->from_yaml_node( c );
+        add_child(new_child);
+    }
+    for( auto c : yaml_node["components"] ){
+        std::string component_name = c.first.as<std::string>();
+        void(SceneNode::*f)() = __component_constructors[component_name] ;
+        (this->*f)();
+        attached_components.back()->from_yaml_node(c.second);
+    }
+
+}

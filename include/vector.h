@@ -31,11 +31,7 @@ struct Vector2 {
     bool     operator!= (const Vector2  v     )       ;
     bool     operator== (const Vector2  v     )       ;
 
-    operator std::string() const{
-        char buff[48];
-        sprintf(buff , "Vector2( %.4f , %.4f )" , x , y );
-        return std::string(buff);
-    }
+    std::string to_str() const;
 
     static void bind_methods();
 
@@ -64,11 +60,7 @@ struct Vector3 {
     void     operator/= (const Vector3  v     )       ;
     void     operator/= (const float    div   )       ;
 
-    operator std::string() const{
-        char buff[48];
-        sprintf(buff , "Vector3( %.4f , %.4f , %.4f )" , x , y , z );
-        return std::string(buff);
-    }
+    std::string to_string() const;
 
     static void bind_methods();
 };

@@ -304,3 +304,25 @@ void    CollisionBody::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION( CollisionBody , set_collision_mask_bit );
 
 }
+YamlNode        CollisionBody::to_yaml_node() const {
+    YamlNode ret;
+    ret["restitution"] = restitution;
+    ret["friction"] = friction;
+    ret["density"] = density;
+    ret["sensor"] = sensor;
+    ret["fixed_rotation"] = fixed_rotation;
+    ret["collision_layer"] = collision_layer;
+    ret["collision_mask"] = collision_mask;
+    ret["body_type"] = (int)body_type;
+    return ret;
+}
+void            CollisionBody::from_yaml_node( YamlNode yaml_node ){
+    set_restitution( yaml_node["restitution"].as<decltype(restitution)>() );
+    set_friction( yaml_node["friction"].as<decltype(friction)>() );
+    set_density( yaml_node["density"].as<decltype(density)>() );
+    set_sensor( yaml_node["sensor"].as<decltype(sensor)>() );
+    set_fixed_rotation( yaml_node["fixed_rotation"].as<decltype(fixed_rotation)>() );
+    collision_layer = yaml_node["collision_layer"].as<decltype(collision_layer)>();
+    collision_layer = yaml_node["collision_mask"].as<decltype(collision_mask)>();
+    set_body_type( yaml_node["body_type"].as<decltype(body_type)>() );
+}

@@ -5,38 +5,18 @@ using namespace ImGui;
 
 SaucerId SaucerEditor::node_id_selected = 0;
 
+Vector2 to_Vector2( ImVec2 v ){ return Vector2(v.x,v.y); }
+ImVec2 to_ImVec2( Vector2 v ){ return ImVec2(v.x,v.y); }
+
 void SaucerEditor::setup(){
     IMGUI_CHECKVERSION();
     CreateContext();
+    
     ImGuiIO& io = GetIO(); (void)io;
     StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL( Engine::get_render_engine()->get_glfw_window(), true );
     ImGui_ImplOpenGL3_Init("#version 150");
 }
-
-void tree_recursive( SceneNode* node ){
-    bool b = TreeNodeEx(    (void*)node->get_saucer_id(),
-                            ImGuiTreeNodeFlags_OpenOnArrow + ImGuiTreeNodeFlags_SpanFullWidth , 
-                            node->get_name().c_str() );
-    if( IsItemClicked() ) SaucerEditor::node_id_selected = node->get_saucer_id();
-    if( b ){
-        for( auto child : node->get_children() ) tree_recursive(child);
-        TreePop();
-    }
-}
-
-#define PROPERTY_VEC2(obj,prop_name)\
-    Vector2 prop_name = obj->get_##prop_name(); if( InputFloat2(#prop_name,(float*)&prop_name,"%.2f") ) obj->set_##prop_name(prop_name);
-#define PROPERTY_FLOAT(obj,prop_name)\
-    float prop_name = obj->get_##prop_name(); if( InputFloat(#prop_name,&prop_name,0,0,"%.2f") ) obj->set_##prop_name(prop_name);
-#define PROPERTY_COLOR(obj,prop_name)\
-    Color::ColorFloat prop_name = obj->get_##prop_name().to_float(); if( ColorEdit4(#prop_name,(float*)&prop_name,0) ) obj->set_##prop_name(prop_name.to_color());
-#define PROPERTY_STRING(obj,prop_name)\
-    std::string prop_name = obj->get_##prop_name(); if( InputText(#prop_name,&prop_name) ) obj->set_##prop_name(prop_name);
-#define PROPERTY_INT(obj,prop_name)\
-    int prop_name = obj->get_##prop_name(); if( InputInt(#prop_name,&prop_name) ) obj->set_##prop_name(prop_name);
-#define PROPERTY_BOOL(obj,prop_name)\
-    bool prop_name = obj->get_##prop_name(); if( Checkbox(#prop_name,&prop_name) ) obj->set_##prop_name(prop_name);
 
 
 void inspector(){
@@ -62,7 +42,7 @@ void inspector(){
                                 ImGuiTreeNodeFlags_Framed + ImGuiTreeNodeFlags_SpanFullWidth ,
                                 component->my_saucer_class_name() );
             if( b ){
-                Text("Componente blablabl");
+                component->push_editor_items();
                 if(Button("Delete component")) selected_node->destroy_component(component);
                 TreePop();
             }
@@ -74,23 +54,72 @@ void inspector(){
             OpenPopup("comps");
         }
         if( BeginPopup("comps") ){
-            
             for( auto it : SceneNode::__get_component_constructors() ){
                 if( MenuItem(it.first.c_str()) ){
                     (selected_node->*it.second)();
                 }
             }
-
             EndPopup();
         }
     }
+}
+
+void SaucerEditor::push_node_tree( SceneNode* node ){
+
+    bool b = TreeNodeEx(    (void*)node->get_saucer_id(),
+                            ImGuiTreeNodeFlags_OpenOnArrow + ImGuiTreeNodeFlags_SpanFullWidth + ImGuiTreeNodeFlags_Selected*(node->get_saucer_id()==SaucerEditor::node_id_selected) , 
+                            node->get_name().c_str() );
+    if( IsItemClicked() ) SaucerEditor::node_id_selected = node->get_saucer_id();
+    if( b ){
+        for( auto child : node->get_children() ) push_node_tree(child);
+        TreePop();
+    }
+}
+void SaucerEditor::push_render_window(){
+
+    SetNextWindowBgAlpha(0);
+    bool render_is_open = Begin( "Render" , 0 ,   ImGuiWindowFlags_NoScrollbar 
+                                                + ImGuiWindowFlags_NoScrollWithMouse 
+                                                + ImGuiWindowFlags_MenuBar );
+    Vector2 available_sizes[] = {
+        Vector2(320,240), 
+        Vector2(640,480), 
+        Vector2(800,600) , 
+        Vector2(1024,768) , 
+        Vector2(1280,720) , 
+        Vector2(1366,768) 
+    };
+    BeginMenuBar();
+    if( BeginMenu("Set size") ){
+        for( auto v : available_sizes )
+            if( MenuItem( v.to_str().c_str() ) ){
+                Vector2 window_size = to_Vector2(GetWindowSize());
+                Vector2 content_size = to_Vector2(GetContentRegionAvail());
+                Vector2 corrected_window_size = v + window_size - content_size;
+                SetWindowSize( "Render" , to_ImVec2(corrected_window_size) );
+            }
+        EndMenu();
+    }
+    EndMenuBar();
+    
+
+    if(render_is_open) {
+
+        Engine::get_render_engine()->set_viewport_position(  to_Vector2(GetWindowPos()) + to_Vector2(GetWindowContentRegionMin()) );
+        Engine::get_render_engine()->set_viewport_size( to_Vector2(GetContentRegionAvail() ) );
+    } else
+        Engine::get_render_engine()->set_viewport_size(Vector2(0,0));
+    // if( IsMouseHoveringRect( ImVec2(render_pos.x,render_pos.y) , ImVec2(render_pos.x+render_size.x,render_pos.y+render_size.y) ) ){
+    //     ImGui::GetIO().WantCaptureMouse = false;
+    //     ImGui::GetIO().WantSetMousePos = false;
+    // }
+    End();
 }
 
 void SaucerEditor::update(){
 
     SceneNode* root_node = Engine::get_current_scene()->get_root_node();
     SceneNode* selected_node = (SceneNode*)SaucerObject::from_saucer_id(SaucerEditor::node_id_selected);
-    if( !root_node ) return;
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -98,27 +127,32 @@ void SaucerEditor::update(){
 
     ShowDemoWindow();
     
-    Begin("Scene tree" , 0 , ImGuiWindowFlags_NoMove + ImGuiWindowFlags_NoResize );   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+    Begin("Scene tree" );
     SetWindowPos( ImVec2(0,0) );
     SetWindowSize( ImVec2( 640 ,0) );
     
     
     if(Button("New node")){
         if( selected_node ) selected_node->add_child( new SceneNode() );
-        else if(root_node ) root_node->add_child( new SceneNode() );        
+        else if(root_node ) root_node->add_child( new SceneNode() );
+        else Engine::get_current_scene()->set_root_node(new SceneNode());  
     }
-    SameLine();
-    
+    SameLine();    
     if(Button("Delete node") && selected_node) selected_node->queue_free();
     
     Columns(2,"scene_tree_and_inspector",true);
     SetColumnWidth(0,250);
-    SetNextTreeNodeOpen(true);
-    tree_recursive(root_node);
+    if( root_node ){
+        SetNextTreeNodeOpen(true);
+        push_node_tree(root_node);
+    }
     NextColumn();
     inspector();
     End();
 
+    push_render_window();
+
     Render();
     ImGui_ImplOpenGL3_RenderDrawData(GetDrawData());
 }
+

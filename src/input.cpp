@@ -91,9 +91,10 @@ Vector2      Input::get_world_mouse_position(){
         Transform camera_global_transform = Transform();
         
         if( Engine::get_current_scene() )
-            if( Engine::get_current_scene()->get_current_camera() )
-                camera_global_transform = Engine::get_current_scene()->get_current_camera()->get_node()->get_global_transform();
-            
+            camera_global_transform = Engine::get_render_engine()->get_view_transform().inverted();
+
+        camera_global_transform.scale( Engine::get_viewport_size() / Engine::get_window_size() );
+
         return camera_global_transform * temp;
     } else return window_mouse_position;
 }

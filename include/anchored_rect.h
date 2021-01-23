@@ -46,6 +46,8 @@ class AnchoredRect : public RenderObject {
         Transform           get_parent_global_transform() const;
 
         static void         bind_methods();
+        YamlNode            to_yaml_node() const override ;
+        void                from_yaml_node( YamlNode ) override ;
 
     protected:
         virtual void        cb_mouse_entered( );

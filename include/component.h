@@ -34,6 +34,8 @@ class Component : public SaucerObject {
             }                                                                                               \
             parent_type::erase_from_component_map();                                                        \
         }                                                                                                   \
+        virtual std::string get_component_name() const{ return std::string(#C); }                           \
+                                                                                                            \
     protected:                                                                                              \
         void        attach_node( SceneNode* node ){                                                         \
             attached_node = node;                                                                           \
@@ -58,12 +60,12 @@ class Component : public SaucerObject {
         ~Component();
 
     public:
-        SceneNode*          get_node() const;
-
-        virtual void        entered_tree();
-        virtual void        exiting_tree();
-
-        static  void        bind_methods();
+        SceneNode*              get_node() const;
+        virtual void            entered_tree();
+        virtual void            exiting_tree();
+        static  void            bind_methods();
+        virtual void            push_editor_items();
+        virtual std::string     get_component_name() const;
     
 };
 

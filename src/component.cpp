@@ -26,3 +26,9 @@ void        Component::exiting_tree(){
 void        Component::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION( Component , get_node );
 }
+void        Component::push_editor_items(){
+    
+}
+std::string Component::get_component_name() const{ 
+    return std::string(class_name); 
+}

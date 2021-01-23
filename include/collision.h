@@ -92,6 +92,8 @@ class CollisionBody : public Component {
         float               get_rotation_degrees() const;
 
         static void         bind_methods();
+        YamlNode            to_yaml_node() const override ;
+        void                from_yaml_node( YamlNode ) override ;
 
 };
 

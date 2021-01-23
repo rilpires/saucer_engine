@@ -6,15 +6,11 @@
 #define INITIAL_WINDOW_SIZE Vector2(640,480)
 #define INITIAL_WINDOW_TITLE "SaucerEngine"
 
-void RenderData::fill_vertices_modulate(){
-    for( unsigned short i = 0 ; i < vertex_data_count ; i++ ) vertex_data[i].modulate = final_modulate;
-}
-
 RenderEngine::RenderEngine(){
     
+    window_size = INITIAL_WINDOW_SIZE;
     if( !glfwInit() ) saucer_err( "Failed to glfwInit()" )
     glfwSetErrorCallback([](int n , const char* s ){ saucer_err( "GLFW error #" , n , ":" , s ) });
-    window_size = INITIAL_WINDOW_SIZE;
     glfw_window = glfwCreateWindow( window_size.x , window_size.y , INITIAL_WINDOW_TITLE , NULL , NULL );
 
     // Defining context variables & other stuffs
@@ -33,13 +29,6 @@ RenderEngine::RenderEngine(){
     
     // saucer_print( "Renderer: " , glGetString( GL_RENDERER )  );
     // saucer_print( "Version: " , glGetString( GL_VERSION )  );
-
-    last_used_texture = 0;
-    view_transform = Transform();
-    basic_shader_resource = (ShaderResource*) ResourceManager::get_resource("res/shaders/basic.glsl");
-
-    set_current_shader( basic_shader_resource );
-    set_window_size(INITIAL_WINDOW_SIZE);
 
 
     GL_CALL( glGenBuffers(1, &vbo_index) );
@@ -77,9 +66,23 @@ RenderEngine::RenderEngine(){
     GL_CALL( glEnable(GL_BLEND) );
     GL_CALL( glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) );  
     GL_CALL( glDepthFunc(GL_LEQUAL) );
-
+    
+    const GLFWvidmode* glfw_video_mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+    physical_monitor_size.x = glfw_video_mode->width ; physical_monitor_size.y = glfw_video_mode->height;
+    last_used_texture = 0;
+    view_transform = Transform();
+    basic_shader_resource = (ShaderResource*) ResourceManager::get_resource("res/shaders/basic.glsl");
     glfw_custom_cursor = nullptr;
     clear_color = Color( (unsigned char)25 , (unsigned char)24 , (unsigned char)43 , (unsigned char)0 );
+    viewport_size = window_size;
+    viewport_position = Vector2(0,0);
+    set_current_shader( basic_shader_resource );
+    set_fullscreen(0);
+
+    viewport_position = viewport_size*0.25;
+    viewport_size *= 0.5;
+
+    glfwSetWindowSizeCallback(glfw_window,__window_resize_callback);
 
     //GLint d = 0;
     //GL_CALL( glGetIntegerv(GL_CONTEXT_PROFILE_MASK,&d))
@@ -111,23 +114,25 @@ void                RenderEngine::set_current_shader( ShaderResource* new_shader
             GL_CALL( view_transf_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"view_transf")  );
             GL_CALL( model_transf_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"model_transf")  );
             GL_CALL( viewport_size_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"viewport_size")  );
-            GL_CALL( ignore_camera_atrib_location = glGetUniformLocation(current_shader_resource->shader_program,"ignore_camera")  );
             GL_CALL( tex_is_alpha_mask_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"tex_is_alpha_mask")  );
             GL_CALL( modulate_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"uniform_modulate")  );
             GL_CALL( time_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"time")  );
-            GL_CALL( glUniform2f( viewport_size_attrib_location , window_size.x , window_size.y ) );
+            GL_CALL( glUniform2f( viewport_size_attrib_location , viewport_size.x , viewport_size.y ) );
             GL_CALL( glUniformMatrix4fv( view_transf_attrib_location , 1 , GL_FALSE , view_transform.m ) );
             GL_CALL( glUniform1f( time_attrib_location , Engine::get_uptime() ) );
         }
     }
 }
+Vector2             RenderEngine::get_physical_monitor_size() const{
+    return physical_monitor_size;
+}
 void                RenderEngine::set_window_size( Vector2 new_size ){
+    if( window_size == new_size || is_fullscreen() ) return;
     window_size = new_size;
     glfwSetWindowSize( glfw_window , window_size.x , window_size.y );
-    
-    GL_CALL( glUniform2f( viewport_size_attrib_location , window_size.x , window_size.y ) );
 };
 Vector2             RenderEngine::get_window_size() const {
+    if( is_fullscreen() ) return get_physical_monitor_size();
     return window_size;
 };
 void                RenderEngine::set_window_pos( Vector2 new_pos ){
@@ -138,11 +143,27 @@ Vector2             RenderEngine::get_window_pos() const {
     glfwGetWindowPos( glfw_window , &x , &y );
     return Vector2(x,y);
 }
+Vector2             RenderEngine::get_viewport_size() const {
+    return viewport_size;
+}
+void                RenderEngine::__window_resize_callback( GLFWwindow* w , int x , int y ){
+    w;/*shutting up warning*/ 
+    Engine::get_render_engine()->window_size = Vector2(x,y);
+}
+void                RenderEngine::set_viewport_size( Vector2 new_val ){
+    if( viewport_size == new_val ) return;
+    viewport_size = new_val;
+}
+Vector2             RenderEngine::get_viewport_position() const {
+    return viewport_position;
+}
+void                RenderEngine::set_viewport_position( Vector2 new_val ){
+    if( viewport_position == new_val ) return;
+    viewport_position = new_val;
+}
 void                RenderEngine::set_fullscreen( bool fs ){
     if( !is_fullscreen() && fs ){
-        int w,h;
-        glfwGetWindowSize( glfw_window , &w , &h );
-        glfwSetWindowMonitor( glfw_window , glfwGetPrimaryMonitor() , 0 , 0 , w , h , 60 );
+        glfwSetWindowMonitor( glfw_window , glfwGetPrimaryMonitor() , 0 , 0 , physical_monitor_size.x, physical_monitor_size.y , 60 );
     } else if( is_fullscreen() && !fs ) {
         int w,h;
         glfwGetWindowSize( glfw_window , &w , &h );
@@ -155,8 +176,12 @@ bool                RenderEngine::is_fullscreen() const {
 Transform           RenderEngine::get_view_transform() const {
     return view_transform;
 }
+Transform           RenderEngine::get_camera_transform() const{
+    return camera_transform;
+}
 void                RenderEngine::set_view_transform(Transform t){
     view_transform = t;
+    camera_transform = view_transform.inverted();
     GL_CALL( glUniformMatrix4fv( view_transf_attrib_location , 1 , GL_FALSE , view_transform.m ) );
 }
 bool                RenderEngine::should_close() const {
@@ -196,6 +221,13 @@ Color               RenderEngine::get_clear_color() const{
     return clear_color;
 }
 void                RenderEngine::update( const std::vector<RenderData>& draws  ){
+    
+    Vector2 viewport_scale = get_window_size()/get_viewport_size();
+
+    GL_CALL( glViewport(    viewport_position.x  , 
+                            get_window_size().y - (viewport_position.y+viewport_size.y) , 
+                            viewport_size.x , 
+                            viewport_size.y ));
 
     GL_CALL( glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
     GL_CALL( glClearColor(  float(clear_color.r)/255.0f,
@@ -211,7 +243,7 @@ void                RenderEngine::update( const std::vector<RenderData>& draws  
         for( size_t k = 0 ; k < render_data.vertex_data_count ; k++ )
             m_VBO[k] = render_data.vertex_data[k];
         
-        if( current_shader_resource != render_data.shader_program )
+        if( i==0 || current_shader_resource!=render_data.shader_program )
             set_current_shader( render_data.shader_program );
         
         if( last_used_texture != render_data.texture_id ){
@@ -225,7 +257,6 @@ void                RenderEngine::update( const std::vector<RenderData>& draws  
             float(render_data.final_modulate.b)/255.0f,
             float(render_data.final_modulate.a)/255.0f,
         };
-        GL_CALL( glUniform1i( ignore_camera_atrib_location , !render_data.use_view_transform  ) );
         GL_CALL( glUniform1i( tex_is_alpha_mask_attrib_location , render_data.tex_is_alpha_mask ) );
         GL_CALL( glUniform4fv( modulate_attrib_location , 1 , modulate_as_float ) );
         GL_CALL( glUniformMatrix4fv( model_transf_attrib_location , 1 , false , render_data.model_transform.m ) );

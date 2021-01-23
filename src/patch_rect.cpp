@@ -1,6 +1,5 @@
 #include "patch_rect.h"
-#include "lua_engine.h"
-#include "resources/image.h"
+#include "core.h"
 
 std::unordered_multimap<SaucerId,PatchRect*> PatchRect::component_from_node;
 
@@ -83,7 +82,6 @@ std::vector<RenderData> PatchRect::generate_render_data() {
         render_data.vertex_data = vertex_data;
         render_data.vertex_data_count = vertex_data_count;
         render_data.use_tree_transform = false;
-        render_data.use_view_transform = !get_starts_on_viewport();
         render_data.model_transform = get_parent_global_transform() * Transform().translate( get_rect_pos() );
         render_data.texture_id = texture->get_texture_id();
         render_data.shader_program = get_current_shader();
@@ -145,4 +143,24 @@ void PatchRect::bind_methods() {
     REGISTER_LUA_MEMBER_FUNCTION( PatchRect , set_bottom_right_region );
 
 
+}
+YamlNode        PatchRect::to_yaml_node() const {
+    YamlNode ret = AnchoredRect::to_yaml_node();
+    if(texture) ret["texture"] = texture->get_path();
+    for( int i : margins ) ret["margins"].push_back(i);
+    ret["draw_center"] = draw_center;
+    ret["top_left_region"] = top_left_region;
+    ret["bottom_right_region"] = bottom_right_region;
+
+    return ret;
+}
+void            PatchRect::from_yaml_node( YamlNode yaml_node ){
+    AnchoredRect::from_yaml_node(yaml_node);
+    if( yaml_node["texture"].IsDefined() )
+        set_texture((TextureResource*)ResourceManager::get_resource(yaml_node["texture"].as<std::string>()));
+
+    set_draw_center( yaml_node["draw_center"].as<decltype(draw_center)>() );
+    set_top_left_region( yaml_node["top_left_region"].as<decltype(top_left_region)>() );
+    set_bottom_right_region( yaml_node["bottom_right_region"].as<decltype(bottom_right_region)>() );
+    for( size_t i = 0 ; i < 4 ; i++ ) margins[i] = yaml_node["margins"][i].as<short>();
 }

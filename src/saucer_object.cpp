@@ -26,6 +26,15 @@ SaucerObject*   SaucerObject::from_saucer_id( const SaucerId& p_id ){
     else return NULL;
 }
 
+YamlNode    SaucerObject::to_yaml_node() const{
+    YamlNode ret;
+    ret["SaucerObject"] = get_saucer_id();
+    return ret;
+}
+void    SaucerObject::from_yaml_node(YamlNode n){
+
+}
+
 void SaucerObject::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION( SaucerObject , get_saucer_id )   
 }

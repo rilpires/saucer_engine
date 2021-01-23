@@ -7,7 +7,8 @@ LINKER_FOLDERS := 	\
 	deps/glew/lib \
 	deps/openal_soft \
 	deps/box2d/build/bin \
-	deps/freetype/build  
+	deps/freetype/build  \
+	deps/yaml-cpp/build
 
 LIBS := \
 	png \
@@ -18,6 +19,7 @@ LIBS := \
 	GLEW \
 	openal common ex-common \
 	lua lualib \
+	yaml-cpp \
 	freetype \
 	box2d 
 
@@ -30,6 +32,7 @@ INCLUDE_PATHS := \
 	deps/audiofile \
 	deps/freetype/include \
 	deps/openal_soft/include \
+	deps/yaml-cpp/include \
 	deps/imgui deps/imgui/examples deps/imgui/misc/cpp \
 	deps/box2d/include
 
@@ -46,6 +49,7 @@ ifeq ($(RELEASE),0)
 	EXEC_NAME := $(EXEC_NAME)_debug	
 	OBJ_FILES := $(patsubst %.o, %.debug.o, $(OBJ_FILES) )
 	
+	# Editor dependencies
 	OBJ_FILES +=  	obj/imgui.o \
 				 	obj/imgui_draw.o \
 				 	obj/imgui_widgets.o \

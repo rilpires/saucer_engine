@@ -5,6 +5,8 @@
 #include <unordered_map>
 #include "vector.h"
 #include "saucer_object.h"
+#include "yaml-cpp/yaml.h"
+#include <fstream>
 
 class ResourceManager;
 class Resource : public SaucerObject {

@@ -1,7 +1,5 @@
 #include "camera.h"
-#include "lua_engine.h"
-#include "scene_node.h"
-#include "scene.h"
+#include "core.h"
 
 std::unordered_multimap<SaucerId,Camera*> Camera::component_from_node;
 
@@ -80,4 +78,24 @@ void    Camera::bind_methods() {
     REGISTER_LUA_MEMBER_FUNCTION( Camera , get_active );
     REGISTER_LUA_MEMBER_FUNCTION( Camera , set_active );
 
+}
+void    Camera::push_editor_items(){
+    PROPERTY_VEC2(this,zoom);
+}
+
+YamlNode        Camera::to_yaml_node() const {
+    YamlNode ret;
+    ret["zoom"] = zoom;
+    ret["left_limit"] = left_limit;
+    ret["right_limit"] = right_limit;
+    ret["top_limit"] = top_limit;
+    ret["bottom_limit"] = bottom_limit;
+    return ret;
+}
+void            Camera::from_yaml_node( YamlNode yaml_node ){
+    set_zoom( yaml_node["zoom"].as<decltype(zoom)>() );    
+    set_left_limit( yaml_node["left_limit"].as<decltype(left_limit)>() );
+    set_right_limit( yaml_node["right_limit"].as<decltype(right_limit)>() );
+    set_top_limit( yaml_node["top_limit"].as<decltype(top_limit)>() );
+    set_bottom_limit( yaml_node["bottom_limit"].as<decltype(bottom_limit)>() );    
 }

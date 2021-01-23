@@ -92,6 +92,12 @@ void            Engine::set_window_pos( Vector2 new_pos ){
 Vector2         Engine::get_window_pos() {
     return render_engine->get_window_pos();
 }
+void            Engine::set_viewport_size( Vector2 new_size ){
+    render_engine->set_viewport_size(new_size);
+}
+Vector2         Engine::get_viewport_size(){
+    return render_engine->get_viewport_size();
+}
 void            Engine::set_fullscreen( bool fs ){
     render_engine->set_fullscreen(fs);
 }
@@ -120,6 +126,8 @@ void            Engine::bind_methods(){
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_current_scene );
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , set_window_size );
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_window_size );
+    REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , set_viewport_size );
+    REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_viewport_size );
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , set_window_pos );
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_window_pos );
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , set_fullscreen );

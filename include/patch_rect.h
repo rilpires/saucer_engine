@@ -32,6 +32,8 @@ class PatchRect : public AnchoredRect {
         void                set_bottom_right_region(Vector2 new_val);
 
         static void         bind_methods();
+        YamlNode            to_yaml_node() const override ;
+        void                from_yaml_node( YamlNode ) override ;
 
 };
 

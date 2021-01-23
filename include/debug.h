@@ -18,7 +18,7 @@
         saucer_err("Assertion failed: " , #x , "\n" , msg ); \
     }                                           
 #else
-    #define SAUCER_ASSERT(x) ;
+    #define SAUCER_ASSERT(x,msg) ;
 #endif
 
 

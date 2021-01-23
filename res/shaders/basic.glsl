@@ -23,7 +23,7 @@ out vec4 modulate;
 void main(){
     gl_Position = vec4( position , 1.0 );
     gl_Position *= model_transf;
-    if(!ignore_camera) gl_Position *= view_transf;
+    gl_Position *= view_transf;
     gl_Position.xy /= ( viewport_size.xy/2 );
     gl_Position.yz *= -1;
     uv = in_uv;
