@@ -90,15 +90,9 @@ class Engine : public SaucerObject{
          * @return Vector2 
          */
         static Vector2          get_window_size();
-        /**
-         * @brief Set the window size. Note that this is only a shortcut for RenderEngine::set_viewport_size()
-         * 
-         * @param new_size Vector2
-         */
-        static void             set_viewport_size( Vector2 new_size );
         
         /**
-         * @brief Get the window size object. Note that this is only a shortcut for RenderEngine::get_viewport_size()
+         * @brief Get the window size object. Note that this is only a shortcut for RenderEngine::get_viewport_rect().get_size()
          * 
          * @return Vector2 
          */
@@ -164,6 +158,12 @@ class Engine : public SaucerObject{
         static bool             should_close();
 
         static void         bind_methods();
+
+        #ifdef SAUCER_EDITOR
+        static const bool is_editor = true;
+        #else
+        static const bool is_editor = false;
+        #endif
 
 };
 

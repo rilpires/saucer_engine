@@ -206,6 +206,7 @@ void            LabelRect::cb_key( Input::InputEventKey& ev ){
     }
 }
 void            LabelRect::cb_mouse_button( Input::InputEventMouseButton& ev ){
+    UNUSED(ev);
     // Cursor aiming at a specific location
 }
 void            LabelRect::cb_char( Input::InputEventChar& ev ){

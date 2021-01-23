@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <vector>
 #include <string.h>
+
+#include "rect.h"
 #include "saucer_object.h"
 #include "saucer_type_traits.h"
 
@@ -128,12 +130,14 @@ template<> void     LuaEngine::push( lua_State* ls , short n );
 template<> void     LuaEngine::push( lua_State* ls , SaucerId n );
 template<> void     LuaEngine::push( lua_State* ls , Vector2 v );
 template<> void     LuaEngine::push( lua_State* ls , Vector3 v );
+template<> void     LuaEngine::push( lua_State* ls , Rect v );
 template<> void     LuaEngine::push( lua_State* ls , Color v );
 template<> void     LuaEngine::push( lua_State* ls , Input::InputEvent* r );
 
 template<> lua_CFunction    LuaEngine::create_lua_constructor<Color>( );
 template<> lua_CFunction    LuaEngine::create_lua_constructor<Vector2>( );
 template<> lua_CFunction    LuaEngine::create_lua_constructor<Vector3>( );
+template<> lua_CFunction    LuaEngine::create_lua_constructor<Rect>( );
 
 template<> int                  LuaEngine::pop( lua_State* ls );
 template<> float                LuaEngine::pop( lua_State* ls );

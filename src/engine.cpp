@@ -6,12 +6,6 @@
 // How many last frames should be accounted to calculate frames per second
 #define FPS_FRAMES_TO_ACCOUNT 30
 
-#ifdef SAUCER_EDITOR
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
-#endif
-
 RenderEngine*       Engine::render_engine   = nullptr;
 AudioEngine*        Engine::audio_engine    = nullptr;
 Scene*              Engine::current_scene   = nullptr;
@@ -24,16 +18,18 @@ void            Engine::initialize(){
     render_engine = new RenderEngine();
     audio_engine = new AudioEngine();
     current_scene = NULL;
+    while(last_uptimes.size()<FPS_FRAMES_TO_ACCOUNT)
+        last_uptimes.push_back(0);
 
     // Setting input callbacks
     glfwSetCursorPosCallback( render_engine->get_glfw_window() , Input::mouse_pos_callback );
     glfwSetKeyCallback( render_engine->get_glfw_window() , Input::key_callback );
     glfwSetMouseButtonCallback( render_engine->get_glfw_window() , Input::mouse_button_callback );
     glfwSetCharCallback( render_engine->get_glfw_window() , Input::char_callback );
-    
-    #ifdef SAUCER_EDITOR
-    SaucerEditor::setup();
-    #endif
+    glfwSetWindowSizeCallback( render_engine->get_glfw_window(), RenderEngine::__window_resize_callback );
+
+    if( is_editor ) SaucerEditor::setup();
+
 }
 void            Engine::close(){
     if(current_scene) delete current_scene;
@@ -45,13 +41,11 @@ void            Engine::update(){
     if( remaining_time>0 ) usleep( remaining_time * 1000000 );
     next_frame_time = get_uptime() + 1.0/60.0;
     glfwPollEvents();
-    last_uptimes.push_front( get_uptime() );
-    if( last_uptimes.size() > FPS_FRAMES_TO_ACCOUNT ) last_uptimes.pop_back();
+    last_uptimes.push_front( get_uptime() ); 
+    last_uptimes.pop_back();
     if (current_scene) current_scene->loop();
 
-    #ifdef SAUCER_EDITOR
-        SaucerEditor::update();
-    #endif
+   if( is_editor ) SaucerEditor::update();
 
     glfwSwapBuffers( render_engine->get_glfw_window() );
 
@@ -92,11 +86,8 @@ void            Engine::set_window_pos( Vector2 new_pos ){
 Vector2         Engine::get_window_pos() {
     return render_engine->get_window_pos();
 }
-void            Engine::set_viewport_size( Vector2 new_size ){
-    render_engine->set_viewport_size(new_size);
-}
 Vector2         Engine::get_viewport_size(){
-    return render_engine->get_viewport_size();
+    return render_engine->get_viewport_rect().get_size();
 }
 void            Engine::set_fullscreen( bool fs ){
     render_engine->set_fullscreen(fs);
@@ -126,7 +117,6 @@ void            Engine::bind_methods(){
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_current_scene );
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , set_window_size );
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_window_size );
-    REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , set_viewport_size );
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_viewport_size );
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , set_window_pos );
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_window_pos );

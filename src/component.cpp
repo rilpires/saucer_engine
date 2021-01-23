@@ -12,7 +12,7 @@ SceneNode*  Component::get_node() const{
     return attached_node;
 }
 void        Component::attach_node( SceneNode* node ){
-    // saucer_err("Do we care?"); // No we do not care
+    UNUSED(node);
 }
 void        Component::erase_from_component_map(){
 

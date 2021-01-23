@@ -131,18 +131,18 @@ void            AnchoredRect::cb_mouse_exiting( ){
     //    
 }
 void            AnchoredRect::cb_mouse_button( Input::InputEventMouseButton& ev ){
-    //    
+    UNUSED(ev); 
 }
 void            AnchoredRect::cb_key( Input::InputEventKey& ev ){
-    //    
+    UNUSED(ev); 
 }
 void            AnchoredRect::cb_char( Input::InputEventChar& ev ){
-    //    
+    UNUSED(ev); 
 }
 Transform       AnchoredRect::get_parent_global_transform() const{
     AnchoredRect* parent_rect = get_parent_rect();
     if( starts_on_viewport ){
-        return Engine::get_render_engine()->get_camera_transform().translate( Engine::get_render_engine()->get_viewport_size()*-0.25 );
+        return Engine::get_render_engine()->get_camera_transform().translate( Engine::get_render_engine()->get_viewport_rect().get_size()*0.5 ); // this is fucked up
     } else if( use_scene_node_transform ){
         return get_node()->get_global_transform();
     } else if( parent_rect ){

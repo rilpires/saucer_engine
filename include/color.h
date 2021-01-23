@@ -28,6 +28,8 @@ struct Color{
 
 
     operator std::string() const;
+    static void bind_methods();
+
     #ifdef SAUCER_EDITOR
     operator ImVec4() const { 
         return ImVec4(  float(r)/255.0f,
@@ -36,9 +38,6 @@ struct Color{
                         float(a)/255.0f); 
     }
     #endif
-
-
-    static void bind_methods();
 
 };
 

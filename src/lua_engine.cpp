@@ -121,6 +121,7 @@ template<> void     LuaEngine::push_metatable<SceneNode>( lua_State* ls ){
 
 
 const char*     LuaEngine::chunk_reader( lua_State* ls , void* data , size_t* size ){
+    UNUSED(ls);
     size_t total_size = strlen((char*)data);
     if( chunk_reader_offset < total_size ){
         size_t remaining_size = total_size - chunk_reader_offset;
@@ -327,7 +328,8 @@ lua_CFunction   LuaEngine::recover_global_function( std::string function_name ){
     auto function_find = global_functions_db.find( function_name );
     if( function_find == global_functions_db.end() ){
         saucer_err( "Couldn't find any global function named " , function_name )
-        return [](lua_State* ls ){ 
+        return [](lua_State* ls ){
+            UNUSED(ls);
             saucer_err( "This function should not exist!" );
             return 0; 
         };

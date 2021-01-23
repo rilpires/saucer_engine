@@ -6,6 +6,8 @@
 #include "debug.h"
 #include "yaml-cpp/yaml.h"
 
+#define UNUSED(expr) (void)(expr)
+
 extern uint32_t __open_saucer_class_id;
 std::vector<void*>& __class_bind_methods();
 

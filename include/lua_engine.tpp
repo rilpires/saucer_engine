@@ -57,9 +57,9 @@ void    LuaEngine::push( lua_State* ls , T obj ){
 // push signature for non SaucerObject's inherited classes
 template< typename T , class C1  , class C2 , class C3 >
 void    LuaEngine::push( lua_State* ls , T obj ){
-    saucer_err( "Specialize \"LuaEngine::push\" for this class since it isn't passed by reference, but by copy" )
+    saucer_err( "Specialize \"LuaEngine::push\" for this class since it isn't passed by reference, but by copy." );
+    UNUSED(obj);
     lua_pushnil(ls);
-    exit(1);
 }
 
 // pop signature for saucer objects , (a.k.a pointers... except for inputevents, these should be specialized)

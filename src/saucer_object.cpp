@@ -32,7 +32,7 @@ YamlNode    SaucerObject::to_yaml_node() const{
     return ret;
 }
 void    SaucerObject::from_yaml_node(YamlNode n){
-
+    UNUSED(n);
 }
 
 void SaucerObject::bind_methods(){

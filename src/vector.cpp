@@ -112,7 +112,7 @@ void Vector2::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(Vector2,rotated);
 }
 
-std::string Vector2::to_str() const{
+Vector2::operator std::string() const {
     char buff[48];
     sprintf(buff , "Vector2(%.2f, %.2f)" , x , y );
     return std::string(buff);
@@ -195,7 +195,6 @@ template<> lua_CFunction    LuaEngine::create_lua_constructor<Vector3>(){
     };
 }
 
-void     Vector3::operator=  (const Vector3  v     )      { x=v.x;y=v.y;z=v.z; }
 Vector3  Vector3::operator+  (const Vector3  v     ) const{ return Vector3(x+v.x,y+v.y,z+v.z); }
 Vector3  Vector3::operator-  (const Vector3  v     ) const{ return Vector3(x-v.x,y-v.y,z-v.z); }
 Vector3  Vector3::operator*  (const Vector3  v     ) const{ return Vector3(x*v.x,y*v.y,z*v.z); }
@@ -209,7 +208,7 @@ void     Vector3::operator*= (const float    scale )      { x*=scale;y*=scale;z*
 void     Vector3::operator/= (const Vector3  v     )      { x/=v.x;y/=v.y;z/=v.z; }
 void     Vector3::operator/= (const float    div   )      { x/=div;y/=div;z/=div; }
 
-std::string     Vector3::to_string() const{
+Vector3::operator std::string() const {
     char buff[48];
     sprintf(buff , "Vector3( %.4f , %.4f , %.4f )" , x , y , z );
     return std::string(buff);

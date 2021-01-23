@@ -5,9 +5,6 @@ using namespace ImGui;
 
 SaucerId SaucerEditor::node_id_selected = 0;
 
-Vector2 to_Vector2( ImVec2 v ){ return Vector2(v.x,v.y); }
-ImVec2 to_ImVec2( Vector2 v ){ return ImVec2(v.x,v.y); }
-
 void SaucerEditor::setup(){
     IMGUI_CHECKVERSION();
     CreateContext();
@@ -38,9 +35,9 @@ void inspector(){
         
         TextColored( ImVec4(0.8,1,0.8,1) , "Attached components:" );
         for( auto component : selected_node->get_attached_components() ){
-            bool b = TreeNodeEx((void*)component->get_saucer_id() , 
+            bool b = TreeNodeEx((void*)(long long)component->get_saucer_id() , 
                                 ImGuiTreeNodeFlags_Framed + ImGuiTreeNodeFlags_SpanFullWidth ,
-                                component->my_saucer_class_name() );
+                                "%s" , component->my_saucer_class_name() );
             if( b ){
                 component->push_editor_items();
                 if(Button("Delete component")) selected_node->destroy_component(component);
@@ -66,9 +63,9 @@ void inspector(){
 
 void SaucerEditor::push_node_tree( SceneNode* node ){
 
-    bool b = TreeNodeEx(    (void*)node->get_saucer_id(),
+    bool b = TreeNodeEx(    (void*)(long long)node->get_saucer_id(),
                             ImGuiTreeNodeFlags_OpenOnArrow + ImGuiTreeNodeFlags_SpanFullWidth + ImGuiTreeNodeFlags_Selected*(node->get_saucer_id()==SaucerEditor::node_id_selected) , 
-                            node->get_name().c_str() );
+                            "%s" , node->get_name().c_str() );
     if( IsItemClicked() ) SaucerEditor::node_id_selected = node->get_saucer_id();
     if( b ){
         for( auto child : node->get_children() ) push_node_tree(child);
@@ -78,7 +75,11 @@ void SaucerEditor::push_node_tree( SceneNode* node ){
 void SaucerEditor::push_render_window(){
 
     SetNextWindowBgAlpha(0);
+    Vector2 mouse_pos = Input::get_screen_mouse_position();
+    Rect current_viewport_rect = Engine::get_render_engine()->get_viewport_rect();
+    bool window_inside_viewport = current_viewport_rect.is_point_inside(mouse_pos);
     bool render_is_open = Begin( "Render" , 0 ,   ImGuiWindowFlags_NoScrollbar 
+                                                + ImGuiWindowFlags_NoMouseInputs * window_inside_viewport
                                                 + ImGuiWindowFlags_NoScrollWithMouse 
                                                 + ImGuiWindowFlags_MenuBar );
     Vector2 available_sizes[] = {
@@ -92,27 +93,24 @@ void SaucerEditor::push_render_window(){
     BeginMenuBar();
     if( BeginMenu("Set size") ){
         for( auto v : available_sizes )
-            if( MenuItem( v.to_str().c_str() ) ){
-                Vector2 window_size = to_Vector2(GetWindowSize());
-                Vector2 content_size = to_Vector2(GetContentRegionAvail());
+            if( MenuItem( ((std::string)v).c_str() ) ){
+                Vector2 window_size = Vector2( GetWindowSize().x , GetWindowSize().y );
+                Vector2 content_size = Vector2( GetContentRegionAvail().x , GetContentRegionAvail().y );
                 Vector2 corrected_window_size = v + window_size - content_size;
-                SetWindowSize( "Render" , to_ImVec2(corrected_window_size) );
+                SetWindowSize( "Render" , ImVec2(corrected_window_size) );
             }
         EndMenu();
     }
     EndMenuBar();
-    
 
     if(render_is_open) {
-
-        Engine::get_render_engine()->set_viewport_position(  to_Vector2(GetWindowPos()) + to_Vector2(GetWindowContentRegionMin()) );
-        Engine::get_render_engine()->set_viewport_size( to_Vector2(GetContentRegionAvail() ) );
+        Vector2 window_pos = Vector2( GetWindowPos().x , GetWindowPos().y);
+        Vector2 content_pos = Vector2( GetWindowContentRegionMin().x , GetWindowContentRegionMin().y );
+        Vector2 content_size = Vector2( GetContentRegionAvail().x , GetContentRegionAvail().y );
+        Rect viewport_rect = Rect( window_pos+content_pos , window_pos+content_pos+content_size );
+        Engine::get_render_engine()->set_viewport_rect(viewport_rect);
     } else
-        Engine::get_render_engine()->set_viewport_size(Vector2(0,0));
-    // if( IsMouseHoveringRect( ImVec2(render_pos.x,render_pos.y) , ImVec2(render_pos.x+render_size.x,render_pos.y+render_size.y) ) ){
-    //     ImGui::GetIO().WantCaptureMouse = false;
-    //     ImGui::GetIO().WantSetMousePos = false;
-    // }
+        Engine::get_render_engine()->set_viewport_rect(Rect());
     End();
 }
 

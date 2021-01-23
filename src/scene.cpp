@@ -174,7 +174,6 @@ void            Scene::loop_input(){
             nodes_queue.push(root_node);
         while( nodes_queue.size() ){
             SceneNode* scene_node = nodes_queue.front();
-            auto anchored_rects = AnchoredRect::recover_range_from_node(scene_node);
 
             if( scene_node->get_script() )
                 LuaEngine::execute_callback( "input" , scene_node , next_input_event );

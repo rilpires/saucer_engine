@@ -5,6 +5,10 @@
 
 class Transform;
 
+#ifdef SAUCER_EDITOR
+#include "imgui.h"
+#endif
+
 struct Vector2 {
 
     static constexpr const char* class_name = "Vector2";
@@ -31,9 +35,13 @@ struct Vector2 {
     bool     operator!= (const Vector2  v     )       ;
     bool     operator== (const Vector2  v     )       ;
 
-    std::string to_str() const;
+    operator std::string() const;
 
     static void bind_methods();
+
+    #ifdef SAUCER_EDITOR
+    operator ImVec2() const { return ImVec2(x,y); }
+    #endif
 
 };
 
@@ -45,8 +53,6 @@ struct Vector3 {
     
     Vector3( float p_x=0 , float p_y=0 , float p_z=0 ) : x(p_x) , y(p_y) , z(p_z){};
 
-    
-    void     operator=  (const Vector3  v     )       ;
     Vector3  operator+  (const Vector3  v     ) const ;
     Vector3  operator-  (const Vector3  v     ) const ;
     Vector3  operator*  (const Vector3  v     ) const ;
@@ -60,9 +66,10 @@ struct Vector3 {
     void     operator/= (const Vector3  v     )       ;
     void     operator/= (const float    div   )       ;
 
-    std::string to_string() const;
+    operator std::string() const;
 
     static void bind_methods();
+    
 };
 
 #endif

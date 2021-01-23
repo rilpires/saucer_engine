@@ -3,7 +3,7 @@
 
 #include <algorithm>
 
-#define INITIAL_WINDOW_SIZE Vector2(640,480)
+#define INITIAL_WINDOW_SIZE Vector2(1600,900)
 #define INITIAL_WINDOW_TITLE "SaucerEngine"
 
 RenderEngine::RenderEngine(){
@@ -74,15 +74,9 @@ RenderEngine::RenderEngine(){
     basic_shader_resource = (ShaderResource*) ResourceManager::get_resource("res/shaders/basic.glsl");
     glfw_custom_cursor = nullptr;
     clear_color = Color( (unsigned char)25 , (unsigned char)24 , (unsigned char)43 , (unsigned char)0 );
-    viewport_size = window_size;
-    viewport_position = Vector2(0,0);
+    viewport_rect = Rect( Vector2(0,0) , window_size );
     set_current_shader( basic_shader_resource );
     set_fullscreen(0);
-
-    viewport_position = viewport_size*0.25;
-    viewport_size *= 0.5;
-
-    glfwSetWindowSizeCallback(glfw_window,__window_resize_callback);
 
     //GLint d = 0;
     //GL_CALL( glGetIntegerv(GL_CONTEXT_PROFILE_MASK,&d))
@@ -117,9 +111,9 @@ void                RenderEngine::set_current_shader( ShaderResource* new_shader
             GL_CALL( tex_is_alpha_mask_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"tex_is_alpha_mask")  );
             GL_CALL( modulate_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"uniform_modulate")  );
             GL_CALL( time_attrib_location = glGetUniformLocation(current_shader_resource->shader_program,"time")  );
-            GL_CALL( glUniform2f( viewport_size_attrib_location , viewport_size.x , viewport_size.y ) );
-            GL_CALL( glUniformMatrix4fv( view_transf_attrib_location , 1 , GL_FALSE , view_transform.m ) );
             GL_CALL( glUniform1f( time_attrib_location , Engine::get_uptime() ) );
+            GL_CALL( glUniform2f( viewport_size_attrib_location , viewport_rect.get_size().x , viewport_rect.get_size().y ) );
+            GL_CALL( glUniformMatrix4fv( view_transf_attrib_location , 1 , GL_FALSE , view_transform.m ) );
         }
     }
 }
@@ -127,9 +121,8 @@ Vector2             RenderEngine::get_physical_monitor_size() const{
     return physical_monitor_size;
 }
 void                RenderEngine::set_window_size( Vector2 new_size ){
-    if( window_size == new_size || is_fullscreen() ) return;
     window_size = new_size;
-    glfwSetWindowSize( glfw_window , window_size.x , window_size.y );
+    if( !is_fullscreen() ) glfwSetWindowSize( glfw_window , window_size.x , window_size.y );
 };
 Vector2             RenderEngine::get_window_size() const {
     if( is_fullscreen() ) return get_physical_monitor_size();
@@ -143,23 +136,11 @@ Vector2             RenderEngine::get_window_pos() const {
     glfwGetWindowPos( glfw_window , &x , &y );
     return Vector2(x,y);
 }
-Vector2             RenderEngine::get_viewport_size() const {
-    return viewport_size;
+Rect                RenderEngine::get_viewport_rect() const {
+    return viewport_rect;
 }
-void                RenderEngine::__window_resize_callback( GLFWwindow* w , int x , int y ){
-    w;/*shutting up warning*/ 
-    Engine::get_render_engine()->window_size = Vector2(x,y);
-}
-void                RenderEngine::set_viewport_size( Vector2 new_val ){
-    if( viewport_size == new_val ) return;
-    viewport_size = new_val;
-}
-Vector2             RenderEngine::get_viewport_position() const {
-    return viewport_position;
-}
-void                RenderEngine::set_viewport_position( Vector2 new_val ){
-    if( viewport_position == new_val ) return;
-    viewport_position = new_val;
+void                RenderEngine::set_viewport_rect( Rect new_val ){
+    viewport_rect = new_val;
 }
 void                RenderEngine::set_fullscreen( bool fs ){
     if( !is_fullscreen() && fs ){
@@ -220,27 +201,30 @@ void                RenderEngine::set_clear_color(Color new_val){
 Color               RenderEngine::get_clear_color() const{
     return clear_color;
 }
+void                RenderEngine::__window_resize_callback( GLFWwindow* w , int x , int y ){
+    UNUSED(w);
+    Engine::get_render_engine()->window_size = Vector2(x,y);
+}
 void                RenderEngine::update( const std::vector<RenderData>& draws  ){
     
-    Vector2 viewport_scale = get_window_size()/get_viewport_size();
-
-    GL_CALL( glViewport(    viewport_position.x  , 
-                            get_window_size().y - (viewport_position.y+viewport_size.y) , 
-                            viewport_size.x , 
-                            viewport_size.y ));
-
     GL_CALL( glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
     GL_CALL( glClearColor(  float(clear_color.r)/255.0f,
                             float(clear_color.g)/255.0f,
                             float(clear_color.b)/255.0f,
                             float(clear_color.a)/255.0f) );
+
+    GL_CALL( glViewport(    viewport_rect.top_left.x  , 
+                            get_window_size().y - viewport_rect.bottom_right.y , 
+                            viewport_rect.bottom_right.x - viewport_rect.top_left.x , 
+                            viewport_rect.bottom_right.y - viewport_rect.top_left.y ));
     GL_CALL( glUniform1f( time_attrib_location , Engine::get_uptime() ) );
-    
-    size_t first=0 , batch_size=MAX_VERTEX_COUNT+1;
+    GL_CALL( glUniform2f( viewport_size_attrib_location , viewport_rect.get_size().x , viewport_rect.get_size().y ) );
+    GL_CALL( glUniformMatrix4fv( view_transf_attrib_location , 1 , GL_FALSE , view_transform.m ) );
+            
     for( size_t i = 0 ; i < draws.size() ; i++ ){
         const RenderData& render_data = draws[i];
         
-        for( size_t k = 0 ; k < render_data.vertex_data_count ; k++ )
+        for( short int k = 0 ; k < render_data.vertex_data_count ; k++ )
             m_VBO[k] = render_data.vertex_data[k];
         
         if( i==0 || current_shader_resource!=render_data.shader_program )

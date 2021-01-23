@@ -10,6 +10,7 @@
 
 #include "transform.h"
 #include "color.h"
+#include "rect.h"
 
 class RenderObject;
 class ShaderResource;
@@ -39,8 +40,7 @@ class RenderEngine {
         GLFWwindow*         glfw_window;
         std::string         window_title;
         Vector2             window_size;
-        Vector2             viewport_size;
-        Vector2             viewport_position;
+        Rect                viewport_rect;
         Vector2             physical_monitor_size;
         GLFWcursor*         glfw_custom_cursor;
         Color               clear_color;
@@ -75,13 +75,11 @@ class RenderEngine {
         Vector2             get_window_size() const;
         void                set_window_pos( Vector2 new_pos );
         Vector2             get_window_pos() const ;
-        Vector2             get_viewport_size() const ;
-        void                set_viewport_size( Vector2 new_val );
-        Vector2             get_viewport_position() const ;
-        void                set_viewport_position( Vector2 new_val );
+        Rect                get_viewport_rect() const ;
+        void                set_viewport_rect( Rect new_val );
         void                set_fullscreen( bool fs );
         bool                is_fullscreen() const ;
-        Transform           get_view_transform() const ;
+        Transform           get_view_transform() const ; // Inverse of camera transform
         Transform           get_camera_transform() const ; // Inverse of the view_transform
         void                set_view_transform(Transform t);
         bool                should_close() const;

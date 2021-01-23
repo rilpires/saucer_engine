@@ -1,6 +1,10 @@
 #ifndef CORE_H
 #define CORE_H
 
+// Basic data structures
+#include "color.h"
+#include "vector.h"
+#include "rect.h"
 
 #include "saucer_object.h"
 #include "saucer_object.h"
@@ -12,8 +16,6 @@
 #include "sprite.h"
 #include "transform.h"
 #include "collision.h"
-#include "color.h"
-#include "vector.h"
 #include "render_engine.h"
 #include "resources.h"
 #include "camera.h"
