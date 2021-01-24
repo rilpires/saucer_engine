@@ -79,8 +79,12 @@ Transform           SceneNode::get_transform() const{
 }
 Transform           SceneNode::get_global_transform() const{
     Transform ret = get_transform();
-    if( inherits_transform && parent_node ) return parent_node->get_global_transform() * ret;
-    else return ret;
+    if( inherits_transform && parent_node ){
+        Transform parent_global_transform = parent_node->get_global_transform();
+        if( !relative_z ) parent_global_transform.m[11] = 0;
+        ret = parent_global_transform * ret;
+    }
+    return ret;
 }
 void                SceneNode::set_z( short new_z ){z=new_z;}
 short               SceneNode::get_z( ) const {return z;}
@@ -126,6 +130,13 @@ void                SceneNode::set_script( LuaScriptResource* ls ){
         lua_script = ls;
         LuaEngine::create_actor_env( this );
     }
+}
+bool                SceneNode::is_parent_of( SceneNode* other ) const{
+    while( other->get_parent() ){
+        if( other->get_parent() == this ) return true;
+        other = other->get_parent();
+    }
+    return false;
 }
 void                SceneNode::get_out(){
     bool actually_got_out = get_scene() || parent_node;
@@ -205,12 +216,12 @@ void        SceneNode::entered_tree(){
     for( auto& child : children_nodes ) child->entered_tree();
     for( Component*& c : attached_components )
         c->entered_tree();
-    LuaEngine::execute_callback( "entered_tree", this );
+    if(!Engine::is_editor) LuaEngine::execute_callback( "entered_tree", this );
     
 }
 void        SceneNode::exiting_tree(){
     for( auto& child : children_nodes ) child->exiting_tree();
-    LuaEngine::execute_callback( "exiting_tree", this );
+    if(!Engine::is_editor) LuaEngine::execute_callback( "exiting_tree", this );
     for( Component*& c : attached_components )
         c->exiting_tree();
 }
@@ -243,6 +254,7 @@ void        SceneNode::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,set_script);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_script);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_out);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,is_parent_of);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,add_child);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_node);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_parent);

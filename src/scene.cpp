@@ -67,9 +67,25 @@ void            Scene::loop_draw(){
         for( auto child : scene_node->get_children() ){
             if( child->get_visible() ){
                 AccumulatedTreeNode child_tree_node;
+                Transform child_transf = child->get_transform();
+                Transform& parent_transf = tree_node.t;
                 child_tree_node.n = child;
-                child_tree_node.t = (child->get_inherits_transform()) ? (tree_node.t*child->get_transform() ):(child->get_transform());
                 child_tree_node.c = tree_node.c * child->get_modulate();
+                if( child->get_relative_z() ){
+                    if(child->get_inherits_transform()){
+                        child_tree_node.t = parent_transf * child_transf;
+                    } else {
+                        child_tree_node.t = child_transf;
+                        child_tree_node.t.m[11] = parent_transf.m[11] + child_transf.m[11];
+                    }
+                } else {
+                    if(child->get_inherits_transform()){
+                        child_tree_node.t = parent_transf * child_transf;
+                        child_tree_node.t.m[11] = child_transf.m[11];
+                    } else {
+                        child_tree_node.t = child_transf;
+                    }
+                }
                 nodes_queue.push( child_tree_node );
             }
         }
@@ -78,7 +94,7 @@ void            Scene::loop_draw(){
 
     // Z-sorting. Must be stable_sort or else unexpected "z flips" can occur between same z-level sprites sometimes...
     std::stable_sort( render_objs.begin() , render_objs.end() , []( const AccumulatedTreeNode& data1 , const AccumulatedTreeNode& data2 )->bool{
-        return data2.t.m[10] > data1.t.m[10];
+        return data2.t.m[11] > data1.t.m[11];
     });
     
     // Expanding render_objects into render_data
@@ -107,7 +123,7 @@ void            Scene::loop_draw(){
 
 }
 void            Scene::loop_input(){
-    
+    if( Engine::is_editor ){ while( Input::pop_event_queue() ){} return; }
     std::queue< SceneNode* > nodes_queue;
     std::vector< SceneNode* > script_actors;
     Vector2 world_mouse_pos = Input::get_world_mouse_position();
@@ -195,6 +211,7 @@ void            Scene::loop_input(){
 
 }
 void            Scene::loop_script(){
+    if( Engine::is_editor ) return;
     std::queue< SceneNode* > nodes_queue;
     double last_frame_duration = Engine::get_last_frame_duration();
 
@@ -227,6 +244,7 @@ void            Scene::set_current_focused_anchored_rect( AnchoredRect* r ){
     current_focused_anchored_rect = r;
 }
 void            Scene::loop_physics(){
+    if( Engine::is_editor ) return;
     collision_world->step();
     
     for( auto it : CollisionBody::component_from_node ){
@@ -243,6 +261,7 @@ void            Scene::queue_free_node(SceneNode* node){
     to_free.insert(node);
 }
 void            Scene::loop(){
+    for( auto& it : to_free ){ delete it; } to_free.clear();
     loop_input();
     for( auto& it : to_free ){ delete it; } to_free.clear();
     loop_script();

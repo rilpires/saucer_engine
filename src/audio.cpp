@@ -96,8 +96,8 @@ AudioEmitter::AudioEmitter(){
     AL_CALL( alSource3f( source , AL_VELOCITY , 0 , 0 , 0 ) );
 }
 AudioEmitter::~AudioEmitter(){
-    AL_CALL( alDeleteBuffers(1,&buffer) );
     AL_CALL( alDeleteSources(1,&source) );
+    AL_CALL( alDeleteBuffers(1,&buffer) );
 }
 AudioResource*      AudioEmitter::get_audio_resource() const {
     return audio_resource;

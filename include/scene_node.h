@@ -71,12 +71,15 @@ class SceneNode : public SaucerObject {
         void                    set_script( LuaScriptResource* ls );
         LuaScriptResource*      get_script() const ;
         void                    get_out();
+        bool                    is_parent_of( SceneNode* ) const;
         void                    add_child( SceneNode* p_child_node );
         SceneNode*              get_node( std::string child_name ) const;
         SceneNode*              get_parent( ) const ;
         Scene*                  get_scene() const;
         void                    queue_free();
 
+
+        // These are public but should not be binded to lua:
 
         std::vector<SceneNode*> const&  get_children() const;
 
@@ -91,7 +94,6 @@ class SceneNode : public SaucerObject {
         void                    destroy_component( );
         void                    destroy_component( Component* c );
 
-        // These are public but should not be binded to lua:
 
         std::vector<Component*> get_attached_components() const;
 

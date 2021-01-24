@@ -192,5 +192,5 @@ void            AnchoredRect::from_yaml_node( YamlNode yaml_node ) {
     set_ignore_mouse( yaml_node["ignore_mouse"].as<decltype(ignore_mouse)>() );
     set_use_scene_node_transform( yaml_node["use_scene_node_transform"].as<decltype(use_scene_node_transform)>() );
     
-    for( size_t i = 0 ; i < 4 ; i++ ) anchored_borders[i] = yaml_node["anchored_borders"][i].as<unsigned char>();
+    for( size_t i = 0 ; i < 4 ; i++ ) anchored_borders[i] = static_cast<unsigned char>(yaml_node["anchored_borders"][i].as<int>());
 }
