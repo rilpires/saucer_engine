@@ -3,9 +3,10 @@
 
 #include <yaml-cpp/yaml.h>
 
-#include <vector.h>
-#include <color.h>
-#include <resources.h>
+#include "vector.h"
+#include "rect.h"
+#include "color.h"
+#include "resources.h"
 
 #define DECLARE_YAML_CONVERT(T)                     \
 template<>                                          \
@@ -16,6 +17,7 @@ struct YAML::convert<T>{                            \
 
 DECLARE_YAML_CONVERT(Vector2);
 DECLARE_YAML_CONVERT(Color);
+DECLARE_YAML_CONVERT(Rect);
 
 
 #endif

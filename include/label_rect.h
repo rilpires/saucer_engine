@@ -51,6 +51,7 @@ class LabelRect : public AnchoredRect {
 
     public:
         static void         bind_methods();
+        void                push_editor_items();
         YamlNode            to_yaml_node() const override ;
         void                from_yaml_node( YamlNode ) override ;
 

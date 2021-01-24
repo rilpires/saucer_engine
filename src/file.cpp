@@ -32,3 +32,21 @@ bool        YAML::convert<Color>::decode(const YAML::Node& node, Color& c) {
     c.a = node[3].as<int>();
     return true;
 }
+
+YAML::Node  YAML::convert<Rect>::encode(const Rect& r) {
+    YAML::Node node;
+    node.SetStyle(YAML::EmitterStyle::Flow);
+    node.push_back(r.top_left.x);
+    node.push_back(r.top_left.y);
+    node.push_back(r.bottom_right.x);
+    node.push_back(r.bottom_right.y);
+    return node;
+}
+bool        YAML::convert<Rect>::decode(const YAML::Node& node, Rect& r) {
+    if(!node.IsSequence() || node.size() != 4) { return false; }
+    r.top_left.x = node[0].as<float>();
+    r.top_left.y = node[1].as<float>();
+    r.bottom_right.x = node[2].as<float>();
+    r.bottom_right.y = node[3].as<float>();
+    return true;
+}

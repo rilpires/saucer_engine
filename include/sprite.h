@@ -15,8 +15,7 @@ class Sprite : public RenderObject {
         short               v_frames;
         short               frame_index;
         bool                centralized;
-        Vector2             region_top_left;
-        Vector2             region_bottom_right;
+        Rect                region;
     
     public:
         Sprite();
@@ -32,15 +31,14 @@ class Sprite : public RenderObject {
         void            set_v_frames( short new_val );
         short           get_frame_index() const;
         void            set_frame_index( short new_val );
-        bool            is_centralized() const ;
+        bool            get_centralized() const ;
         void            set_centralized( bool new_val );
-        Vector2         get_region_top_left() const;
-        Vector2         get_region_bottom_right() const;
-        void            set_region_top_left(Vector2 new_val);
-        void            set_region_bottom_right(Vector2 new_val);
+        Rect            get_region() const;
+        void            set_region(Rect new_val);
         
 
         static void     bind_methods();
+        void            push_editor_items();
         YamlNode        to_yaml_node() const override ;
         void            from_yaml_node( YamlNode ) override ;
 

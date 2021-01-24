@@ -35,11 +35,19 @@ class ResourceManager : public SaucerObject {
         
         static Resource*    load_resource(std::string filepath);
     public:
-        static Resource*    get_resource(std::string p_resource_path);
+        template<typename T = Resource>
+        static T*           get_resource(std::string p_resource_path);
         static void         set_resource(std::string resource_name , Resource* r );
         static void         free_resource(Resource* p_resource);
 
         static void         bind_methods();
 };
+
+template<typename T>
+T*  ResourceManager::get_resource(std::string p_resource_path){
+    return static_cast<T*>(get_resource<Resource>(p_resource_path));
+}
+template<> Resource* ResourceManager::get_resource(std::string p_resource_path);
+        
 
 #endif

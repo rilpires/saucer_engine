@@ -22,8 +22,8 @@ std::vector<RenderData>  Sprite::generate_render_data(){
     if( texture ){
         RenderData render_data;
         
-        Vector2 region_top_left_uv = region_top_left / texture->get_size();
-        Vector2 region_bottom_right_uv = region_bottom_right / texture->get_size();
+        Vector2 region_top_left_uv = region.top_left / texture->get_size();
+        Vector2 region_bottom_right_uv = region.bottom_right / texture->get_size();
         Vector2 uv_size = (region_bottom_right_uv-region_top_left_uv)/Vector2( h_frames , v_frames );
         Vector2 top_left_uv = region_top_left_uv + uv_size * Vector2( frame_index%h_frames , frame_index/h_frames );
         Vector2 bottom_right_uv = top_left_uv + uv_size;
@@ -63,10 +63,7 @@ TextureResource*  Sprite::get_texture() const{
 }
 void            Sprite::set_texture( TextureResource* tex ){
     texture = tex;
-    if( texture ){
-        region_top_left = Vector2(0,0);
-        region_bottom_right = texture->get_size();
-    }
+    if( texture ) region = Rect( Vector2(0,0) , texture->get_size() );
 }
 short           Sprite::get_h_frames() const{
     return h_frames;
@@ -86,23 +83,17 @@ short           Sprite::get_frame_index() const{
 void            Sprite::set_frame_index( short new_val ){
     frame_index = new_val % ( h_frames * v_frames );
 }
-bool            Sprite::is_centralized() const {
+bool            Sprite::get_centralized() const {
     return centralized;
 }
 void            Sprite::set_centralized( bool new_val ){
     centralized = new_val;
 }
-Vector2         Sprite::get_region_top_left() const{
-    return region_top_left;
+Rect            Sprite::get_region() const{
+    return region;
 }
-Vector2         Sprite::get_region_bottom_right() const{
-    return region_bottom_right;
-}
-void            Sprite::set_region_top_left(Vector2 new_val){
-    region_top_left = new_val;
-}
-void            Sprite::set_region_bottom_right(Vector2 new_val){
-    region_bottom_right = new_val;
+void            Sprite::set_region(Rect new_val){
+    region = new_val;
 }
 void            Sprite::bind_methods(){
     
@@ -114,13 +105,19 @@ void            Sprite::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(Sprite,set_v_frames);
     REGISTER_LUA_MEMBER_FUNCTION(Sprite,get_frame_index);
     REGISTER_LUA_MEMBER_FUNCTION(Sprite,set_frame_index);
-    REGISTER_LUA_MEMBER_FUNCTION(Sprite,is_centralized);
+    REGISTER_LUA_MEMBER_FUNCTION(Sprite,get_centralized);
     REGISTER_LUA_MEMBER_FUNCTION(Sprite,set_centralized);
-    REGISTER_LUA_MEMBER_FUNCTION(Sprite,get_region_top_left);
-    REGISTER_LUA_MEMBER_FUNCTION(Sprite,get_region_bottom_right);
-    REGISTER_LUA_MEMBER_FUNCTION(Sprite,set_region_top_left);
-    REGISTER_LUA_MEMBER_FUNCTION(Sprite,set_region_bottom_right);
+    REGISTER_LUA_MEMBER_FUNCTION(Sprite,get_region);
+    REGISTER_LUA_MEMBER_FUNCTION(Sprite,set_region);
 
+}
+void            Sprite::push_editor_items(){
+    PROPERTY_RESOURCE(this,texture,TextureResource);
+    PROPERTY_INT(this,h_frames);
+    PROPERTY_INT(this,v_frames);
+    PROPERTY_INT(this,frame_index);
+    PROPERTY_BOOL(this,centralized);
+    PROPERTY_RECT(this,region);
 }
 YamlNode        Sprite::to_yaml_node() const {
     YamlNode ret;
@@ -129,17 +126,15 @@ YamlNode        Sprite::to_yaml_node() const {
     ret["v_frames"] = v_frames;
     ret["frame_index"] = frame_index;
     ret["centralized"] = centralized;
-    ret["region_top_left"] = region_top_left;
-    ret["region_bottom_right"] = region_bottom_right;
+    ret["region"] = region;
     return ret;
 }
 void            Sprite::from_yaml_node( YamlNode yaml_node ){
     if( yaml_node["texture"].IsDefined() )
-        set_texture((TextureResource*)ResourceManager::get_resource(yaml_node["texture"].as<std::string>()));
+        set_texture(ResourceManager::get_resource<TextureResource>(yaml_node["texture"].as<std::string>()));
     set_h_frames( yaml_node["h_frames"].as<decltype(h_frames)>() );
     set_v_frames( yaml_node["v_frames"].as<decltype(v_frames)>() );
     set_frame_index( yaml_node["frame_index"].as<decltype(frame_index)>() );
     set_centralized( yaml_node["centralized"].as<decltype(centralized)>() );
-    set_region_top_left( yaml_node["region_top_left"].as<decltype(region_top_left)>() );
-    set_region_bottom_right( yaml_node["region_bottom_right"].as<decltype(region_bottom_right)>() );
+    set_region( Rect(yaml_node["region_top_left"].as<Vector2>() , yaml_node["region_bottom_right"].as<Vector2>() ));
 }

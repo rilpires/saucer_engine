@@ -81,6 +81,10 @@ void    Camera::bind_methods() {
 }
 void    Camera::push_editor_items(){
     PROPERTY_VEC2(this,zoom);
+    PROPERTY_FLOAT(this,left_limit);
+    PROPERTY_FLOAT(this,right_limit);
+    PROPERTY_FLOAT(this,top_limit);
+    PROPERTY_FLOAT(this,bottom_limit);
 }
 
 YamlNode        Camera::to_yaml_node() const {

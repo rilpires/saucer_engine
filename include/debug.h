@@ -56,9 +56,43 @@ std::ostream& saucer_log_( T t , Ts ... args ){
             break;                                                                                          \
         }                                                                                                   \
     }
+
+#define AL_CALL(x)\
+    x ;                                                                                 \
+    {                                                                                   \
+        auto al_error = alGetError();                                                   \
+        if( al_error != AL_NO_ERROR ){                                                  \
+            saucer_err( "[OpenAL Error] Error code " , al_error );                      \
+            switch(al_error){                                                           \
+                case AL_INVALID_NAME:       saucer_err( "AL_INVALID_NAME" )      break; \
+                case AL_INVALID_ENUM:       saucer_err( "AL_INVALID_ENUM" )      break; \
+                case AL_INVALID_VALUE:      saucer_err( "AL_INVALID_VALUE" )     break; \
+                case AL_INVALID_OPERATION:  saucer_err( "AL_INVALID_OPERATION" ) break; \
+                case AL_OUT_OF_MEMORY:      saucer_err( "AL_OUT_OF_MEMORY" )     break; \
+            }                                                                                           \
+        }                                                                                               \
+    }
+#define ALC_CALL(device,x)\
+    x ;                                                                                     \
+    {                                                                                       \
+        auto alc_error = alcGetError(device);                                               \
+        if( alc_error != ALC_NO_ERROR ){                                                    \
+            saucer_err( "[OpenAL Context Error] Context error code " , alc_error );         \
+            switch(alc_error){                                                              \
+                case ALC_INVALID_DEVICE:    saucer_err( "ALC_INVALID_DEVICE" )     break;   \
+                case ALC_INVALID_CONTEXT:   saucer_err( "ALC_INVALID_CONTEXT" )    break;   \
+                case ALC_INVALID_ENUM:      saucer_err( "ALC_INVALID_ENUM" )       break;   \
+                case ALC_INVALID_VALUE:     saucer_err( "ALC_INVALID_VALUE" )      break;   \
+                case ALC_OUT_OF_MEMORY:     saucer_err( "ALC_OUT_OF_MEMORY" )      break;   \
+            }                                                                               \
+        }                                                                                   \
+    }
+
 #else
-#define GL_CALL(x)\
-    x;                                                                 
+#define GL_CALL(x) x;                 
+#define AL_CALL(x) x;
+#define ALC_CALL(device,x) x;                                                    
 #endif
+
 
 #endif

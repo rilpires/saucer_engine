@@ -1,44 +1,7 @@
 #include "audio.h"
 #include <math.h>
 #include "lua_engine.h"
-
-#ifdef DEBUG
-#define AL_CALL(x)\
-    x ;                                                                                 \
-    {                                                                                   \
-        auto al_error = alGetError();                                                   \
-        if( al_error != AL_NO_ERROR ){                                                  \
-            saucer_err( "[OpenAL Error] Error code " , al_error );                      \
-            switch(al_error){                                                           \
-                case AL_INVALID_NAME:       saucer_err( "AL_INVALID_NAME" )      break; \
-                case AL_INVALID_ENUM:       saucer_err( "AL_INVALID_ENUM" )      break; \
-                case AL_INVALID_VALUE:      saucer_err( "AL_INVALID_VALUE" )     break; \
-                case AL_INVALID_OPERATION:  saucer_err( "AL_INVALID_OPERATION" ) break; \
-                case AL_OUT_OF_MEMORY:      saucer_err( "AL_OUT_OF_MEMORY" )     break; \
-            }                                                                                           \
-        }                                                                                               \
-    }
-#define ALC_CALL(device,x)\
-    x ;                                                                                     \
-    {                                                                                       \
-        auto alc_error = alcGetError(device);                                               \
-        if( alc_error != ALC_NO_ERROR ){                                                    \
-            saucer_err( "[OpenAL Context Error] Context error code " , alc_error );         \
-            switch(alc_error){                                                              \
-                case ALC_INVALID_DEVICE:    saucer_err( "ALC_INVALID_DEVICE" )     break;   \
-                case ALC_INVALID_CONTEXT:   saucer_err( "ALC_INVALID_CONTEXT" )    break;   \
-                case ALC_INVALID_ENUM:      saucer_err( "ALC_INVALID_ENUM" )       break;   \
-                case ALC_INVALID_VALUE:     saucer_err( "ALC_INVALID_VALUE" )      break;   \
-                case ALC_OUT_OF_MEMORY:     saucer_err( "ALC_OUT_OF_MEMORY" )      break;   \
-            }                                                                               \
-        }                                                                                   \
-    }
-#else
-#define AL_CALL(x)\
-    x;
-#define ALC_CALL(device,x)\
-    x;                                                                 
-#endif
+#include "editor.h"
 
 
 AudioEngine::AudioEngine( const char* device_name ){
@@ -126,13 +89,13 @@ void                AudioEmitter::set_audio_resource(AudioResource* new_res){
         AL_CALL( alSourcei( source , AL_BUFFER , buffer ) );
     }
 }
-bool                AudioEmitter::is_positional() const{
+bool                AudioEmitter::get_positional() const{
     return positional;
 }
 void                AudioEmitter::set_positional( bool new_val ){
     positional = new_val;
 }
-bool                AudioEmitter::is_looping() const{
+bool                AudioEmitter::get_looping() const{
     return looping;
 }
 void                AudioEmitter::set_looping( bool new_val ){
@@ -159,15 +122,20 @@ void         AudioEmitter::bind_methods(){
 
     REGISTER_LUA_MEMBER_FUNCTION( AudioEmitter , get_audio_resource )
     REGISTER_LUA_MEMBER_FUNCTION( AudioEmitter , set_audio_resource )
-    REGISTER_LUA_MEMBER_FUNCTION( AudioEmitter , is_positional )
+    REGISTER_LUA_MEMBER_FUNCTION( AudioEmitter , get_positional )
     REGISTER_LUA_MEMBER_FUNCTION( AudioEmitter , set_positional )
-    REGISTER_LUA_MEMBER_FUNCTION( AudioEmitter , is_looping )
+    REGISTER_LUA_MEMBER_FUNCTION( AudioEmitter , get_looping )
     REGISTER_LUA_MEMBER_FUNCTION( AudioEmitter , set_looping )
     REGISTER_LUA_MEMBER_FUNCTION( AudioEmitter , is_playing )
     REGISTER_LUA_MEMBER_FUNCTION( AudioEmitter , is_paused )
     REGISTER_LUA_MEMBER_FUNCTION( AudioEmitter , play )
     REGISTER_LUA_MEMBER_FUNCTION( AudioEmitter , pause )
 
+}
+void            AudioEmitter::push_editor_items(){
+    PROPERTY_RESOURCE(this,audio_resource, AudioResource );
+    PROPERTY_BOOL(this,looping);
+    if(ImGui::SmallButton("Play")){if(get_audio_resource())this->play();}
 }
 YamlNode        AudioEmitter::to_yaml_node() const {
     YamlNode ret;
@@ -178,7 +146,7 @@ YamlNode        AudioEmitter::to_yaml_node() const {
 }
 void            AudioEmitter::from_yaml_node( YamlNode yaml_node ) {
     if( yaml_node["audio_resource"].IsDefined() )
-        set_audio_resource( (AudioResource*)ResourceManager::get_resource(yaml_node["audio_resource"].as<std::string>()) );
+        set_audio_resource( ResourceManager::get_resource<AudioResource>(yaml_node["audio_resource"].as<std::string>()) );
     set_positional( yaml_node["positional"].as<decltype(positional)>() );
     set_looping(    yaml_node["looping"].as<decltype(looping)>() );
 }

@@ -28,11 +28,11 @@ std::vector<RenderData>  AnchoredRect::generate_render_data(){
     return ret;
 }
 bool            AnchoredRect::is_border_anchored( int border , int parent_border ) const {
-    return (anchored_borders[border] & (1<<(parent_border-1)));
+    return (anchored_borders[border] & (1<<parent_border));
 }
 void            AnchoredRect::set_anchored_border( int border , int parent_border , bool new_val ){
-    if (new_val)    anchored_borders[border] |=  (1<<(parent_border-1));
-    else            anchored_borders[border] &= ~(1<<(parent_border-1));
+    if (new_val)    anchored_borders[border] |=  (1<<parent_border);
+    else            anchored_borders[border] &= ~(1<<parent_border);
 }
 Vector2         AnchoredRect::get_rect_pos() const {
     return rect_pos;
@@ -171,6 +171,36 @@ void            AnchoredRect::bind_methods() {
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , get_use_scene_node_transform );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , set_use_scene_node_transform );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , get_global_rect_pos );    
+}
+void            AnchoredRect::push_editor_items(){
+    std::string border_names[] = {"LEFT_BORDER" , "RIGHT_BORDER" , "TOP_BORDER" , "BOTTOM_BORDER"};
+    std::pair<int,int> border_pairs[] = {
+        std::pair<int,int>(LEFT_BORDER,LEFT_BORDER),
+        std::pair<int,int>(RIGHT_BORDER,RIGHT_BORDER),
+        std::pair<int,int>(TOP_BORDER,TOP_BORDER),
+        std::pair<int,int>(BOTTOM_BORDER,BOTTOM_BORDER),
+        std::pair<int,int>(LEFT_BORDER,RIGHT_BORDER),
+        std::pair<int,int>(RIGHT_BORDER,LEFT_BORDER),
+        std::pair<int,int>(TOP_BORDER,BOTTOM_BORDER),
+        std::pair<int,int>(BOTTOM_BORDER,TOP_BORDER)
+    };
+    for( auto& p : border_pairs ){
+        bool b = is_border_anchored( p.first , p.second );
+        char buf[64];
+        sprintf(buf,"%s anchors to parent's %s?" , border_names[p.first].c_str() , border_names[p.second].c_str() );
+        if( ImGui::Checkbox(buf,&b) ){
+            set_anchored_border( p.first , p.second , b );
+        }
+    }
+
+    PROPERTY_VEC2(this,rect_pos);
+    PROPERTY_VEC2(this,rect_size);
+    PROPERTY_BOOL(this,starts_on_viewport);
+    ImGui::SameLine();
+    PROPERTY_BOOL(this,use_scene_node_transform);
+    ImGui::SameLine();
+    PROPERTY_BOOL(this,ignore_mouse);
+
 }
 YamlNode        AnchoredRect::to_yaml_node() const {
     YamlNode ret;

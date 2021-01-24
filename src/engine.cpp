@@ -19,7 +19,7 @@ void            Engine::initialize(){
     audio_engine = new AudioEngine();
     current_scene = NULL;
     while(last_uptimes.size()<FPS_FRAMES_TO_ACCOUNT)
-        last_uptimes.push_back(0);
+        last_uptimes.push_back(-1);
 
     // Setting input callbacks
     glfwSetCursorPosCallback( render_engine->get_glfw_window() , Input::mouse_pos_callback );

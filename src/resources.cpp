@@ -35,6 +35,8 @@ void Resource::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(Resource,get_path);
 }
 
+
+template<> 
 Resource*           ResourceManager::get_resource( std::string p_resource_path){
     auto it = id_by_path.find(p_resource_path);
     if( it == id_by_path.end() )
@@ -93,5 +95,5 @@ void    ResourceManager::free_resource(Resource* p_resource){
 }
 
 void    ResourceManager::bind_methods(){
-    REGISTER_LUA_GLOBAL_FUNCTION( "load" , ResourceManager::get_resource );
+    REGISTER_LUA_GLOBAL_FUNCTION( "load" , ResourceManager::get_resource<Resource> );
 }

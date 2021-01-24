@@ -124,11 +124,14 @@ void                SceneNode::set_visible( bool new_val ){
 }
 LuaScriptResource*  SceneNode::get_script() const { return lua_script;};
 void                SceneNode::set_script( LuaScriptResource* ls ){
-    if( lua_script ){
-        saucer_err( "Hmm you shouldn't change scripts attached in a node once set..." )
+    if( !Engine::is_editor && ls && lua_script ){
+        saucer_err( "Hmm you shouldn't change scripts attached in a node once set..." );
+    }
+    lua_script = ls;
+    if(!Engine::is_editor){
+        if( lua_script )LuaEngine::create_actor_env( this );
     } else {
-        lua_script = ls;
-        LuaEngine::create_actor_env( this );
+        // validate script maybe
     }
 }
 bool                SceneNode::is_parent_of( SceneNode* other ) const{
@@ -296,7 +299,7 @@ YamlNode    SceneNode::to_yaml_node() const{
 
     return ret;
 }
-void    SceneNode::from_yaml_node( YamlNode yaml_node ) {
+void        SceneNode::from_yaml_node( YamlNode yaml_node ) {
     SAUCER_ASSERT( children_nodes.size()==0 , "A SceneNode when instantied from YamlNode should not have any children." );
     SAUCER_ASSERT( attached_components.size()==0 , "A SceneNode when instantied from YamlNode should not have any component."  );
     SAUCER_ASSERT( lua_script==nullptr , "A SceneNode when instantied from YamlNode should not have a lua script attached." );
@@ -312,7 +315,7 @@ void    SceneNode::from_yaml_node( YamlNode yaml_node ) {
     set_inherits_transform ( yaml_node["inherits_transform"].as<decltype(inherits_transform)>() );
     set_visible            ( yaml_node["visible"].as<decltype(visible)>()                       );
     if( yaml_node["lua"].IsDefined() )
-        set_script( (LuaScriptResource*)ResourceManager::get_resource(yaml_node["lua"].as<std::string>())); 
+        set_script( ResourceManager::get_resource<LuaScriptResource>(yaml_node["lua"].as<std::string>())); 
     for( auto c : yaml_node["children"] ){
         SceneNode* new_child = new SceneNode();
         new_child->from_yaml_node( c );

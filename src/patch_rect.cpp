@@ -22,7 +22,7 @@ std::vector<RenderData> PatchRect::generate_render_data() {
         Vector2 tex_size = texture->get_size();
         
         for( int xi : {0,1,2} ) for( int yi : {0,1,2} ) {
-            if(!draw_center && xi==1 && yi==1 ) continue;
+            bool empty = (!draw_center && xi==1 && yi==1 );
             
             Vector2 top_left_uv;
             Vector2 bottom_right_uv;
@@ -32,40 +32,42 @@ std::vector<RenderData> PatchRect::generate_render_data() {
             if( xi==0 ){
                 dx = 0;
                 size.x = margins[LEFT_BORDER];
-                top_left_uv.x = top_left_region.x / tex_size.x;
-                bottom_right_uv.x = top_left_region.x / tex_size.x + margins[LEFT_BORDER]/tex_size.x;
+                top_left_uv.x = region.top_left.x / tex_size.x;
+                bottom_right_uv.x = region.top_left.x / tex_size.x + margins[LEFT_BORDER]/tex_size.x;
             } else 
             if( xi==1 ) {
                 dx = margins[LEFT_BORDER];
                 size.x = std::max( 0 , (int)get_rect_size().x-margins[LEFT_BORDER]-margins[RIGHT_BORDER] );
-                top_left_uv.x = top_left_region.x / tex_size.x + margins[LEFT_BORDER]/tex_size.x;
-                bottom_right_uv.x = bottom_right_region.x / tex_size.x - margins[RIGHT_BORDER]/tex_size.x;
+                top_left_uv.x = region.top_left.x / tex_size.x + margins[LEFT_BORDER]/tex_size.x;
+                bottom_right_uv.x = region.bottom_right.x / tex_size.x - margins[RIGHT_BORDER]/tex_size.x;
             } else 
             if( xi==2 ) {
                 dx = get_rect_size().x - margins[RIGHT_BORDER];
                 size.x = margins[RIGHT_BORDER];
-                top_left_uv.x = bottom_right_region.x / tex_size.x - margins[RIGHT_BORDER]/tex_size.x;
-                bottom_right_uv.x = bottom_right_region.x / tex_size.x;
+                top_left_uv.x = region.bottom_right.x / tex_size.x - margins[RIGHT_BORDER]/tex_size.x;
+                bottom_right_uv.x = region.bottom_right.x / tex_size.x;
             }
 
             if( yi==0 ){
                 dy = 0;
                 size.y = margins[TOP_BORDER];
-                top_left_uv.y = top_left_region.y / tex_size.y;
-                bottom_right_uv.y = top_left_region.y / tex_size.y + margins[TOP_BORDER]/tex_size.y;
+                top_left_uv.y = region.top_left.y / tex_size.y;
+                bottom_right_uv.y = region.top_left.y / tex_size.y + margins[TOP_BORDER]/tex_size.y;
             } else 
             if( yi==1 ) {
                 dy = margins[TOP_BORDER];
                 size.y = std::max( 0 , (int)get_rect_size().y-margins[TOP_BORDER]-margins[BOTTOM_BORDER] );
-                top_left_uv.y = top_left_region.y / tex_size.y + margins[TOP_BORDER]/tex_size.y;
-                bottom_right_uv.y = bottom_right_region.y / tex_size.y - margins[BOTTOM_BORDER]/tex_size.y;
+                top_left_uv.y = region.top_left.y / tex_size.y + margins[TOP_BORDER]/tex_size.y;
+                bottom_right_uv.y = region.bottom_right.y / tex_size.y - margins[BOTTOM_BORDER]/tex_size.y;
             } else 
             if( yi==2 ) {
                 dy = get_rect_size().y - margins[BOTTOM_BORDER];
                 size.y = margins[BOTTOM_BORDER];
-                top_left_uv.y = bottom_right_region.y / tex_size.y - margins[BOTTOM_BORDER]/tex_size.y;
-                bottom_right_uv.y = bottom_right_region.y / tex_size.y;
+                top_left_uv.y = region.bottom_right.y / tex_size.y - margins[BOTTOM_BORDER]/tex_size.y;
+                bottom_right_uv.y = region.bottom_right.y / tex_size.y;
             }
+            
+            if( empty ) size = Vector2(0,0);
 
             unsigned short vertex_data_offset = 4*(xi + yi*3);
             vertex_data[ vertex_data_offset     ].pos = Vector3(dx,             dy,             0);
@@ -107,28 +109,19 @@ TextureResource* PatchRect::get_texture() const {
 
 void    PatchRect::set_texture(TextureResource* tex) {
     texture = tex;
-    if( texture ){
-        top_left_region = Vector2(0,0);
-        bottom_right_region = texture->get_size();
-    }
+    if( texture ) region = Rect( Vector2(0,0) , texture->get_size() );
 }
-void    PatchRect::set_draw_center( bool new_val){
+void        PatchRect::set_draw_center( bool new_val){
     draw_center=new_val;
 }
-bool    PatchRect::get_draw_center() const{
+bool        PatchRect::get_draw_center() const{
     return draw_center;
 }
-Vector2     PatchRect::get_top_left_region() const{
-    return top_left_region;
+Rect        PatchRect::get_region() const{
+    return region;
 }
-void        PatchRect::set_top_left_region(Vector2 new_val){
-    top_left_region = new_val;
-}
-Vector2     PatchRect::get_bottom_right_region() const{
-    return bottom_right_region;
-}
-void        PatchRect::set_bottom_right_region(Vector2 new_val){
-    bottom_right_region = new_val;
+void        PatchRect::set_region(Rect new_val){
+    region = new_val;
 }
 void PatchRect::bind_methods() {
     REGISTER_LUA_MEMBER_FUNCTION( PatchRect , get_margin );
@@ -137,30 +130,33 @@ void PatchRect::bind_methods() {
     REGISTER_LUA_MEMBER_FUNCTION( PatchRect , set_texture );
     REGISTER_LUA_MEMBER_FUNCTION( PatchRect , set_draw_center );
     REGISTER_LUA_MEMBER_FUNCTION( PatchRect , get_draw_center );
-    REGISTER_LUA_MEMBER_FUNCTION( PatchRect , get_top_left_region );
-    REGISTER_LUA_MEMBER_FUNCTION( PatchRect , set_top_left_region );
-    REGISTER_LUA_MEMBER_FUNCTION( PatchRect , get_bottom_right_region );
-    REGISTER_LUA_MEMBER_FUNCTION( PatchRect , set_bottom_right_region );
+    REGISTER_LUA_MEMBER_FUNCTION( PatchRect , get_region );
+    REGISTER_LUA_MEMBER_FUNCTION( PatchRect , set_region );
 
-
+}
+void            PatchRect::push_editor_items(){
+    AnchoredRect::push_editor_items();
+    PROPERTY_RESOURCE(this,texture,TextureResource);
+    int temp_left_margin = margins[LEFT_BORDER];     if(ImGui::InputInt("left margin",&temp_left_margin))     margins[LEFT_BORDER] = temp_left_margin;
+    int temp_right_margin = margins[RIGHT_BORDER];   if(ImGui::InputInt("right margin",&temp_right_margin))   margins[RIGHT_BORDER] = temp_right_margin;
+    int temp_top_margin = margins[TOP_BORDER];       if(ImGui::InputInt("top margin",&temp_top_margin))       margins[TOP_BORDER] = temp_top_margin;
+    int temp_bottom_margin = margins[BOTTOM_BORDER]; if(ImGui::InputInt("bottom margin",&temp_bottom_margin)) margins[BOTTOM_BORDER] = temp_bottom_margin;
+    PROPERTY_RECT( this , region );
+    PROPERTY_BOOL( this , draw_center );
 }
 YamlNode        PatchRect::to_yaml_node() const {
     YamlNode ret = AnchoredRect::to_yaml_node();
     if(texture) ret["texture"] = texture->get_path();
     for( int i : margins ) ret["margins"].push_back(i);
     ret["draw_center"] = draw_center;
-    ret["top_left_region"] = top_left_region;
-    ret["bottom_right_region"] = bottom_right_region;
-
+    ret["region"] = region;
     return ret;
 }
 void            PatchRect::from_yaml_node( YamlNode yaml_node ){
     AnchoredRect::from_yaml_node(yaml_node);
-    if( yaml_node["texture"].IsDefined() )
-        set_texture((TextureResource*)ResourceManager::get_resource(yaml_node["texture"].as<std::string>()));
-
+    if( yaml_node["texture"].IsDefined() ) 
+        set_texture(ResourceManager::get_resource<TextureResource>(yaml_node["texture"].as<std::string>()));
     set_draw_center( yaml_node["draw_center"].as<decltype(draw_center)>() );
-    set_top_left_region( yaml_node["top_left_region"].as<decltype(top_left_region)>() );
-    set_bottom_right_region( yaml_node["bottom_right_region"].as<decltype(bottom_right_region)>() );
+    set_region(Rect(yaml_node["top_left_region"].as<Vector2>(),yaml_node["bottom_right_region"].as<Vector2>()));
     for( size_t i = 0 ; i < 4 ; i++ ) margins[i] = yaml_node["margins"][i].as<short>();
 }

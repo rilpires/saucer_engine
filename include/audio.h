@@ -45,9 +45,9 @@ class AudioEmitter : public Component {
         
         AudioResource*      get_audio_resource() const ;
         void                set_audio_resource(AudioResource* new_res);
-        bool                is_positional() const;
+        bool                get_positional() const;
         void                set_positional( bool new_val );
-        bool                is_looping() const;
+        bool                get_looping() const;
         void                set_looping( bool new_val );
         bool                is_playing() const ;
         bool                is_paused() const ;
@@ -55,6 +55,7 @@ class AudioEmitter : public Component {
         void                pause();
 
         static void         bind_methods();
+        void                push_editor_items();
         YamlNode            to_yaml_node() const override ;
         void                from_yaml_node( YamlNode ) override ;
 

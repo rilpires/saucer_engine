@@ -1,5 +1,6 @@
 #include "label_rect.h"
 #include "lua_engine.h"
+#include "editor.h"
 
 std::unordered_multimap<SaucerId,LabelRect*> LabelRect::component_from_node;
 
@@ -236,6 +237,39 @@ void            LabelRect::bind_methods() {
     REGISTER_LUA_MEMBER_FUNCTION( LabelRect , set_editable );
 
 }
+void            LabelRect::push_editor_items(){
+    AnchoredRect::push_editor_items();
+    PROPERTY_STRING( this, text );
+    PROPERTY_RESOURCE( this, font , FontResource );
+    PROPERTY_INT( this, font_size );
+    PROPERTY_INT( this, line_gap );
+    PROPERTY_BOOL( this, editable );
+    std::map<int,bool> align_flags_map;
+    for( auto i : {
+        HORIZONTAL_ALIGN_LEFT,
+        HORIZONTAL_ALIGN_CENTER,
+        HORIZONTAL_ALIGN_RIGHT,
+        VERTICAL_ALIGN_TOP,
+        VERTICAL_ALIGN_CENTER,
+        VERTICAL_ALIGN_BOTTOM
+    }) align_flags_map[i] = align_flags & i;
+    ImGui::Text("Horizontal align:");
+    ImGui::Checkbox("Left",&align_flags_map[HORIZONTAL_ALIGN_LEFT]); 
+    ImGui::SameLine();
+    ImGui::Checkbox("hCenter",&align_flags_map[HORIZONTAL_ALIGN_CENTER]); 
+    ImGui::SameLine();
+    ImGui::Checkbox("Right",&align_flags_map[HORIZONTAL_ALIGN_RIGHT]);
+    ImGui::Text("Vertical flag:");
+    ImGui::Checkbox("Top",&align_flags_map[VERTICAL_ALIGN_TOP]); 
+    ImGui::SameLine();
+    ImGui::Checkbox("vCenter",&align_flags_map[VERTICAL_ALIGN_CENTER]); 
+    ImGui::SameLine();
+    ImGui::Checkbox("Bottom",&align_flags_map[VERTICAL_ALIGN_BOTTOM]);
+    int old_align_flags = align_flags;
+    align_flags = 0;
+    for( auto p : align_flags_map ) if(p.second) align_flags += p.first;
+    if( align_flags != old_align_flags ) dirty_vertex_data = true;
+}
 YamlNode        LabelRect::to_yaml_node() const {
     YamlNode ret = AnchoredRect::to_yaml_node();
     
@@ -258,5 +292,5 @@ void            LabelRect::from_yaml_node( YamlNode yaml_node ){
     set_editable( yaml_node["editable"].as<decltype(editable)>() );
 
     if( yaml_node["font"].IsDefined() )
-        font = (FontResource*)ResourceManager::get_resource( yaml_node["font"].as<std::string>() );
+        font = ResourceManager::get_resource<FontResource>( yaml_node["font"].as<std::string>() );
 }

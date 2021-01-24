@@ -1,7 +1,8 @@
 #include "render_engine.h"
-#include "core.h"
+#include "resources/shader.h"
+#include "resources/image.h"
+#include "engine.h"
 
-#include <algorithm>
 
 #define INITIAL_WINDOW_SIZE Vector2(1600,900)
 #define INITIAL_WINDOW_TITLE "SaucerEngine"

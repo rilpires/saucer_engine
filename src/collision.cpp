@@ -3,6 +3,7 @@
 #include "scene_node.h"
 #include "scene.h"
 #include "math.h"
+#include "editor.h"
 
 #define METERS_PER_PIXEL 0.01f
 
@@ -163,7 +164,7 @@ void    CollisionBody::set_sensor( bool new_val ){
         fixture->SetSensor( sensor );
     }
 }
-bool    CollisionBody::is_sensor() const {
+bool    CollisionBody::get_sensor() const {
     return sensor;
 }
 void    CollisionBody::set_fixed_rotation( bool new_val ){
@@ -172,7 +173,7 @@ void    CollisionBody::set_fixed_rotation( bool new_val ){
         b2_body->SetFixedRotation( fixed_rotation );
     }
 }
-bool    CollisionBody::has_fixed_rotation() const {
+bool    CollisionBody::get_fixed_rotation() const {
     return fixed_rotation;
 }
 bool    CollisionBody::get_collision_layer_bit( int bit ){
@@ -294,15 +295,38 @@ void    CollisionBody::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION( CollisionBody , set_density );
     REGISTER_LUA_MEMBER_FUNCTION( CollisionBody , get_density );
     REGISTER_LUA_MEMBER_FUNCTION( CollisionBody , set_sensor );
-    REGISTER_LUA_MEMBER_FUNCTION( CollisionBody , is_sensor );
+    REGISTER_LUA_MEMBER_FUNCTION( CollisionBody , get_sensor );
     REGISTER_LUA_MEMBER_FUNCTION( CollisionBody , set_fixed_rotation );
-    REGISTER_LUA_MEMBER_FUNCTION( CollisionBody , has_fixed_rotation );
+    REGISTER_LUA_MEMBER_FUNCTION( CollisionBody , get_fixed_rotation );
     REGISTER_LUA_MEMBER_FUNCTION( CollisionBody , get_current_collisions );
     REGISTER_LUA_MEMBER_FUNCTION( CollisionBody , get_collision_layer_bit );
     REGISTER_LUA_MEMBER_FUNCTION( CollisionBody , get_collision_mask_bit );
     REGISTER_LUA_MEMBER_FUNCTION( CollisionBody , set_collision_layer_bit );
     REGISTER_LUA_MEMBER_FUNCTION( CollisionBody , set_collision_mask_bit );
 
+}
+void            CollisionBody::push_editor_items(){
+    PROPERTY_FLOAT_RANGE(this,restitution,0,1);
+    PROPERTY_FLOAT_RANGE(this,friction,0,1);
+    PROPERTY_FLOAT_RANGE(this,density,0,1);
+    PROPERTY_BOOL(this,sensor); ImGui::SameLine(); PROPERTY_BOOL(this,fixed_rotation);
+    
+    std::map<int,std::string> body_type_names;
+    body_type_names[SAUCER_BODY_TYPE_DYNAMIC] = "Dynamic";
+    body_type_names[SAUCER_BODY_TYPE_STATIC] = "Static";
+    body_type_names[SAUCER_BODY_TYPE_KINEMATIC] = "Kinematic";
+
+    if(ImGui::BeginPopup("SELECT_BODY_TYPE")){
+        for( auto p : body_type_names )
+            if( ImGui::Selectable(p.second.c_str()) )
+                set_body_type(p.first);
+        ImGui::EndPopup();
+    }
+    ImGui::Text("Body type:"); ImGui::SameLine();
+    if( ImGui::Button(body_type_names[get_body_type()].c_str()))
+        ImGui::OpenPopup("SELECT_BODY_TYPE");
+    ImGui::NewLine();
+    ImGui::TextColored(ImVec4(Color(1.0f,0.0f,0.0f,1.0f)) , "To create shapes, you have to do it inside scripts for now.");
 }
 YamlNode        CollisionBody::to_yaml_node() const {
     YamlNode ret;

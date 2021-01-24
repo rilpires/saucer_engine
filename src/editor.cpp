@@ -1,5 +1,6 @@
 #include "editor.h"
 #include "core.h"
+#include <fstream>
 
 using namespace ImGui;
 
@@ -16,7 +17,47 @@ void SaucerEditor::setup(){
 }
 
 
-void inspector(){
+void SaucerEditor::push_scene_tree_window(){
+    SceneNode* root_node = Engine::get_current_scene()->get_root_node();
+    SceneNode* selected_node = (SceneNode*)SaucerObject::from_saucer_id(SaucerEditor::node_id_selected);
+
+    Begin("Scene tree" );
+    
+
+    if(Button("Open node tree") && root_node ){
+        std::ofstream ofs;
+        ofs.open("node_tree.yaml", std::ofstream::out );
+        ofs << root_node->to_yaml_node();
+        ofs.close();
+    }
+    SameLine();    
+    if(Button("Save node tree") && root_node ){
+        std::ofstream ofs;
+        ofs.open("node_tree.yaml", std::ofstream::out );
+        ofs << root_node->to_yaml_node();
+        ofs.close();
+    }
+    SameLine();    
+    if(Button("New node")){
+        if( selected_node ) selected_node->add_child( new SceneNode() );
+        else if(root_node ) root_node->add_child( new SceneNode() );
+        else Engine::get_current_scene()->set_root_node(new SceneNode());  
+    }
+    SameLine();    
+    if(Button("Delete node") && selected_node) selected_node->queue_free();
+    
+    Columns(2,"scene_tree_and_inspector",true);
+    SetColumnWidth(0, GetWindowSize().x * 0.3 );
+    if( root_node ){
+        SetNextTreeNodeOpen(true);
+        push_node_tree(root_node);
+    }
+    NextColumn();
+    push_inspector();
+
+    End(); // SceneTree
+}
+void SaucerEditor::push_inspector(){
     SceneNode* selected_node = (SceneNode*)SaucerObject::from_saucer_id(SaucerEditor::node_id_selected);
     if( selected_node ){
         Text("Name: %s" , selected_node->get_name().c_str() );
@@ -28,8 +69,16 @@ void inspector(){
         PROPERTY_COLOR(selected_node,self_modulate);
         PROPERTY_INT(selected_node,z);
         PROPERTY_BOOL(selected_node,relative_z);
+        SameLine();
         PROPERTY_BOOL(selected_node,visible);
+        SameLine();
         PROPERTY_BOOL(selected_node,inherits_transform);
+        
+        std::string lua_script_path;
+        if( selected_node->get_script() ) lua_script_path = selected_node->get_script()->get_path();
+        if( InputText( "Lua script path" , &lua_script_path , ImGuiInputTextFlags_EnterReturnsTrue ) ){
+            selected_node->set_script( ResourceManager::get_resource<LuaScriptResource>(lua_script_path) );
+        }
         
         NewLine();
         
@@ -60,14 +109,36 @@ void inspector(){
         }
     }
 }
-
 void SaucerEditor::push_node_tree( SceneNode* node ){
 
-    bool b = TreeNodeEx(    (void*)(long long)node->get_saucer_id(),
-                            ImGuiTreeNodeFlags_OpenOnArrow + ImGuiTreeNodeFlags_SpanFullWidth + ImGuiTreeNodeFlags_Selected*(node->get_saucer_id()==SaucerEditor::node_id_selected) , 
+    bool is_opened = TreeNodeEx(    (void*)(long long)node->get_saucer_id(),
+                            ImGuiTreeNodeFlags_OpenOnArrow 
+                            + ImGuiTreeNodeFlags_Selected*(node->get_saucer_id()==SaucerEditor::node_id_selected)
+                            + ImGuiTreeNodeFlags_SpanFullWidth ,
                             "%s" , node->get_name().c_str() );
+    
+    if( BeginDragDropSource( ImGuiDragDropFlags_SourceNoDisableHover ) ){
+        SaucerId node_id = node->get_saucer_id();
+        SetDragDropPayload("SCENE_NODE",(void*)&node_id,sizeof(SaucerId));
+        EndDragDropSource();
+    }
+    if( BeginDragDropTarget() ){
+        const ImGuiPayload* payload = AcceptDragDropPayload("SCENE_NODE");
+        if( payload ){
+            SaucerId* received_saucer_id = static_cast<SaucerId*>(payload->Data);
+            SceneNode* received_node = (SceneNode*)SaucerObject::from_saucer_id(*received_saucer_id);
+            if( received_node->is_parent_of(node) ){
+                saucer_warn("You can't set a node as a child of it's childs you know");
+            } else {
+                received_node->get_out();
+                node->add_child(received_node);
+            }
+        }
+        EndDragDropTarget();
+    }
+
     if( IsItemClicked() ) SaucerEditor::node_id_selected = node->get_saucer_id();
-    if( b ){
+    if( is_opened ){
         for( auto child : node->get_children() ) push_node_tree(child);
         TreePop();
     }
@@ -116,39 +187,16 @@ void SaucerEditor::push_render_window(){
 
 void SaucerEditor::update(){
 
-    SceneNode* root_node = Engine::get_current_scene()->get_root_node();
-    SceneNode* selected_node = (SceneNode*)SaucerObject::from_saucer_id(SaucerEditor::node_id_selected);
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     NewFrame();
 
-    ShowDemoWindow();
-    
-    Begin("Scene tree" );
-    SetWindowPos( ImVec2(0,0) );
-    SetWindowSize( ImVec2( 640 ,0) );
-    
-    
-    if(Button("New node")){
-        if( selected_node ) selected_node->add_child( new SceneNode() );
-        else if(root_node ) root_node->add_child( new SceneNode() );
-        else Engine::get_current_scene()->set_root_node(new SceneNode());  
-    }
-    SameLine();    
-    if(Button("Delete node") && selected_node) selected_node->queue_free();
-    
-    Columns(2,"scene_tree_and_inspector",true);
-    SetColumnWidth(0,250);
-    if( root_node ){
-        SetNextTreeNodeOpen(true);
-        push_node_tree(root_node);
-    }
-    NextColumn();
-    inspector();
-    End();
-
+    // ==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
+    ShowDemoWindow();           
+    push_scene_tree_window();
     push_render_window();
+    // ==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 
     Render();
     ImGui_ImplOpenGL3_RenderDrawData(GetDrawData());

@@ -73,9 +73,9 @@ class CollisionBody : public Component {
         void                set_density( float new_val );
         float               get_density() const ;
         void                set_sensor( bool new_val );
-        bool                is_sensor() const ;
+        bool                get_sensor() const ;
         void                set_fixed_rotation( bool new_val );
-        bool                has_fixed_rotation() const ;
+        bool                get_fixed_rotation() const ;
         bool                get_collision_layer_bit( int bit );
         bool                get_collision_mask_bit( int bit );
         void                set_collision_layer_bit( int bit , bool new_val );
@@ -92,6 +92,7 @@ class CollisionBody : public Component {
         float               get_rotation_degrees() const;
 
         static void         bind_methods();
+        void                push_editor_items();
         YamlNode            to_yaml_node() const override ;
         void                from_yaml_node( YamlNode ) override ;
 
