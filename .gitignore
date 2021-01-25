@@ -10,8 +10,15 @@ deps/
 *.o
 *.obj
 
+# Resources (assets) folder
+res/
+
+# Project config
+config.yaml
+
 # Executables
 main_debug
 main_release
+
 
 imgui.ini
