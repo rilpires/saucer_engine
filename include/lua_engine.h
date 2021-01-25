@@ -42,8 +42,6 @@ class LuaEngine {
     friend class SceneNode;
     private:
         static lua_State*       ls;
-        static int              kb_memory_used;
-        static int              kb_memory_threshold;
         static size_t           chunk_reader_offset;
 
         static std::unordered_map< std::string , std::unordered_map< std::string , lua_CFunction > > nested_functions_db;
@@ -70,6 +68,8 @@ class LuaEngine {
         static void             initialize();
         static void             finish();
 
+        static int              get_kb_memory_used();
+        static int              get_kb_memory_threshold();
 
 
         static void             execute_callback( const char* callback_name , SceneNode* actor );
@@ -116,6 +116,11 @@ class LuaEngine {
         // This converts C++ functions into lua functions: (int)*f(lua_State* )
         template< typename F > struct to_lua_cfunction;
 
+        #ifdef SAUCER_EDITOR
+        static void push_editor_items( bool filter_out_functions , bool only_show_actors=false );
+        static void push_actor_items( SceneNode* actor , bool filter_out_functions );
+        #endif
+        
 };
 
 template<>

@@ -24,12 +24,13 @@ class Engine : public SaucerObject{
         static Scene*               current_scene;
         static std::list<double>    last_uptimes;
         static double               next_frame_time;
+        static YamlNode             config;
     public:
         
         /**
          * @brief This should be the first function ever to be called in a Saucer Engine application
          */
-        static void             initialize( );
+        static void             initialize( YamlNode config );
         
         /**
          * @brief Safely close every resource managed by Saucer Engine
@@ -157,12 +158,14 @@ class Engine : public SaucerObject{
          */
         static bool             should_close();
 
+        static YamlNode&        get_config();
+
         static void         bind_methods();
 
         #ifdef SAUCER_EDITOR
-        static const bool is_editor = true;
+        static bool is_editor();
         #else
-        static const bool is_editor = false;
+        static constexpr bool is_editor(){ return false;};
         #endif
 
 };

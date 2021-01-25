@@ -1,37 +1,39 @@
 table_state = false
-    
+
 function _entered_tree()
-    
     require("res/scripts/chess.lua")
-    
-    this:set_name("root!")
     this.table_state = CHESS.create_table_state()
+    this.player_color = CHESS.COLOR.WHITE
+    this.table_state._dead_piece = this.dead_piece
+    LOG = this:get_node("chat")
 
-    local chess_table = SceneNode.new()
-    chess_table:set_name("chess_table")
-    this:add_child(chess_table)
-    local chess_table_sprite = chess_table:create_sprite()
-    chess_table_sprite:set_texture(load("res/chess.png"))
-    chess_table_sprite:set_region_top_left(Vector2(320,160))
-    chess_table_sprite:set_region_bottom_right(Vector2(576,416))
-    chess_table:set_position(Vector2(320,160))
-    
-    local camera = SceneNode.new()
-    this:add_child(camera)
-    camera:create_camera()
-    camera:set_position(Vector2(320,240))
-    camera:get_camera():set_active(true)
-
-    for k,v in this.table_state.map do
-        local piece = SceneNode.new()
-        piece:set_script(load("res/scripts/piece.lua"))
-        chess_table:add_child(piece)
-        piece:setup_from_piece(v)
+    local piece_index = 1;
+    for k,piece in this.table_state.map do
+        local piece_node = this:get_node("chess_table"):get_children()[piece_index];
+        piece_node:setup_from_piece( piece )
+        piece.node = piece_node
+        piece_node.table_state = this.table_state
+        piece_index = piece_index+1
     end
-
-
 end
 
+next_frame_to_inform_fps = 0
 function _frame_start(delta)
-    print("FPS: " , Engine.get_fps() )
+    if( this.table_state ) then
+        this.table_state:pass_time( 15*delta )
+
+        if (this.player_color == CHESS.COLOR.WHITE) then
+            this:get_node("player_timer"):set_seconds(   this.table_state.white_time )
+            this:get_node("opponent_timer"):set_seconds( this.table_state.black_time )
+        elseif (this.player_color == CHESS.COLOR.BLACK) then 
+            this:get_node("player_timer"):set_seconds(   this.table_state.black_time )
+            this:get_node("opponent_timer"):set_seconds( this.table_state.white_time )
+        end
+    end
 end
+
+function dead_piece( p )
+    print(p , " morreu!")
+    p.node:queue_free()
+end
+

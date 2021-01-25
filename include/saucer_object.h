@@ -56,6 +56,7 @@ class SaucerObject {
         static void             bind_methods();
         virtual YamlNode        to_yaml_node() const ;
         virtual void            from_yaml_node( YamlNode );
+        void                    from_yaml_node( std::string );
 
     protected:
         virtual ~SaucerObject();

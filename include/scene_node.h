@@ -9,6 +9,7 @@
 #include "vector.h"
 #include "resources.h"
 #include "resources/image.h"
+#include "resources/node_template.h"
 #include "saucer_object.h"
 
 class Component;
@@ -77,6 +78,8 @@ class SceneNode : public SaucerObject {
         SceneNode*              get_parent( ) const ;
         Scene*                  get_scene() const;
         void                    queue_free();
+        NodeTemplateResource*   pack_as_resource() const;
+        SceneNode*              duplicate() const;
 
 
         // These are public but should not be binded to lua:

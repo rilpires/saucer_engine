@@ -34,6 +34,16 @@ YamlNode    SaucerObject::to_yaml_node() const{
 void    SaucerObject::from_yaml_node(YamlNode n){
     UNUSED(n);
 }
+void    SaucerObject::from_yaml_node( std::string p  ){
+    YamlNode yaml_node;
+    try { 
+        yaml_node = YAML::LoadFile( p ); 
+        from_yaml_node(yaml_node);
+    }
+    catch(const YAML::BadFile::Exception& e) { 
+        saucer_err( "YAML::BadFile: " , p );
+    }
+}
 
 void SaucerObject::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION( SaucerObject , get_saucer_id )   

@@ -3,10 +3,9 @@
 #include <string.h>
 #include "debug.h"
 #include <set>
+#include "editor.h"
 
 lua_State*  LuaEngine::ls = NULL;
-int         LuaEngine::kb_memory_used = 0;
-int         LuaEngine::kb_memory_threshold = 0;
 size_t      LuaEngine::chunk_reader_offset = 0;
 SceneNode*  LuaEngine::current_actor = NULL;
 
@@ -152,14 +151,18 @@ void            LuaEngine::initialize(){
     Vector3::bind_methods();
     Transform::bind_methods();
     
-    kb_memory_threshold = lua_getgcthreshold(ls);
-    kb_memory_used = lua_getgccount(ls);
     saucer_print( "Creating lua enviroment..." )
     create_global_env();
     saucer_print( "Done." )
 }
 void            LuaEngine::finish(){
     lua_close(ls);
+}
+int             LuaEngine::get_kb_memory_used(){
+    return lua_getgccount(ls);
+}
+int             LuaEngine::get_kb_memory_threshold(){
+    return lua_getgcthreshold(ls);
 }
 void            LuaEngine::create_global_env( ){
     // Creating engine main table, it will be always at _G["_SAUCER"]
@@ -309,8 +312,7 @@ void            LuaEngine::print_error( int err , LuaScriptResource* script ){
                 error_msg = "Lua error handling error "; break;
             }
         saucer_err( error_msg , " : " , lua_tostring(ls,-1) )
-        lua_pop(ls,1);  
-        exit(1);
+        lua_pop(ls,1);
     }
 }
 lua_CFunction   LuaEngine::recover_nested_function( std::string class_name , std::string function_name ){
@@ -446,3 +448,80 @@ void    LuaEngine::register_function( std::string global_function_name , lua_CFu
 void    LuaEngine::register_function( std::string class_name , std::string function_name , lua_CFunction f ){
     nested_functions_db[class_name][function_name] = f;
 }
+
+#ifdef SAUCER_EDITOR
+void    LuaEngine::push_editor_items( bool filter_out_functions , bool only_show_actors ){
+    
+    if( lua_gettop(ls)== 0 ){
+        if(only_show_actors){
+            lua_pushstring(ls,"_SAUCER");
+            lua_gettable(ls,LUA_GLOBALSINDEX);
+            lua_pushstring(ls,"_NODES");
+            lua_gettable(ls,-2);
+            lua_remove(ls,-2);
+        } else {
+            lua_pushstring(ls,"_G");
+            lua_gettable(ls,LUA_GLOBALSINDEX); 
+        }
+    }
+    if( lua_isnil(ls,-1) ){
+        saucer_err("push_editor_items on a nil value");
+        lua_pop(ls,1);
+        return;
+    }
+
+    lua_pushnil(ls);
+    while( lua_next(ls,-2) ){
+        if( filter_out_functions && lua_isfunction(ls,-1) ){
+            lua_pop(ls,1);
+            continue;
+        }
+        int key_type = lua_type(ls,-2);
+        int value_type = lua_type(ls,-1);
+        std::string key;
+        if( key_type == LUA_TSTRING ) key = lua_tostring(ls,-2);
+        else key = std::to_string( (int)lua_tonumber(ls,-2) );
+        std::string value_type_str = lua_typename(ls,value_type);
+        std::string value;
+        switch( value_type ){
+            case LUA_TNUMBER: value = std::to_string( lua_tonumber(ls,-1) ); break;
+            case LUA_TSTRING: value = lua_tostring(ls,-1); break;
+            case LUA_TTABLE: value = ""; break;
+            case LUA_TFUNCTION: value = ""; break;
+            case LUA_TUSERDATA: value = ""; break;
+            case LUA_TBOOLEAN: value = ( lua_toboolean(ls,-1) ) ? ("true") : ("false"); break;
+            default: value = "?";
+        }
+
+        char line[127];
+        if(only_show_actors){
+            SceneNode* actor = static_cast<SceneNode*>( SaucerObject::from_saucer_id(lua_tonumber(ls,-2)) );
+            sprintf(line,"%s: [%s]\t%s" , actor->get_name().c_str() , value_type_str.c_str() , value.c_str() );
+        }
+        else
+            sprintf(line,"%s: [%s]\t%s" , key.c_str() , value_type_str.c_str() , value.c_str() );
+
+        if( value_type == LUA_TTABLE ){
+            if( ImGui::TreeNodeEx( key.c_str(), ImGuiTreeNodeFlags_SpanFullWidth , line ) ){
+                lua_pushvalue(ls,-1);
+                push_editor_items(filter_out_functions);
+                ImGui::TreePop();
+            }
+        } else {
+            ImGui::BulletText( line );
+        }
+    
+        lua_pop(ls,1);
+    }
+
+    lua_pop(ls,1);
+
+}
+void    LuaEngine::push_actor_items( SceneNode* actor , bool filter_out_functions ){
+    if( actor->get_script() ){
+        push_actor_table(ls,actor);
+        push_editor_items( filter_out_functions , false );
+    }
+}
+
+#endif

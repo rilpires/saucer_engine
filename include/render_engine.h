@@ -65,7 +65,7 @@ class RenderEngine {
         
         
     public:
-        RenderEngine();
+        RenderEngine( Vector2 initial_window_size );
         ~RenderEngine();
 
         GLFWwindow*         get_glfw_window() const;

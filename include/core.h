@@ -20,6 +20,7 @@
 #include "resources.h"
 #include "camera.h"
 #include "patch_rect.h"
+#include "resources/node_template.h"
 #include "resources/font.h"
 #include "resources/image.h"
 #include "resources/shader.h"

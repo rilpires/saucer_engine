@@ -51,7 +51,9 @@ void    Camera::set_active( bool new_val){
     SceneNode* node = get_node();
     if( node && node->get_scene() ){
         node->get_scene()->set_current_camera( (new_val)?(this):(nullptr) );
-    } else saucer_warn("Can't set a camera as active without it being inside a scene.");
+    } else {
+        saucer_warn("Can't set a camera as active without it being inside a scene.");
+    }
 }
 void    Camera::entered_tree(){
     if( get_node() && 

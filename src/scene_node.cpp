@@ -27,9 +27,10 @@ SceneNode::~SceneNode(){
         delete component;
     }
     attached_components.clear();
-    for( size_t i = 0 ; i < children_nodes.size() ; i++ ) 
-        delete children_nodes[i];
-    children_nodes.clear();
+    std::vector<SceneNode*> children_nodes_copy = children_nodes;
+    for( size_t i = 0 ; i < children_nodes_copy.size() ; i++ ) 
+        delete children_nodes_copy[i]; // they will call get_out
+    children_nodes.clear(); // probably unnecessary tho
     get_out();
     LuaEngine::destroy_actor_env(this);
 }
@@ -124,11 +125,11 @@ void                SceneNode::set_visible( bool new_val ){
 }
 LuaScriptResource*  SceneNode::get_script() const { return lua_script;};
 void                SceneNode::set_script( LuaScriptResource* ls ){
-    if( !Engine::is_editor && ls && lua_script ){
+    if( !Engine::is_editor() && ls && lua_script ){
         saucer_err( "Hmm you shouldn't change scripts attached in a node once set..." );
     }
     lua_script = ls;
-    if(!Engine::is_editor){
+    if(!Engine::is_editor() ){
         if( lua_script )LuaEngine::create_actor_env( this );
     } else {
         // validate script maybe
@@ -142,7 +143,6 @@ bool                SceneNode::is_parent_of( SceneNode* other ) const{
     return false;
 }
 void                SceneNode::get_out(){
-    bool actually_got_out = get_scene() || parent_node;
     if( get_scene() && get_scene()->get_root_node() == this ){
         get_scene()->set_root_node(nullptr);
     }
@@ -156,10 +156,10 @@ void                SceneNode::get_out(){
             }
         }
     }
-    if( actually_got_out ){
+    if( get_scene() ){
         exiting_tree();
+        set_scene(nullptr);
     }
-    set_scene(nullptr);
 }
 void                SceneNode::add_child( SceneNode* p_child_node ){
     SAUCER_ASSERT(p_child_node!=nullptr , "Trying to add a child SceneNode but it is null.");
@@ -184,6 +184,16 @@ Scene*              SceneNode::get_scene() const{
 }
 void                SceneNode::queue_free(){
     Engine::get_current_scene()->queue_free_node(this);
+}
+NodeTemplateResource*   SceneNode::pack_as_resource() const{
+    NodeTemplateResource* ret = new NodeTemplateResource();
+    ret->yaml_node = to_yaml_node();
+    return ret;
+}
+SceneNode*              SceneNode::duplicate() const{
+    SceneNode* ret = new SceneNode();
+    ret->from_yaml_node( to_yaml_node() );
+    return ret;
 }
 std::vector<SceneNode*> const&  SceneNode::get_children() const { 
     return children_nodes; 
@@ -219,12 +229,12 @@ void        SceneNode::entered_tree(){
     for( auto& child : children_nodes ) child->entered_tree();
     for( Component*& c : attached_components )
         c->entered_tree();
-    if(!Engine::is_editor) LuaEngine::execute_callback( "entered_tree", this );
+    if(!Engine::is_editor() ) LuaEngine::execute_callback( "entered_tree", this );
     
 }
 void        SceneNode::exiting_tree(){
     for( auto& child : children_nodes ) child->exiting_tree();
-    if(!Engine::is_editor) LuaEngine::execute_callback( "exiting_tree", this );
+    if(!Engine::is_editor() ) LuaEngine::execute_callback( "exiting_tree", this );
     for( Component*& c : attached_components )
         c->exiting_tree();
 }
@@ -266,6 +276,8 @@ void        SceneNode::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,queue_free);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_children);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,queue_free);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,pack_as_resource);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,duplicate);
     
     REGISTER_COMPONENT_HELPERS(Sprite,"sprite");
     REGISTER_COMPONENT_HELPERS(Camera,"camera");
@@ -304,6 +316,11 @@ void        SceneNode::from_yaml_node( YamlNode yaml_node ) {
     SAUCER_ASSERT( attached_components.size()==0 , "A SceneNode when instantied from YamlNode should not have any component."  );
     SAUCER_ASSERT( lua_script==nullptr , "A SceneNode when instantied from YamlNode should not have a lua script attached." );
     SAUCER_ASSERT( scene==nullptr , "A SceneNode when instantied from YamlNode should not be inside a scene." );
+    if( yaml_node.IsScalar() ){
+        std::string node_template_path = yaml_node.as<std::string>();
+        from_yaml_node(YAML::LoadFile(node_template_path));
+        return;
+    }
     set_name               ( yaml_node["name"].as<decltype(name)>()                             );
     set_position           ( yaml_node["position"].as<decltype(position)>()                     );
     set_scale              ( yaml_node["scale"].as<decltype(scale)>()                           );

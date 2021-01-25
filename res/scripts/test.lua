@@ -2,27 +2,26 @@
 function _entered_tree()
     this:set_name("gold")
     this:set_modulate(Color(0.5,1,1,1))
-    window_size = Engine.get_window_size()
+    viewport_size = Engine.get_viewport_size()
     wall = SceneNode.new()
     wall:set_name("Wall")
     wall_body = wall:create_body()
     wall_body:set_body_type( BodyType.STATIC )
-    for index,center in { Vector2(-window_size.x,0) , Vector2(window_size.x,0) , Vector2(0,window_size.y) } do
-        wall_body:create_rectangle_shape( window_size , center )
+    for index,center in { Vector2(-viewport_size.x,0) , Vector2(viewport_size.x,0) , Vector2(0,viewport_size.y) } do
+        wall_body:create_rectangle_shape( viewport_size , center )
     end
     this:add_child(wall)
     
     this.camera_node = SceneNode.new()
     this.camera_node:set_name("Camera")
     this.camera_node:create_camera()
+    this.camera_node:get_camera():set_zoom( Vector2(0.5,0.5) )
     this:add_child(this.camera_node)
+    this:create_sprite():set_texture( load("res/gold.png") )
     
 end
 
 function _frame_start( dt_seconds )
-    if not this:get_sprite() then
-        this:create_sprite():set_texture( load("res/gold.png") )
-    end
     vel = Vector2(0,0);
     if (Input.is_key_pressed(KEY.LEFT))     then vel.x = vel.x - 1.0 end;
     if (Input.is_key_pressed(KEY.RIGHT))    then vel.x = vel.x + 1.0 end;

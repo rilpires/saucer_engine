@@ -2,6 +2,7 @@
 #include "resources/image.h"
 #include "resources/lua_script.h"
 #include "resources/audiofile.h"
+#include "resources/node_template.h"
 #include "resources/shader.h"
 #include "resources/font.h"
 #include "lua_engine.h"
@@ -9,7 +10,6 @@
 #include "debug.h"
 #include <fstream>
 #include <sstream>
-
 
 std::unordered_map<std::string,SaucerId> ResourceManager::id_by_path;
 
@@ -74,6 +74,9 @@ Resource*           ResourceManager::load_resource(std::string filepath){
         }
         else if (extension == ".ttf"){
             ret = new FontResource( filepath );
+        }
+        else if (extension == ".node"){
+            ret = new NodeTemplateResource( filepath );
         }
         else if (extension == ".glsl"){
             ret = new ShaderResource( filepath );

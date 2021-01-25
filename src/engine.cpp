@@ -10,17 +10,21 @@ RenderEngine*       Engine::render_engine   = nullptr;
 AudioEngine*        Engine::audio_engine    = nullptr;
 Scene*              Engine::current_scene   = nullptr;
 double              Engine::next_frame_time   = 0;
+YamlNode            Engine::config;
 std::list<double>   Engine::last_uptimes;
 
 
-void            Engine::initialize(){
-    
-    render_engine = new RenderEngine();
+void            Engine::initialize( YamlNode config ){
+    Engine::config = config;    
+    render_engine = new RenderEngine( config["initial_window_size"].as<Vector2>() );
     audio_engine = new AudioEngine();
+    LuaEngine::initialize();
+    
     current_scene = NULL;
     while(last_uptimes.size()<FPS_FRAMES_TO_ACCOUNT)
         last_uptimes.push_back(-1);
 
+    
     // Setting input callbacks
     glfwSetCursorPosCallback( render_engine->get_glfw_window() , Input::mouse_pos_callback );
     glfwSetKeyCallback( render_engine->get_glfw_window() , Input::key_callback );
@@ -28,8 +32,23 @@ void            Engine::initialize(){
     glfwSetCharCallback( render_engine->get_glfw_window() , Input::char_callback );
     glfwSetWindowSizeCallback( render_engine->get_glfw_window(), RenderEngine::__window_resize_callback );
 
-    if( is_editor ) SaucerEditor::setup();
+    if( is_editor() ) SaucerEditor::setup();
 
+    if( config["cursor"].IsDefined() ){
+        auto cursor_texture = ResourceManager::get_resource<TextureResource>( config["cursor"].as<std::string>() );
+        if( cursor_texture ) get_render_engine()->set_custom_cursor(cursor_texture,4,1);
+        else saucer_err("Cursor not found at " , config["cursor"].as<std::string>() );
+    }
+    
+    Scene* scene = new Scene();
+    Engine::set_current_scene( scene );
+    SceneNode* root = new SceneNode();
+    if( config["root"].IsDefined() ){
+        root->from_yaml_node( config["root"] );
+        SaucerEditor::current_scene_path = config["root"].as<std::string>();
+    }
+    scene->set_root_node(root);
+    
 }
 void            Engine::close(){
     if(current_scene) delete current_scene;
@@ -44,8 +63,10 @@ void            Engine::update(){
     last_uptimes.push_front( get_uptime() ); 
     last_uptimes.pop_back();
     if (current_scene) current_scene->loop();
-
-   if( is_editor ) SaucerEditor::update();
+    
+    #ifdef SAUCER_EDITOR 
+        SaucerEditor::update();
+    #endif
 
     glfwSwapBuffers( render_engine->get_glfw_window() );
 
@@ -110,6 +131,9 @@ AudioEngine*    Engine::get_audio_engine(){
 bool            Engine::should_close() {
     return ( render_engine && render_engine->should_close() );
 }
+YamlNode&        Engine::get_config(){
+    return config;
+}
 void            Engine::bind_methods(){
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_uptime );
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_fps );
@@ -125,3 +149,8 @@ void            Engine::bind_methods(){
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_render_engine );
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_audio_engine );
 }
+#ifdef SAUCER_EDITOR
+bool            Engine::is_editor(){ 
+    return !SaucerEditor::currently_playing; 
+};
+#endif

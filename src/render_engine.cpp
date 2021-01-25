@@ -4,12 +4,11 @@
 #include "engine.h"
 
 
-#define INITIAL_WINDOW_SIZE Vector2(1600,900)
 #define INITIAL_WINDOW_TITLE "SaucerEngine"
 
-RenderEngine::RenderEngine(){
+RenderEngine::RenderEngine( Vector2 initial_window_size ){
     
-    window_size = INITIAL_WINDOW_SIZE;
+    window_size = initial_window_size;
     if( !glfwInit() ) saucer_err( "Failed to glfwInit()" )
     glfwSetErrorCallback([](int n , const char* s ){ saucer_err( "GLFW error #" , n , ":" , s ) });
     glfw_window = glfwCreateWindow( window_size.x , window_size.y , INITIAL_WINDOW_TITLE , NULL , NULL );
@@ -213,6 +212,8 @@ void                RenderEngine::update( const std::vector<RenderData>& draws  
                             float(clear_color.g)/255.0f,
                             float(clear_color.b)/255.0f,
                             float(clear_color.a)/255.0f) );
+
+    if( viewport_rect.get_area() <= 0 ) return;
 
     GL_CALL( glViewport(    viewport_rect.top_left.x  , 
                             get_window_size().y - viewport_rect.bottom_right.y , 

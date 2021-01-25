@@ -136,5 +136,5 @@ void            Sprite::from_yaml_node( YamlNode yaml_node ){
     set_v_frames( yaml_node["v_frames"].as<decltype(v_frames)>() );
     set_frame_index( yaml_node["frame_index"].as<decltype(frame_index)>() );
     set_centralized( yaml_node["centralized"].as<decltype(centralized)>() );
-    set_region( Rect(yaml_node["region_top_left"].as<Vector2>() , yaml_node["region_bottom_right"].as<Vector2>() ));
+    set_region( yaml_node["region"].as<decltype(region)>() );
 }

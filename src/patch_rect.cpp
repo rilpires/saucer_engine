@@ -157,6 +157,6 @@ void            PatchRect::from_yaml_node( YamlNode yaml_node ){
     if( yaml_node["texture"].IsDefined() ) 
         set_texture(ResourceManager::get_resource<TextureResource>(yaml_node["texture"].as<std::string>()));
     set_draw_center( yaml_node["draw_center"].as<decltype(draw_center)>() );
-    set_region(Rect(yaml_node["top_left_region"].as<Vector2>(),yaml_node["bottom_right_region"].as<Vector2>()));
+    set_region( yaml_node["region"].as<decltype(region)>() );
     for( size_t i = 0 ; i < 4 ; i++ ) margins[i] = yaml_node["margins"][i].as<short>();
 }

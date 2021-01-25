@@ -18,15 +18,14 @@ Scene::~Scene(){
 }
 Scene*          Scene::lua_new(){ return new Scene(); }
 void            Scene::set_root_node(SceneNode* new_root_node){
-    if( !root_node && new_root_node ){
-        root_node = new_root_node;
+    SceneNode* old_root_node = root_node;
+    root_node = new_root_node;
+    if ( old_root_node ){
+        old_root_node->get_out();
+    }
+    if( root_node ){
         root_node->set_scene(this);
         root_node->entered_tree();
-    }
-    else if ( root_node && !new_root_node ){
-        SceneNode* temp = root_node;
-        root_node = nullptr;
-        temp->get_out();
     }
 }
 SceneNode*      Scene::get_root_node(){
@@ -123,7 +122,7 @@ void            Scene::loop_draw(){
 
 }
 void            Scene::loop_input(){
-    if( Engine::is_editor ){ while( Input::pop_event_queue() ){} return; }
+    if( Engine::is_editor() ){ while( Input::pop_event_queue() ){} return; }
     std::queue< SceneNode* > nodes_queue;
     std::vector< SceneNode* > script_actors;
     Vector2 world_mouse_pos = Input::get_world_mouse_position();
@@ -211,7 +210,7 @@ void            Scene::loop_input(){
 
 }
 void            Scene::loop_script(){
-    if( Engine::is_editor ) return;
+    if( Engine::is_editor() ) return;
     std::queue< SceneNode* > nodes_queue;
     double last_frame_duration = Engine::get_last_frame_duration();
 
@@ -244,7 +243,7 @@ void            Scene::set_current_focused_anchored_rect( AnchoredRect* r ){
     current_focused_anchored_rect = r;
 }
 void            Scene::loop_physics(){
-    if( Engine::is_editor ) return;
+    if( Engine::is_editor() ) return;
     collision_world->step();
     
     for( auto it : CollisionBody::component_from_node ){

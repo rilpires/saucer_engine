@@ -27,13 +27,24 @@ class SceneNode;
 
 namespace SaucerEditor {
 
-    extern SaucerId node_id_selected;
-    
+    extern SaucerId         node_id_selected;
+    extern SceneNode*       tree_root_before_play;
+    extern std::string      current_scene_path;
+    extern bool             currently_playing;
+    extern SaucerObject*    object_to_be_saved;
+
     void push_scene_tree_window();
     void push_node_tree( SceneNode* node );
     void push_render_window();
     void push_inspector();
+    void push_config();
+    void push_lua_profiler();
+    void push_lua_editor();
+    void push_engine_profiler();
     void setup();
+    void clamp_window_on_screen();
+
+    // called by Engine every frame
     void update();
     
 };
