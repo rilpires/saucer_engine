@@ -151,6 +151,21 @@ void            LuaEngine::initialize(){
     Vector3::bind_methods();
     Transform::bind_methods();
     
+
+    // Registering a custom print function
+    #ifdef SAUCER_EDITOR
+    LuaEngine::register_function("print", [](lua_State* ls){
+        SaucerEditor::stream << "[LUA]\t";
+        for( int i = 1 ; i <= lua_gettop(ls) ; i++ ){
+            if( lua_isnumber(ls,i) )     SaucerEditor::stream << lua_tonumber(ls,i);
+            else if (lua_isstring(ls,i)) SaucerEditor::stream << lua_tostring(ls,i);
+            else                         SaucerEditor::stream << "[" << lua_typename(ls,lua_type(ls,i)) << "]";
+        }
+        SaucerEditor::stream << std::endl;
+        return 0;
+    });
+    #endif
+
     saucer_print( "Creating lua enviroment..." )
     create_global_env();
     saucer_print( "Done." )

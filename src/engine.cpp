@@ -45,7 +45,9 @@ void            Engine::initialize( YamlNode config ){
     SceneNode* root = new SceneNode();
     if( config["root"].IsDefined() ){
         root->from_yaml_node( config["root"] );
-        SaucerEditor::current_scene_path = config["root"].as<std::string>();
+        #ifdef SAUCER_EDITOR
+        SaucerEditor::current_scene_path = config["root"]["path"].as<std::string>();
+        #endif
     }
     scene->set_root_node(root);
     
@@ -148,6 +150,7 @@ void            Engine::bind_methods(){
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , is_fullscreen );
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_render_engine );
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_audio_engine );
+
 }
 #ifdef SAUCER_EDITOR
 bool            Engine::is_editor(){ 

@@ -125,8 +125,8 @@ void                SceneNode::set_visible( bool new_val ){
 }
 LuaScriptResource*  SceneNode::get_script() const { return lua_script;};
 void                SceneNode::set_script( LuaScriptResource* ls ){
-    if( !Engine::is_editor() && ls && lua_script ){
-        saucer_err( "Hmm you shouldn't change scripts attached in a node once set..." );
+    if( !Engine::is_editor() && ls && lua_script && ls != lua_script ){
+        saucer_err( "Hmm you shouldn't runtime change scripts attached in a node once set..." );
     }
     lua_script = ls;
     if(!Engine::is_editor() ){
@@ -304,40 +304,23 @@ YamlNode    SceneNode::to_yaml_node() const{
     ret["inherits_transform"] = inherits_transform;
     ret["visible"] = visible;
     if( lua_script ) ret["lua"] = lua_script->get_path();
-    
 
-    for( auto c : children_nodes ) ret["children"].push_back(c->to_yaml_node());
     for( auto c : attached_components) ret["components"][c->get_component_name()] = c->to_yaml_node();
 
+    std::string* ref_path = SaucerEditor::get_reference_path(this);
+    if( ref_path ){
+        ret["path"] = *ref_path;
+    } else {
+        for( auto c : children_nodes ) ret["children"].push_back(c->to_yaml_node());
+    }
     return ret;
 }
 void        SceneNode::from_yaml_node( YamlNode yaml_node ) {
     SAUCER_ASSERT( children_nodes.size()==0 , "A SceneNode when instantied from YamlNode should not have any children." );
-    SAUCER_ASSERT( attached_components.size()==0 , "A SceneNode when instantied from YamlNode should not have any component."  );
     SAUCER_ASSERT( lua_script==nullptr , "A SceneNode when instantied from YamlNode should not have a lua script attached." );
     SAUCER_ASSERT( scene==nullptr , "A SceneNode when instantied from YamlNode should not be inside a scene." );
-    if( yaml_node.IsScalar() ){
-        std::string node_template_path = yaml_node.as<std::string>();
-        from_yaml_node(YAML::LoadFile(node_template_path));
-        return;
-    }
-    set_name               ( yaml_node["name"].as<decltype(name)>()                             );
-    set_position           ( yaml_node["position"].as<decltype(position)>()                     );
-    set_scale              ( yaml_node["scale"].as<decltype(scale)>()                           );
-    set_rotation_degrees   ( yaml_node["rotation_degrees"].as<float>()                          );
-    set_z                  ( yaml_node["z"].as<decltype(z)>()                                   );
-    set_relative_z         ( yaml_node["relative_z"].as<decltype(relative_z)>()                 );
-    set_modulate           ( yaml_node["modulate"].as<decltype(modulate)>()                     );
-    set_self_modulate      ( yaml_node["self_modulate"].as<decltype(self_modulate)>()           );
-    set_inherits_transform ( yaml_node["inherits_transform"].as<decltype(inherits_transform)>() );
-    set_visible            ( yaml_node["visible"].as<decltype(visible)>()                       );
-    if( yaml_node["lua"].IsDefined() )
-        set_script( ResourceManager::get_resource<LuaScriptResource>(yaml_node["lua"].as<std::string>())); 
-    for( auto c : yaml_node["children"] ){
-        SceneNode* new_child = new SceneNode();
-        new_child->from_yaml_node( c );
-        add_child(new_child);
-    }
+    
+    if( yaml_node["components"].IsDefined() && attached_components.size() == 0 )
     for( auto c : yaml_node["components"] ){
         std::string component_name = c.first.as<std::string>();
         void(SceneNode::*f)() = __component_constructors[component_name] ;
@@ -345,4 +328,31 @@ void        SceneNode::from_yaml_node( YamlNode yaml_node ) {
         attached_components.back()->from_yaml_node(c.second);
     }
 
+    bool referenced = yaml_node["path"].IsDefined();
+    if( referenced ){
+        std::string node_template_path = yaml_node["path"].as<std::string>();
+        from_yaml_node(YAML::LoadFile(node_template_path));
+        SaucerEditor::flag_as_referenced(this,node_template_path);
+    }
+    
+    if( yaml_node["name"].IsDefined())               set_name               ( yaml_node["name"].as<decltype(name)>()                             );
+    if( yaml_node["position"].IsDefined())           set_position           ( yaml_node["position"].as<decltype(position)>()                     );
+    if( yaml_node["scale"].IsDefined())              set_scale              ( yaml_node["scale"].as<decltype(scale)>()                           );
+    if( yaml_node["rotation_degrees"].IsDefined())   set_rotation_degrees   ( yaml_node["rotation_degrees"].as<float>()                          );
+    if( yaml_node["z"].IsDefined())                  set_z                  ( yaml_node["z"].as<decltype(z)>()                                   );
+    if( yaml_node["relative_z"].IsDefined())         set_relative_z         ( yaml_node["relative_z"].as<decltype(relative_z)>()                 );
+    if( yaml_node["modulate"].IsDefined())           set_modulate           ( yaml_node["modulate"].as<decltype(modulate)>()                     );
+    if( yaml_node["self_modulate"].IsDefined())      set_self_modulate      ( yaml_node["self_modulate"].as<decltype(self_modulate)>()           );
+    if( yaml_node["inherits_transform"].IsDefined()) set_inherits_transform ( yaml_node["inherits_transform"].as<decltype(inherits_transform)>() );
+    if( yaml_node["visible"].IsDefined())            set_visible            ( yaml_node["visible"].as<decltype(visible)>()                       );
+    if( yaml_node["lua"].IsDefined() )               set_script( ResourceManager::get_resource<LuaScriptResource>(yaml_node["lua"].as<std::string>())); 
+    
+
+    if( !referenced && yaml_node["children"].IsDefined() )
+    for( auto c : yaml_node["children"] ){
+        SceneNode* new_child = new SceneNode();
+        new_child->from_yaml_node( c );
+        add_child(new_child);
+    }
+    
 }

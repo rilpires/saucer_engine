@@ -11,10 +11,32 @@ SceneNode*      SaucerEditor::tree_root_before_play = nullptr;
 std::string     SaucerEditor::current_scene_path = "";
 SaucerObject*   SaucerEditor::object_to_be_saved = nullptr;
 
-void SaucerEditor::setup(){
-    IMGUI_CHECKVERSION();
-    CreateContext();
+SaucerEditor::EditorStream    SaucerEditor::stream;
+std::unordered_map<SaucerId,std::string> SaucerEditor::reference_path;
+
+
+int SaucerEditor::EditorStream::overflow (int c){
+    str += (char)c;
+    return c;
+}
+
+const char* SaucerEditor::EditorStream::get_buffer() const {
+    return str.c_str();
+}
+size_t      SaucerEditor::EditorStream::get_size() const {
+    return str.size();
+}
+void      SaucerEditor::EditorStream::clear() {
+    str.clear();
+}
+
+
+void            SaucerEditor::setup(){
     
+    IMGUI_CHECKVERSION();
+    CreateContext();    
+    extern_console_streams.push_back(&SaucerEditor::stream);
+
     ImGuiIO& io = GetIO(); (void)io;
     StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL( Engine::get_render_engine()->get_glfw_window(), true );
@@ -22,7 +44,7 @@ void SaucerEditor::setup(){
 }
 
 
-void SaucerEditor::push_scene_tree_window(){
+void            SaucerEditor::push_scene_tree_window(){
     SceneNode* root_node = Engine::get_current_scene()->get_root_node();
     SceneNode* selected_node = (SceneNode*)SaucerObject::from_saucer_id(SaucerEditor::node_id_selected);
 
@@ -61,6 +83,26 @@ void SaucerEditor::push_scene_tree_window(){
         }
         EndPopup();
     }
+    if( BeginPopup("open_scene_as_child") ){
+        static std::string open_scene_as_child_path;
+        bool path_confirmed = InputText("",&open_scene_as_child_path,ImGuiInputTextFlags_EnterReturnsTrue);
+        SameLine();
+        path_confirmed = path_confirmed || Button("Open") ;
+        if( path_confirmed ){
+            if( open_scene_as_child_path == current_scene_path ){
+                saucer_warn("You can't put a parent node as a child of one of it's childs!" );
+            } else if (!selected_node){
+                saucer_warn("You have to select a node to instantiate a child.");
+            } else {
+                SceneNode* child_node = new SceneNode();
+                child_node->SaucerObject::from_yaml_node( open_scene_as_child_path );
+                selected_node->add_child(child_node);
+                reference_path[child_node->get_saucer_id()] = open_scene_as_child_path;
+                CloseCurrentPopup();
+            }
+        }
+        EndPopup();
+    }
 
     if(Button("Open node tree") && root_node ){
         OpenPopup("open_scene");
@@ -75,11 +117,15 @@ void SaucerEditor::push_scene_tree_window(){
         object_to_be_saved = selected_node;
         OpenPopup("save_object");
     }
-    SameLine();    
+    SameLine();
     if(Button("New node")){
-        if( selected_node ) selected_node->add_child( new SceneNode() );
+        if( selected_node && get_reference_path(selected_node)==nullptr ) selected_node->add_child( new SceneNode() );
         else if(root_node ) root_node->add_child( new SceneNode() );
         else Engine::get_current_scene()->set_root_node(new SceneNode());  
+    }
+    SameLine();
+    if(Button("Instatiate from file") ){
+        OpenPopup("open_scene_as_child");
     }
     
     Columns(2,"scene_tree_and_inspector",true);
@@ -93,7 +139,7 @@ void SaucerEditor::push_scene_tree_window(){
     clamp_window_on_screen();
     End(); // SceneTree
 }
-void SaucerEditor::push_inspector(){
+void            SaucerEditor::push_inspector(){
     SceneNode* selected_node = (SceneNode*)SaucerObject::from_saucer_id(SaucerEditor::node_id_selected);
     if( selected_node ){
         Text("Name: %s" , selected_node->get_name().c_str() );
@@ -152,7 +198,7 @@ void SaucerEditor::push_inspector(){
         }
     }
 }
-void SaucerEditor::push_config(){
+void            SaucerEditor::push_config(){
     YamlNode& config = Engine::get_config();
 
     Begin("Project configuration" , 0 , ImGuiWindowFlags_MenuBar );
@@ -173,12 +219,13 @@ void SaucerEditor::push_config(){
 
     End();
 }
-void SaucerEditor::push_node_tree( SceneNode* node ){
+void            SaucerEditor::push_node_tree( SceneNode* node ){
 
     bool is_opened = TreeNodeEx(    (void*)(long long)node->get_saucer_id(),
                             ImGuiTreeNodeFlags_OpenOnArrow 
                             + ImGuiTreeNodeFlags_Selected*(node->get_saucer_id()==SaucerEditor::node_id_selected),
                             "%s" , node->get_name().c_str() );
+    
     
     if( BeginDragDropSource( ImGuiDragDropFlags_SourceNoDisableHover ) ){
         SaucerId node_id = node->get_saucer_id();
@@ -202,17 +249,25 @@ void SaucerEditor::push_node_tree( SceneNode* node ){
     if( IsItemClicked() ) SaucerEditor::node_id_selected = node->get_saucer_id();
     
     
-    SameLine(); SmallButton("+"); if( IsItemClicked() ) node->add_child(new SceneNode());
+    if( get_reference_path(node)==nullptr ) {
+        SameLine(); SmallButton("+"); if( IsItemClicked() ) node->add_child(new SceneNode());
+    } else {
+        SameLine(); TextColored( ImVec4(1.0,0.5,0.5,1.0) , "[Referenced]" );
+    }
     SameLine(); SmallButton("-"); if( IsItemClicked() ) node->queue_free();
     
     if( is_opened ){
-        for( auto child : node->get_children() ) push_node_tree(child);
+        std::string* ref_path = get_reference_path(node);
+        if( ref_path==nullptr )
+            for( auto child : node->get_children() ) 
+                push_node_tree(child);
         TreePop();
     }
 }
-void SaucerEditor::push_render_window(){
+void            SaucerEditor::push_render_window(){
 
     SetNextWindowBgAlpha(0);
+    
     Vector2 mouse_pos = Input::get_screen_mouse_position();
     Rect current_viewport_rect = Engine::get_render_engine()->get_viewport_rect();
     bool window_inside_viewport = current_viewport_rect.is_point_inside(mouse_pos);
@@ -266,7 +321,7 @@ void SaucerEditor::push_render_window(){
     clamp_window_on_screen();
     End();
 }
-void SaucerEditor::push_lua_profiler(){
+void            SaucerEditor::push_lua_profiler(){
     Begin("Lua profiler");
     
     if( LuaEngine::get_kb_memory_used() < 1000 ) Text("Memory used:%d KB" , LuaEngine::get_kb_memory_used() );
@@ -287,14 +342,23 @@ void SaucerEditor::push_lua_profiler(){
 
     End();
 }
-void SaucerEditor::push_lua_editor(){
-    Begin("Lua script editor [BETA]");
+void            SaucerEditor::push_lua_editor(){
+    Begin("Lua script editor [BETA]" , nullptr , ImGuiWindowFlags_MenuBar );
     std::string txt;
     const ImVec2 v = GetContentRegionAvail();
+    if( BeginMenuBar() ){
+        if( BeginMenu("File") ){
+            if (MenuItem("Open")){
+                saucer_print("hiii");
+            }
+            EndMenu();
+        }
+        EndMenuBar();
+    }
     InputTextMultiline( "" , &txt , v );
     End();
 }
-void SaucerEditor::push_engine_profiler(){
+void            SaucerEditor::push_engine_profiler(){
     Begin("Engine profiler");
     int window_content_width = GetContentRegionAvail().x;
     ImVec2 plot_sizes = ImVec2( window_content_width , 32 );
@@ -312,7 +376,32 @@ void SaucerEditor::push_engine_profiler(){
 
     End();
 }
-void SaucerEditor::clamp_window_on_screen(){
+void            SaucerEditor::push_console(){
+    Begin("Console");
+    
+    if( Button("Clear") ) stream.clear();
+
+    BeginChild("Text");
+    static size_t last_size = 0;
+    TextUnformatted( stream.get_buffer() );
+    if( last_size != stream.get_size() )
+        SetScrollY( GetScrollMaxY() );
+    last_size = stream.get_size();
+    EndChild();
+
+    End();
+}
+std::string*    SaucerEditor::get_reference_path( const SceneNode* n ){
+    auto it = reference_path.find(n->get_saucer_id());
+    if( it != reference_path.end() ){
+        if( it->second == current_scene_path ) return nullptr;
+        return &(it->second);
+    } else return nullptr;
+}
+void            SaucerEditor::flag_as_referenced( const SceneNode* n , std::string path ){
+    reference_path[n->get_saucer_id()] = path;
+}
+void            SaucerEditor::clamp_window_on_screen(){
     if( GetWindowPos().x < 0 ) SetWindowPos( ImVec2( 0 , GetWindowPos().y ) );
     if( GetWindowPos().y < 0 ) SetWindowPos( ImVec2( GetWindowPos().x , 0 ) );
     if( GetWindowPos().x + GetWindowSize().x > Engine::get_window_size().x ) 
@@ -320,13 +409,12 @@ void SaucerEditor::clamp_window_on_screen(){
     if( GetWindowPos().y + GetWindowSize().y > Engine::get_window_size().y ) 
         SetWindowPos( ImVec2( GetWindowPos().x , Engine::get_window_size().y - GetWindowSize().y ) );
 }
-void SaucerEditor::update(){
-
-
+void            SaucerEditor::update(){
+    
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     NewFrame();
-
+    
     // ==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
     ShowDemoWindow();           
     push_scene_tree_window();
@@ -335,6 +423,7 @@ void SaucerEditor::update(){
     push_engine_profiler();
     push_lua_profiler();
     push_lua_editor();
+    push_console();
     // ==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 
     

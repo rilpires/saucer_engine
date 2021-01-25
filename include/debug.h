@@ -3,13 +3,22 @@
 
 #include <iostream>
 #include <string.h>
+#include <vector>
+
+enum SAUCER_DEBUG_LOG_{
+    SAUCER_DEBUG_LOG_INFO,
+    SAUCER_DEBUG_LOG_WARN,
+    SAUCER_DEBUG_LOG_ERROR
+};
+
+extern std::vector<std::ostream*> extern_console_streams;
 
 #define STRINGIFY_(x) #x
 #define STRINGIFY(x) STRINGIFY_(x)
-#define saucer_print(...) saucer_log_<std::cout>(__VA_ARGS__) << std::endl;
-#define saucer_log(...) saucer_log_<std::cout>( __FILE__ ":" STRINGIFY(__LINE__) , ":\t[LOG]\t" , __VA_ARGS__) << std::endl;
-#define saucer_err(...) saucer_log_<std::cerr>( __FILE__ ":" STRINGIFY(__LINE__) , ":\t[ERROR]\t" , __VA_ARGS__) << std::endl;
-#define saucer_warn(...) saucer_log_<std::cerr>( __FILE__ ":" STRINGIFY(__LINE__) , ":\t[WARNING]\t" , __VA_ARGS__) << std::endl;
+#define saucer_print(...) saucer_log_( SAUCER_DEBUG_LOG_INFO ,  __FILE__ ":" STRINGIFY(__LINE__) ,  __VA_ARGS__);
+#define saucer_warn(...) saucer_log_( SAUCER_DEBUG_LOG_WARN ,  __FILE__ ":" STRINGIFY(__LINE__) , __VA_ARGS__);
+#define saucer_err(...) saucer_log_( SAUCER_DEBUG_LOG_ERROR ,  __FILE__ ":" STRINGIFY(__LINE__) , __VA_ARGS__);
+#define saucer_log(...) saucer_print(...);
 
 // Runtime assert. Enabled only if DEBUG is defined
 #ifdef DEBUG
@@ -21,23 +30,25 @@
     #define SAUCER_ASSERT(x,msg) ;
 #endif
 
-
-template< std::ostream& stream ,  typename T , class = typename std::enable_if<std::is_arithmetic<T>::value>::type >
-std::ostream& saucer_log_( T t ){
-    return stream << t;
+template<typename T>
+void saucer_log__( std::ostream& os , T t  ){
+    os << t << std::endl;
 }
-template< std::ostream& stream , typename T , class = typename std::enable_if<!std::is_arithmetic<T>::value>::type , class=void >
-std::ostream& saucer_log_( T t ){
-    return stream << std::string(t);
+template<typename T , typename ... Ts>
+void saucer_log__( std::ostream& os , T t , Ts ... args ){
+    os << t;
+    saucer_log__( os , args... );
 }
-template< std::ostream& stream , class = void , class=void >
-std::ostream& saucer_log_( const unsigned char* t ){
-    return stream << std::string((char*)t);
-}
-template< std::ostream& stream , typename T , typename ... Ts >
-std::ostream& saucer_log_( T t , Ts ... args ){
-    saucer_log_<stream,T>(t) << " ";
-    return saucer_log_<stream,Ts...>( args... );
+template<typename ... Ts>
+void saucer_log_( int level , const char* location , Ts ... args ){
+    if      ( level == SAUCER_DEBUG_LOG_INFO )  saucer_log__( std::cout , location, "\t[INFO]\t", args... );
+    else if ( level == SAUCER_DEBUG_LOG_WARN )  saucer_log__( std::cerr , location, "\t[WARNING]\t", args... );
+    else if ( level == SAUCER_DEBUG_LOG_ERROR ) saucer_log__( std::cerr , location, "\t[ERROR]\t", args... );
+    for( auto stream : extern_console_streams ){
+        if      ( level == SAUCER_DEBUG_LOG_INFO )  saucer_log__( *stream , "[INFO]\t", args... );
+        else if ( level == SAUCER_DEBUG_LOG_WARN )  saucer_log__( *stream , "[WARNING]\t", args... );
+        else if ( level == SAUCER_DEBUG_LOG_ERROR ) saucer_log__( *stream , "[ERROR]\t", args... );
+    }
 }
 
 #ifdef DEBUG

@@ -173,6 +173,7 @@ void            AnchoredRect::bind_methods() {
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , get_global_rect_pos );    
 }
 void            AnchoredRect::push_editor_items(){
+#ifdef SAUCER_EDITOR
     std::string border_names[] = {"LEFT_BORDER" , "RIGHT_BORDER" , "TOP_BORDER" , "BOTTOM_BORDER"};
     std::pair<int,int> border_pairs[] = {
         std::pair<int,int>(LEFT_BORDER,LEFT_BORDER),
@@ -200,7 +201,7 @@ void            AnchoredRect::push_editor_items(){
     PROPERTY_BOOL(this,use_scene_node_transform);
     ImGui::SameLine();
     PROPERTY_BOOL(this,ignore_mouse);
-
+#endif
 }
 YamlNode        AnchoredRect::to_yaml_node() const {
     YamlNode ret;

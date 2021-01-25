@@ -124,6 +124,10 @@ void            LabelRect::update_vertex_data(){
         else
         if( align_flags & HORIZONTAL_ALIGN_RIGHT )
             final_x_offset = rect_size.x - line_width;
+        else {
+            saucer_warn("invalid align_flags");
+            final_x_offset = 0.0f;
+        }
         
         for( size_t j = vertex_data_begin ; j < vertex_data_end ; j++ )
             vertex_data[j].pos = Vector3(   vertex_data[j].pos.x + final_x_offset , 
@@ -237,7 +241,10 @@ void            LabelRect::bind_methods() {
     REGISTER_LUA_MEMBER_FUNCTION( LabelRect , set_editable );
 
 }
+
 void            LabelRect::push_editor_items(){
+#ifdef SAUCER_EDITOR
+    
     AnchoredRect::push_editor_items();
     PROPERTY_STRING( this, text );
     PROPERTY_RESOURCE( this, font , FontResource );
@@ -269,6 +276,7 @@ void            LabelRect::push_editor_items(){
     align_flags = 0;
     for( auto p : align_flags_map ) if(p.second) align_flags += p.first;
     if( align_flags != old_align_flags ) dirty_vertex_data = true;
+#endif
 }
 YamlNode        LabelRect::to_yaml_node() const {
     YamlNode ret = AnchoredRect::to_yaml_node();

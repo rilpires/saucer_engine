@@ -1,5 +1,4 @@
 #ifndef WINDOW_H
-
 #define WINDOW_H
 
 
@@ -13,6 +12,8 @@
 class Scene;
 class AudioEngine;
 class RenderEngine;
+
+
 
 class Engine : public SaucerObject{
     REGISTER_SAUCER_OBJECT(Engine,SaucerObject);

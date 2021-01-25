@@ -133,9 +133,11 @@ void         AudioEmitter::bind_methods(){
 
 }
 void            AudioEmitter::push_editor_items(){
+#ifdef SAUCER_EDITOR
     PROPERTY_RESOURCE(this,audio_resource, AudioResource );
     PROPERTY_BOOL(this,looping);
     if(ImGui::SmallButton("Play")){if(get_audio_resource())this->play();}
+#endif
 }
 YamlNode        AudioEmitter::to_yaml_node() const {
     YamlNode ret;

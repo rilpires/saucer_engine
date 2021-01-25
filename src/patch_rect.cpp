@@ -135,6 +135,7 @@ void PatchRect::bind_methods() {
 
 }
 void            PatchRect::push_editor_items(){
+#ifdef SAUCER_EDITOR
     AnchoredRect::push_editor_items();
     PROPERTY_RESOURCE(this,texture,TextureResource);
     int temp_left_margin = margins[LEFT_BORDER];     if(ImGui::InputInt("left margin",&temp_left_margin))     margins[LEFT_BORDER] = temp_left_margin;
@@ -143,6 +144,7 @@ void            PatchRect::push_editor_items(){
     int temp_bottom_margin = margins[BOTTOM_BORDER]; if(ImGui::InputInt("bottom margin",&temp_bottom_margin)) margins[BOTTOM_BORDER] = temp_bottom_margin;
     PROPERTY_RECT( this , region );
     PROPERTY_BOOL( this , draw_center );
+#endif
 }
 YamlNode        PatchRect::to_yaml_node() const {
     YamlNode ret = AnchoredRect::to_yaml_node();
