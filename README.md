@@ -1,6 +1,6 @@
 # saucer_engine
 Game engine made with C++11, using OpenGL 3.0 as rendering back-end.
-The focus on this engine was primarily for learning graphics programming, and then some low level game development in general. I'll be trying to do the best pratices to make this engine in a very modular way, so anyone can feel free to mess with some core features like physics.
+The focus on this engine was primarily for learning graphics programming, and then some low level game development in general. I'll be trying to do the best pratices to make this engine in a very modular way, so anyone can feel free to insert any C++ components.
 
 Currently I'm developing this engine alongside a simple game I'm making with it. My short plan is to develop this engine until then.
 
@@ -20,9 +20,10 @@ Currently, apart from C++ STL libs, these are all third-party dependencies:
 - [Dear ImGui 1.79](https://github.com/ocornut/imgui/tree/v1.79), for graphic editor interface
 - [yaml-cpp 0.6.3](https://github.com/jbeder/yaml-cpp/tree/yaml-cpp-0.6.3), for yaml file parsing/emitting
 
-Nexts TO-DO's for sure:
-- Networking module
+Nexts TO-DO's (by priority):
 - Packing resources to a proper release build
 - More audio formats, cursor and possibly positioning("3D") sound.
+- Networking module
+- Integrate a file explorer in editor (will use boost or C++17) 
 - Supporting Lua to the most recent version (5.4.2).
 - Imports for some popular tools (Aseprite, Tiled, ... )
