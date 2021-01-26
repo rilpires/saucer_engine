@@ -1,8 +1,6 @@
 #include "camera.h"
 #include "core.h"
 
-std::unordered_multimap<SaucerId,Camera*> Camera::component_from_node;
-
 Camera::Camera() {
     zoom = Vector2(1,1);
     left_limit   = -999999;

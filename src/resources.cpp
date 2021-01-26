@@ -14,12 +14,24 @@
 std::unordered_map<std::string,SaucerId> ResourceManager::id_by_path;
 
 Resource::Resource(){
+    dirty = false;
 }
 Resource::Resource( std::string filepath ){
     path = filepath;
+    dirty = false;
 }
 Resource::~Resource(){
 }
+std::string         Resource::get_path() const {
+    return path;
+}
+void                Resource::flag_as_dirty(){
+    ;
+}
+bool        Resource::reload(){
+    return true;
+}
+
 std::string Resource::read_file_as_str( std::string filename ){
     std::ifstream ifs( filename , std::ifstream::in );
     if( !ifs ){
@@ -41,8 +53,17 @@ Resource*           ResourceManager::get_resource( std::string p_resource_path){
     auto it = id_by_path.find(p_resource_path);
     if( it == id_by_path.end() )
         return load_resource(p_resource_path);
-    else 
-        return static_cast<Resource*>(SaucerObject::from_saucer_id(it->second));
+    else{
+        Resource* ret = static_cast<Resource*>(SaucerObject::from_saucer_id(it->second));
+        if( ret->dirty ){
+            if(ret->reload()==false){
+                saucer_err("Failed to reload resource: " , p_resource_path );
+            } else {
+                ret->dirty = false;
+            }
+        }
+        return ret;
+    }
 }
 
 void    ResourceManager::set_resource(std::string resource_name , Resource* r ){
@@ -96,7 +117,12 @@ void    ResourceManager::free_resource(Resource* p_resource){
     id_by_path.erase( p_resource->get_path());
     delete p_resource;
 }
-
+void    ResourceManager::dirty_every_resource(){
+    for( auto& it : id_by_path ){
+        Resource* res = static_cast<Resource*>( SaucerObject::from_saucer_id(it.second) );
+        res->flag_as_dirty();
+    }
+}
 void    ResourceManager::bind_methods(){
     REGISTER_LUA_GLOBAL_FUNCTION( "load" , ResourceManager::get_resource<Resource> );
 }

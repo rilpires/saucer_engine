@@ -15,12 +15,24 @@ class Resource : public SaucerObject {
     friend class ResourceManager;
     protected:
         std::string         path;
+        bool                dirty;
         Resource( std::string filepath );
     public:
         Resource();
         ~Resource();
-        std::string         get_path() const {return path;};
-
+        std::string         get_path() const ;
+        
+        /**
+         * @brief By default, this doesn't set the dirty flag as true. If a resource should in fact be reloaded, it should override this function to set dirty as true
+         */
+        virtual void        flag_as_dirty();
+        /**
+         * @brief By default, doesn't do anything.
+         * 
+         * @return true when succesfully reloaded
+         * @return false when not succesfully reloaded
+         */
+        virtual bool        reload();
 
         static std::string  read_file_as_str( std::string filename );
         static void         bind_methods();   
@@ -39,6 +51,7 @@ class ResourceManager : public SaucerObject {
         static T*           get_resource(std::string p_resource_path);
         static void         set_resource(std::string resource_name , Resource* r );
         static void         free_resource(Resource* p_resource);
+        static void         dirty_every_resource();
 
         static void         bind_methods();
 };

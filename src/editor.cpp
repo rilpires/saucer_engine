@@ -299,6 +299,7 @@ void            SaucerEditor::push_render_window(){
         Engine::get_current_scene()->set_root_node( nullptr );
         node_id_selected = 0;
         currently_playing = true;
+        ResourceManager::dirty_every_resource();
         Engine::get_current_scene()->set_root_node(tree_root_before_play->duplicate());
     }
     if( currently_playing && MenuItem("Stop playing") ){

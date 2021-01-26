@@ -2,8 +2,6 @@
 #include "core.h"
 #include <algorithm>
 
-std::unordered_multimap< SaucerId , Sprite* > Sprite::component_from_node;
-
 Sprite::Sprite() {
     texture = nullptr;
     centralized = false;

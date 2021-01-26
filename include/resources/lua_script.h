@@ -18,11 +18,12 @@ class LuaScriptResource : public Resource {
         ~LuaScriptResource();
 
         const std::string&          get_src() const {return src;}
-        bool                        has_callback( std::string callback_name ) const ;  
-        static LuaScriptResource*   get_resource( std::string filepath );
+        bool                        has_callback( std::string callback_name ) const ;
+        
+        void                        flag_as_dirty() override;  
+        bool                        reload() override;
 
         static void                 bind_methods();
-
 
 };
 

@@ -1,8 +1,6 @@
 #include "patch_rect.h"
 #include "core.h"
 
-std::unordered_multimap<SaucerId,PatchRect*> PatchRect::component_from_node;
-
 PatchRect::PatchRect() {
     for( int i = 0 ; i < 4 ; i++ )
         margins[i] = 5;

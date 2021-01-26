@@ -246,7 +246,7 @@ void            Scene::loop_physics(){
     if( Engine::is_editor() ) return;
     collision_world->step();
     
-    for( auto it : CollisionBody::component_from_node ){
+    for( auto it : CollisionBody::component_from_node() ){
         CollisionBody*& body = it.second;
         SceneNode* node = body->get_node();
         if( node->get_scene() ){

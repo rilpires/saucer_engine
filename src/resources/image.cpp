@@ -17,7 +17,6 @@ TextureResource::TextureResource( std::string filepath ) : Resource(filepath) {
     if (png_image_begin_read_from_file(&image,filepath.c_str()) != 0)
     {
         image.format = PNG_FORMAT_RGBA;
-        saucer_print( "image size: " , PNG_IMAGE_SIZE(image) )
         data = new unsigned char[PNG_IMAGE_SIZE(image)];
         width = image.width;
         height = image.height;

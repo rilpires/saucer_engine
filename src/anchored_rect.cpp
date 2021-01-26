@@ -1,8 +1,6 @@
 #include "anchored_rect.h"
 #include "core.h"
 
-std::unordered_multimap<SaucerId,AnchoredRect*> AnchoredRect::component_from_node;
-
 AnchoredRect::AnchoredRect() {
     anchored_borders[0] = 0;
     anchored_borders[1] = 0;

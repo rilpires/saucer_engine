@@ -2,8 +2,6 @@
 #include "lua_engine.h"
 #include "editor.h"
 
-std::unordered_multimap<SaucerId,LabelRect*> LabelRect::component_from_node;
-
 LabelRect::LabelRect(){
     text = "";
     font = nullptr;

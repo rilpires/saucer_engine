@@ -61,9 +61,6 @@ void        CollisionWorld::delete_disableds(){
 
 // ---------------------------------------------------------------------------
 
-
-std::unordered_multimap< SaucerId , CollisionBody* > CollisionBody::component_from_node;
-
 CollisionBody::CollisionBody(){
     b2_body = nullptr;
     restitution = 0.5;

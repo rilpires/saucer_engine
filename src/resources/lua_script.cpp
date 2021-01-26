@@ -12,9 +12,13 @@ LuaScriptResource::~LuaScriptResource(){
 
 bool    LuaScriptResource::has_callback( std::string callback_name ) const{
     return existent_callbacks.find(callback_name) != existent_callbacks.end();
+}  
+void    LuaScriptResource::flag_as_dirty(){
+    dirty = true;
 }
-LuaScriptResource*   LuaScriptResource::get_resource( std::string filepath ){
-    return (LuaScriptResource*)ResourceManager::get_resource(filepath);
+bool    LuaScriptResource::reload(){
+    src = read_file_as_str( get_path() );
+    return true;
 }
 
 void LuaScriptResource::bind_methods(){

@@ -2,9 +2,6 @@
 #include "resources/shader.h"
 #include "lua_engine.h"
 
-std::unordered_multimap< SaucerId , RenderObject* > RenderObject::component_from_node;
-
-
 RenderObject::RenderObject(){
     current_shader = nullptr;
     use_parent_shader = false;

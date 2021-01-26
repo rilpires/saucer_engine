@@ -11,26 +11,29 @@ class Component : public SaucerObject {
     REGISTER_SAUCER_OBJECT(C,ParentComponent);                                                              \
     friend class Scene;                                                                                     \
     private:                                                                                                \
-        static std::unordered_multimap< SaucerId , C* > component_from_node;                                \
+        static std::unordered_multimap< SaucerId , C* >& component_from_node(){                             \
+            static std::unordered_multimap< SaucerId , C* > r;                                              \
+            return r;                                                                                       \
+        };                                                                                                  \
         using iterator = std::unordered_multimap< SaucerId , C* >::iterator;                                \
     public:                                                                                                 \
         static C*  recover_from_node( const SceneNode* node ){                                              \
             if(!node) return nullptr;                                                                       \
-            auto it_range = component_from_node.equal_range( node->get_saucer_id() );                       \
-            if( it_range.first == component_from_node.end() ) return nullptr;                               \
+            auto it_range = component_from_node().equal_range( node->get_saucer_id() );                     \
+            if( it_range.first == component_from_node().end() ) return nullptr;                             \
             else {                                                                                          \
                 C* ret = (it_range.first)->second;                                                          \
                 return ret;                                                                                 \
              }                                                                                              \
         }                                                                                                   \
         static std::pair<iterator,iterator>  recover_range_from_node( const SceneNode* node ){              \
-            return component_from_node.equal_range( node->get_saucer_id() );                                \
+            return component_from_node().equal_range( node->get_saucer_id() );                              \
         }                                                                                                   \
         virtual void  erase_from_component_map(){                                                           \
-            auto it_range = component_from_node.equal_range(attached_node->get_saucer_id());                \
+            auto it_range = component_from_node().equal_range(attached_node->get_saucer_id());              \
             for( auto it = it_range.first ; it != it_range.second ; it++ )                                  \
             if( it->second == this ){                                                                       \
-                component_from_node.erase(it);break;                                                        \
+                component_from_node().erase(it);break;                                                      \
             }                                                                                               \
             parent_type::erase_from_component_map();                                                        \
         }                                                                                                   \
@@ -39,7 +42,7 @@ class Component : public SaucerObject {
     protected:                                                                                              \
         void        attach_node( SceneNode* node ){                                                         \
             attached_node = node;                                                                           \
-            component_from_node.insert(std::make_pair<SaucerId,C*>(node->get_saucer_id(),this));            \
+            component_from_node().insert(std::make_pair<SaucerId,C*>(node->get_saucer_id(),this));          \
             ParentComponent::attach_node(node);                                                             \
         }                                                                                                   \
         
