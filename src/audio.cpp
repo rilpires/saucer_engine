@@ -117,7 +117,8 @@ void                AudioEmitter::pause(){
     AL_CALL( alSourcePause(source) );
 }
 void         AudioEmitter::bind_methods(){
-
+    REGISTER_COMPONENT_HELPERS(AudioEmitter,"audio_emitter");
+    
     REGISTER_LUA_MEMBER_FUNCTION( AudioEmitter , get_audio_resource )
     REGISTER_LUA_MEMBER_FUNCTION( AudioEmitter , set_audio_resource )
     REGISTER_LUA_MEMBER_FUNCTION( AudioEmitter , get_positional )

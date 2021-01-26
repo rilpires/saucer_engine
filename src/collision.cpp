@@ -275,8 +275,9 @@ float   CollisionBody::get_rotation_degrees() const{
 }
 
 void    CollisionBody::bind_methods(){
-
-
+    
+    REGISTER_COMPONENT_HELPERS(CollisionBody,"body");
+    
     REGISTER_LUA_CONSTANT( BodyType , DYNAMIC   , SAUCER_BODY_TYPE_DYNAMIC );
     REGISTER_LUA_CONSTANT( BodyType , STATIC    , SAUCER_BODY_TYPE_STATIC );
     REGISTER_LUA_CONSTANT( BodyType , KINEMATIC , SAUCER_BODY_TYPE_KINEMATIC );

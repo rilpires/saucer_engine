@@ -328,8 +328,14 @@ void            LuaEngine::describe_stack(){
     for( int i = 1 ; i <= lua_gettop(ls) ; i++ ){
         if( lua_type(ls,i) == LUA_TNUMBER ) 
             sprintf(s,"[%d] - [%s] - %f",i,lua_typename(ls,lua_type(ls,i)),lua_tonumber(ls,i));
+        else if( lua_type(ls,i) == LUA_TBOOLEAN )
+            sprintf(s,"[%d] - [%s] - %s",i,lua_typename(ls,lua_type(ls,i)), ((lua_toboolean(ls,i))?("true"):("false")) );
+        else if( lua_type(ls,i) == LUA_TNIL )
+            sprintf(s,"[%d] - [%s] - %s",i,lua_typename(ls,lua_type(ls,i)), "nil" );
+        else if( lua_type(ls,i) == LUA_TNONE )
+            sprintf(s,"[%d] - [%s] - %s",i,lua_typename(ls,lua_type(ls,i)), "none" );
         else 
-            sprintf(s,"[%d] - [%s] - %s",i,lua_typename(ls,lua_type(ls,i)),lua_tostring(ls,i));
+            sprintf(s,"[%d] - [%s]",i,lua_typename(ls,lua_type(ls,i)));
         saucer_print( s )
     }
 }

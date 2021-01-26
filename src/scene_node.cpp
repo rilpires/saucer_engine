@@ -3,9 +3,8 @@
 
 #define SHORT_MAX 0b0111111111111111
 
-std::unordered_map<std::string, void(SceneNode::*)() > SceneNode::__component_constructors;
+std::unordered_map<std::string, SceneNode::ComponentConstructor > SceneNode::__component_constructors;
         
-
 SceneNode::SceneNode(){
     position = Vector2(0,0);
     scale = Vector2(1,1);
@@ -222,8 +221,11 @@ std::vector<Component*>   SceneNode::get_attached_components() const{
     for( Component* c : attached_components ) ret.push_back(c);
     return ret;
 }
-const std::unordered_map<std::string, void(SceneNode::*)() >& SceneNode::__get_component_constructors() {
+const std::unordered_map<std::string, SceneNode::ComponentConstructor >& SceneNode::__get_component_constructors() {
     return __component_constructors;
+}
+void        SceneNode::__register_component_constructor( std::string name , ComponentConstructor c ){
+    __component_constructors[name] = c;
 }
 void        SceneNode::entered_tree(){
     for( auto& child : children_nodes ) child->entered_tree();
@@ -279,16 +281,6 @@ void        SceneNode::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,pack_as_resource);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,duplicate);
     
-    REGISTER_COMPONENT_HELPERS(Sprite,"sprite");
-    REGISTER_COMPONENT_HELPERS(Camera,"camera");
-    REGISTER_COMPONENT_HELPERS(CollisionBody,"body");
-    REGISTER_COMPONENT_HELPERS(AudioEmitter,"audio_emitter");
-    REGISTER_COMPONENT_HELPERS(AnchoredRect,"anchored_rect");
-    REGISTER_COMPONENT_HELPERS(PatchRect,"patch_rect");
-    REGISTER_COMPONENT_HELPERS(LabelRect,"label_rect");
-
-    
-
 }
 YamlNode    SceneNode::to_yaml_node() const{
     YamlNode ret;

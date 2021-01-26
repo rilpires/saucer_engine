@@ -99,6 +99,9 @@ void            Sprite::set_region(Rect new_val){
 }
 void            Sprite::bind_methods(){
     
+    
+    REGISTER_COMPONENT_HELPERS(Sprite,"sprite");
+
     REGISTER_LUA_MEMBER_FUNCTION(Sprite,get_texture);
     REGISTER_LUA_MEMBER_FUNCTION(Sprite,set_texture);
     REGISTER_LUA_MEMBER_FUNCTION(Sprite,get_h_frames);

@@ -81,8 +81,7 @@ std::vector<RenderData> PatchRect::generate_render_data() {
         }
         render_data.vertex_data = vertex_data;
         render_data.vertex_data_count = vertex_data_count;
-        render_data.use_tree_transform = false;
-        render_data.model_transform = get_parent_global_transform() * Transform().translate( get_rect_pos() );
+        render_data.use_tree_transform = true;
         render_data.texture_id = texture->get_texture_id();
         render_data.shader_program = get_current_shader();
 
@@ -125,7 +124,9 @@ Rect        PatchRect::get_region() const{
 void        PatchRect::set_region(Rect new_val){
     region = new_val;
 }
-void PatchRect::bind_methods() {
+void PatchRect::bind_methods() {    
+    REGISTER_COMPONENT_HELPERS(PatchRect,"patch_rect");
+
     REGISTER_LUA_MEMBER_FUNCTION( PatchRect , get_margin );
     REGISTER_LUA_MEMBER_FUNCTION( PatchRect , set_margin );
     REGISTER_LUA_MEMBER_FUNCTION( PatchRect , get_texture );

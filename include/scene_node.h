@@ -15,11 +15,15 @@
 class Component;
 class Scene;
 class LuaScriptResource;
+class AnchoredRect;
 
 class SceneNode : public SaucerObject {
-
-    friend class Scene;
     REGISTER_SAUCER_OBJECT(SceneNode,SaucerObject);
+    
+    friend class Scene;
+    friend class AnchoredRect; // to access position directly
+    public:
+        typedef void(SceneNode::*ComponentConstructor)() ;
 
     private:
         std::string                 name;
@@ -80,11 +84,11 @@ class SceneNode : public SaucerObject {
         void                    queue_free();
         NodeTemplateResource*   pack_as_resource() const;
         SceneNode*              duplicate() const;
+        std::vector<SceneNode*> const&  get_children() const;
 
 
         // These are public but should not be binded to lua:
-
-        std::vector<SceneNode*> const&  get_children() const;
+        std::vector<Component*> get_attached_components() const;
 
         bool                    get_inherits_transform() const;
         void                    set_inherits_transform(bool new_val);
@@ -96,13 +100,12 @@ class SceneNode : public SaucerObject {
         template< typename T> 
         void                    destroy_component( );
         void                    destroy_component( Component* c );
-
-
-        std::vector<Component*> get_attached_components() const;
-
-        static const std::unordered_map<std::string, void(SceneNode::*)() >& __get_component_constructors();
+        
+        
+        static const std::unordered_map<std::string, ComponentConstructor >& __get_component_constructors();
+        static void __register_component_constructor( std::string name , ComponentConstructor c );
     private:
-        static std::unordered_map<std::string, void(SceneNode::*)() > __component_constructors;
+        static std::unordered_map<std::string, ComponentConstructor > __component_constructors;
 
         void                entered_tree();
         void                exiting_tree();

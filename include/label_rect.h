@@ -25,6 +25,7 @@ class LabelRect : public AnchoredRect {
         unsigned char       align_flags;
         bool                editable;
         bool                enter_is_newline;
+        float               percent_visible;
 
     public:
         LabelRect();
@@ -46,6 +47,8 @@ class LabelRect : public AnchoredRect {
         void                set_editable( bool new_val );
         bool                get_enter_is_newline() const;
         void                set_enter_is_newline( bool new_val );
+        float               get_percent_visible() const;
+        void                set_percent_visible( float new_val);
 
     protected:
         void        cb_key( Input::InputEventKey& ev ) override ;

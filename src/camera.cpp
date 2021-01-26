@@ -64,6 +64,7 @@ void    Camera::exiting_tree(){
     set_active(false);
 }
 void    Camera::bind_methods() {
+    REGISTER_COMPONENT_HELPERS(Camera,"camera");
     
     REGISTER_LUA_MEMBER_FUNCTION( Camera , get_zoom );
     REGISTER_LUA_MEMBER_FUNCTION( Camera , set_zoom );

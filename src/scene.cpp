@@ -137,11 +137,9 @@ void            Scene::loop_input(){
         for( auto& it = anchored_rects.first ; it != anchored_rects.second ; it++ ){
             AnchoredRect* rect = it->second;
             if( rect->ignore_mouse ) continue;
-            Transform t = rect->get_parent_global_transform();
-            Vector2 rect_size       = rect->get_rect_size();
-            Vector2 rect_pos        = rect->get_rect_pos();
-            Vector2 world_top_left        = t*rect_pos;
-            Vector2 world_bottom_right    = t*(rect_pos+rect_size); // I hope it isn't rotated! won't work
+            Transform t = scene_node->get_global_transform();
+            Vector2 world_top_left        = t * Vector2(0,0) ;
+            Vector2 world_bottom_right    = t * rect->get_rect_size(); // I hope it isn't rotated! won't work
             if( world_mouse_pos.x > world_top_left.x 
             &&  world_mouse_pos.x < world_bottom_right.x 
             &&  world_mouse_pos.y > world_top_left.y 

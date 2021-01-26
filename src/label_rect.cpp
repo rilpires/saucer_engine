@@ -13,6 +13,7 @@ LabelRect::LabelRect(){
     align_flags = HORIZONTAL_ALIGN_CENTER + VERTICAL_ALIGN_CENTER;
     editable = false;
     enter_is_newline = false;
+    percent_visible = 1.0f;
     set_editable(true);
 }
 LabelRect::~LabelRect(){
@@ -27,14 +28,12 @@ std::vector<RenderData>  LabelRect::generate_render_data(){
         if( dirty_vertex_data ) update_vertex_data();
 
         render_data.vertex_data = vertex_data;
-        render_data.vertex_data_count = vertex_data_count;
+        render_data.vertex_data_count = vertex_data_count * percent_visible;
         render_data.shader_program = get_current_shader();
         render_data.texture_id = font->get_texture_id();
-        render_data.use_tree_transform = false;
+        render_data.use_tree_transform = true;
         render_data.tex_is_alpha_mask = true;
         
-        render_data.model_transform = get_parent_global_transform() * Transform().translate(   get_rect_pos() );
-
         ret.push_back(render_data);
     }
     return ret;
@@ -195,6 +194,12 @@ bool            LabelRect::get_enter_is_newline() const{
 void            LabelRect::set_enter_is_newline( bool new_val ){
     enter_is_newline = new_val;
 }
+float           LabelRect::get_percent_visible() const{
+    return percent_visible;
+}
+void            LabelRect::set_percent_visible( float new_val){
+    percent_visible = std::min( 1.0f , std::max( 0.0f , new_val ) );
+}
 void            LabelRect::cb_key( Input::InputEventKey& ev ){
     if( !editable ) return;
     if( ev.action == INPUT_EVENT_ACTION::PRESSED ){
@@ -228,6 +233,8 @@ void            LabelRect::cb_char( Input::InputEventChar& ev ){
 }
 void            LabelRect::bind_methods() {
 
+    REGISTER_COMPONENT_HELPERS(LabelRect,"label_rect");
+
     REGISTER_LUA_CONSTANT( LABEL_ALIGN , HORIZONTAL_ALIGN_LEFT   , HORIZONTAL_ALIGN_LEFT    );
     REGISTER_LUA_CONSTANT( LABEL_ALIGN , HORIZONTAL_ALIGN_CENTER , HORIZONTAL_ALIGN_CENTER  );
     REGISTER_LUA_CONSTANT( LABEL_ALIGN , HORIZONTAL_ALIGN_RIGHT  , HORIZONTAL_ALIGN_RIGHT   );
@@ -248,6 +255,8 @@ void            LabelRect::bind_methods() {
     REGISTER_LUA_MEMBER_FUNCTION( LabelRect , set_editable );
     REGISTER_LUA_MEMBER_FUNCTION( LabelRect , get_enter_is_newline );
     REGISTER_LUA_MEMBER_FUNCTION( LabelRect , set_enter_is_newline );
+    REGISTER_LUA_MEMBER_FUNCTION( LabelRect , get_percent_visible );
+    REGISTER_LUA_MEMBER_FUNCTION( LabelRect , set_percent_visible );
 
 }
 
@@ -259,6 +268,7 @@ void            LabelRect::push_editor_items(){
     PROPERTY_RESOURCE( this, font , FontResource );
     PROPERTY_INT( this, font_size );
     PROPERTY_INT( this, line_gap );
+    PROPERTY_FLOAT_RANGE( this, percent_visible , 0 , 1 );
     PROPERTY_BOOL( this, editable ); ImGui::SameLine() ; PROPERTY_BOOL( this , enter_is_newline );
     std::map<int,bool> align_flags_map;
     for( auto i : {
@@ -295,6 +305,7 @@ YamlNode        LabelRect::to_yaml_node() const {
     ret["line_gap"] = line_gap;
     ret["align_flags"] = align_flags;
     ret["editable"] = editable;
+    ret["enter_is_new_line"] = enter_is_newline;
     if(font)ret["font"] = font->get_path();
     
     return ret;
@@ -302,12 +313,14 @@ YamlNode        LabelRect::to_yaml_node() const {
 void            LabelRect::from_yaml_node( YamlNode yaml_node ){
     AnchoredRect::from_yaml_node(yaml_node);
 
-    set_text( yaml_node["text"].as<decltype(text)>() );
-    set_font_size( yaml_node["font_size"].as<decltype(font_size)>() );
-    set_line_gap( yaml_node["line_gap"].as<decltype(line_gap)>() );
-    set_align_flags( yaml_node["align_flags"].as<decltype(align_flags)>() );
-    set_editable( yaml_node["editable"].as<decltype(editable)>() );
-
+    SET_FROM_YAML_NODE_PROPERTY(yaml_node,text);
+    SET_FROM_YAML_NODE_PROPERTY(yaml_node,font_size);
+    SET_FROM_YAML_NODE_PROPERTY(yaml_node,line_gap);
+    SET_FROM_YAML_NODE_PROPERTY(yaml_node,align_flags);
+    SET_FROM_YAML_NODE_PROPERTY(yaml_node,editable);
+    SET_FROM_YAML_NODE_PROPERTY(yaml_node,enter_is_newline);
+    SET_FROM_YAML_NODE_PROPERTY(yaml_node,percent_visible);
+    
     if( yaml_node["font"].IsDefined() )
         font = ResourceManager::get_resource<FontResource>( yaml_node["font"].as<std::string>() );
 }

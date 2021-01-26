@@ -6,11 +6,11 @@ AnchoredRect::AnchoredRect() {
     anchored_borders[1] = 0;
     anchored_borders[2] = 0;
     anchored_borders[3] = 0;
-    rect_pos = Vector2(0,0);
-    rect_size = Vector2(0,0);
+    rect_size = Vector2(16,16);
     starts_on_viewport = false;
+    offset = Vector2(0,0);
+    centered = false;
     ignore_mouse = true;
-    use_scene_node_transform = false;
 }
 AnchoredRect::~AnchoredRect() {
     if( attached_node && attached_node->get_scene() ){
@@ -32,12 +32,6 @@ void            AnchoredRect::set_anchored_border( int border , int parent_borde
     if (new_val)    anchored_borders[border] |=  (1<<parent_border);
     else            anchored_borders[border] &= ~(1<<parent_border);
 }
-Vector2         AnchoredRect::get_rect_pos() const {
-    return rect_pos;
-}
-void            AnchoredRect::set_rect_pos(Vector2 new_val) {
-    rect_pos = new_val;
-}
 Vector2         AnchoredRect::get_rect_size() const {
     return rect_size;
 }
@@ -48,7 +42,7 @@ void            AnchoredRect::set_rect_size(Vector2 new_val) {
     grow(BOTTOM_BORDER,new_val.y - rect_size.y);
 }
 bool            AnchoredRect::get_starts_on_viewport() const {
-    return starts_on_viewport || ( use_scene_node_transform==false && get_parent_rect()==nullptr );
+    return starts_on_viewport;
 }
 void            AnchoredRect::set_starts_on_viewport(bool new_val) {
     starts_on_viewport = new_val;
@@ -59,23 +53,14 @@ bool            AnchoredRect::get_ignore_mouse() const{
 void            AnchoredRect::set_ignore_mouse(bool new_val){
     ignore_mouse = new_val;
 }
-bool            AnchoredRect::get_use_scene_node_transform() const {
-    return use_scene_node_transform;
-}
-void            AnchoredRect::set_use_scene_node_transform(bool new_val) {
-    use_scene_node_transform = new_val;
-}
-Vector2         AnchoredRect::get_global_rect_pos() const{
-    return get_parent_global_transform() * rect_pos;
-}
-void            AnchoredRect::grow(int border, float amount) {
+void            AnchoredRect::grow(int border, float amount , bool propagate ) {
     if( amount == 0 ) return;
     switch (border)
     {
         case LEFT_BORDER:
             amount = std::max(amount,-rect_size.x);
             rect_size.x += amount;
-            rect_pos.x -= amount;
+            attached_node->position.x -= amount;
             dirty_vertex_data = true;
             break;
         case RIGHT_BORDER:
@@ -86,7 +71,7 @@ void            AnchoredRect::grow(int border, float amount) {
         case TOP_BORDER:
             amount = std::max(amount,-rect_size.y);
             rect_size.y += amount;
-            rect_pos.y -= amount;
+            attached_node->position.y -= amount;
             dirty_vertex_data = true;
             break;
         case BOTTOM_BORDER:
@@ -98,12 +83,14 @@ void            AnchoredRect::grow(int border, float amount) {
             saucer_err("Invalid border: " , border );
             break;
     }
-    for( auto& child_rect : get_children_rects() ){
-        if( child_rect->starts_on_viewport==false )
-        for( int child_border : {LEFT_BORDER,RIGHT_BORDER,TOP_BORDER,BOTTOM_BORDER}){
-            if( child_rect->is_border_anchored(child_border,border) ){
-                if(child_border==border)    child_rect->grow(child_border,amount);
-                else                        child_rect->grow(child_border,-amount);
+    if( propagate ){
+        for( auto& child_rect : get_children_rects() ){
+            if( child_rect->starts_on_viewport==false )
+            for( int child_border : {LEFT_BORDER,RIGHT_BORDER,TOP_BORDER,BOTTOM_BORDER}){
+                if( child_rect->is_border_anchored(child_border,border) ){
+                    if(child_border==border)    child_rect->grow(child_border,amount , false);
+                    else                        child_rect->grow(child_border,-amount , false);
+                }
             }
         }
     }
@@ -128,6 +115,18 @@ AnchoredRect*   AnchoredRect::get_parent_rect() const{
         return attached_node->get_parent()->get_component<AnchoredRect>();
     return nullptr;
 }
+bool            AnchoredRect::get_centered() const{
+    return centered;
+}
+void            AnchoredRect::set_centered(bool new_val){
+    centered = new_val;
+}
+Vector2         AnchoredRect::get_offset() const{
+    return ( get_centered() )?( get_rect_size()*-0.5 ):(offset);
+}
+void            AnchoredRect::set_offset(Vector2 new_val){
+    offset = new_val;
+}
 void            AnchoredRect::cb_mouse_entered( ){
     //    
 }
@@ -143,21 +142,9 @@ void            AnchoredRect::cb_key( Input::InputEventKey& ev ){
 void            AnchoredRect::cb_char( Input::InputEventChar& ev ){
     UNUSED(ev); 
 }
-Transform       AnchoredRect::get_parent_global_transform() const{
-    AnchoredRect* parent_rect = get_parent_rect();
-    if( starts_on_viewport ){
-        return Engine::get_render_engine()->get_camera_transform().translate( Engine::get_render_engine()->get_viewport_rect().get_size()*0.5 ); // this is fucked up
-    } else if( parent_rect ){
-        return parent_rect->get_parent_global_transform().translate(parent_rect->rect_pos);
-    } else if( use_scene_node_transform ){
-        return get_node()->get_global_transform();
-    } else {
-        // Well.. the same as starts_on_viewport
-        return Engine::get_render_engine()->get_camera_transform().translate( Engine::get_render_engine()->get_viewport_rect().get_size()*0.5 );
-    }
-    
-}
 void            AnchoredRect::bind_methods() {
+    REGISTER_COMPONENT_HELPERS(AnchoredRect,"anchored_rect");
+
     REGISTER_LUA_CONSTANT( BORDER , TOP     ,   TOP_BORDER );
     REGISTER_LUA_CONSTANT( BORDER , LEFT    ,   LEFT_BORDER );
     REGISTER_LUA_CONSTANT( BORDER , RIGHT   ,   RIGHT_BORDER );
@@ -165,8 +152,6 @@ void            AnchoredRect::bind_methods() {
 
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , is_border_anchored );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , set_anchored_border );
-    REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , get_rect_pos );
-    REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , set_rect_pos );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , get_rect_size );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , set_rect_size );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , is_hovered );
@@ -175,9 +160,7 @@ void            AnchoredRect::bind_methods() {
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , set_starts_on_viewport );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , get_ignore_mouse );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , set_ignore_mouse );
-    REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , get_use_scene_node_transform );
-    REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , set_use_scene_node_transform );
-    REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , get_global_rect_pos );    
+
 }
 void            AnchoredRect::push_editor_items(){
 #ifdef SAUCER_EDITOR
@@ -201,11 +184,10 @@ void            AnchoredRect::push_editor_items(){
         }
     }
 
-    PROPERTY_VEC2(this,rect_pos);
     PROPERTY_VEC2(this,rect_size);
+    PROPERTY_BOOL(this,centered);
+    PROPERTY_VEC2(this,offset);
     PROPERTY_BOOL(this,starts_on_viewport);
-    ImGui::SameLine();
-    PROPERTY_BOOL(this,use_scene_node_transform);
     ImGui::SameLine();
     PROPERTY_BOOL(this,ignore_mouse);
 #endif
@@ -213,22 +195,22 @@ void            AnchoredRect::push_editor_items(){
 YamlNode        AnchoredRect::to_yaml_node() const {
     YamlNode ret;
     
-    ret["rect_pos"] = rect_pos;
     ret["rect_size"] = rect_size;
     ret["starts_on_viewport"] = starts_on_viewport;
     ret["ignore_mouse"] = ignore_mouse;
-    ret["use_scene_node_transform"] = use_scene_node_transform;
+    ret["centered"] = centered;
+    ret["offset"] = offset;
     for( int b : anchored_borders ) ret["anchored_borders"].push_back(b);
 
     return ret;
 }
 void            AnchoredRect::from_yaml_node( YamlNode yaml_node ) {
 
-    set_rect_pos( yaml_node["rect_pos"].as<decltype(rect_pos)>() );
-    set_rect_size( yaml_node["rect_size"].as<decltype(rect_size)>() );
-    set_starts_on_viewport( yaml_node["starts_on_viewport"].as<decltype(starts_on_viewport)>() );
-    set_ignore_mouse( yaml_node["ignore_mouse"].as<decltype(ignore_mouse)>() );
-    set_use_scene_node_transform( yaml_node["use_scene_node_transform"].as<decltype(use_scene_node_transform)>() );
-    
+    SET_FROM_YAML_NODE_PROPERTY(yaml_node , rect_size );
+    SET_FROM_YAML_NODE_PROPERTY(yaml_node , starts_on_viewport );
+    SET_FROM_YAML_NODE_PROPERTY(yaml_node , ignore_mouse );
+    SET_FROM_YAML_NODE_PROPERTY(yaml_node , offset );
+    SET_FROM_YAML_NODE_PROPERTY(yaml_node , centered );
+
     for( size_t i = 0 ; i < 4 ; i++ ) anchored_borders[i] = static_cast<unsigned char>(yaml_node["anchored_borders"][i].as<int>());
 }

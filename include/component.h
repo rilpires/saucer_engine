@@ -74,6 +74,8 @@ class Component : public SaucerObject {
 
 #include "scene_node.h"
 
+#define SET_FROM_YAML_NODE_PROPERTY( yaml_node , prop_name)\
+if( yaml_node[#prop_name].IsDefined() )set_##prop_name( yaml_node[#prop_name].as<decltype(prop_name)>() );
 
 // Registering "per-component" get_component/set_component functions, since we can't use get_component<Sprite>() in Lua!
 #define REGISTER_COMPONENT_HELPERS(C,lowercase_name)                                                                    \
@@ -93,7 +95,7 @@ LuaEngine::register_function( "SceneNode" , std::string("destroy_")+std::string(
     node->destroy_component<C>();                                                                                       \
     return 0;                                                                                                           \
 });                                                                                                                     \
-__component_constructors[C::class_name] = (void(SceneNode::*)())&SceneNode::create_component<C>;  
+SceneNode::__register_component_constructor(C::class_name , (SceneNode::ComponentConstructor)&SceneNode::create_component<C> );
 
 
 #endif

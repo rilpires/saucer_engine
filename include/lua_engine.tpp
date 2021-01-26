@@ -87,8 +87,14 @@ void    LuaEngine::push_metatable( lua_State* ls ){
     lua_pushcfunction(ls,[](lua_State* ls){
         const char* arg = lua_tostring(ls,-1);
         lua_pop(ls,2);
-        lua_pushcfunction( ls , LuaEngine::recover_nested_function<T>(arg) );
-        return 1;
+        auto f = LuaEngine::recover_nested_function<T>(arg);
+        if(f){
+            lua_pushcfunction( ls , f );
+            return 1;
+        } else {
+            saucer_err( arg , " is not a valid function.");
+            return 0;
+        }
     });
     lua_settable(ls,-3);
 }
