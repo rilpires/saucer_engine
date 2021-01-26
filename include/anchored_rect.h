@@ -41,6 +41,8 @@ class AnchoredRect : public RenderObject {
         bool                get_use_scene_node_transform() const ;
         void                set_use_scene_node_transform( bool new_val );
         void                grow( int border , float amount );
+        bool                is_hovered() const;
+        bool                is_focused() const;
         AnchoredRect*       get_parent_rect() const;
         Vector2             get_global_rect_pos() const;
         Transform           get_parent_global_transform() const;

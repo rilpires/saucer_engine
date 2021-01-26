@@ -106,8 +106,12 @@ TextureResource* PatchRect::get_texture() const {
 }
 
 void    PatchRect::set_texture(TextureResource* tex) {
+    TextureResource* old_texture = texture;
     texture = tex;
-    if( texture ) region = Rect( Vector2(0,0) , texture->get_size() );
+    if( texture ){
+        if( region==Rect(0,0,0,0) || !old_texture || (old_texture && region.get_size()==old_texture->get_size() ) ) 
+            region = Rect( Vector2(0,0) , texture->get_size() );
+    }
 }
 void        PatchRect::set_draw_center( bool new_val){
     draw_center=new_val;

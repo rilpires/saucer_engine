@@ -101,6 +101,10 @@ float       Rect::get_height() const{
 bool        Rect::is_point_inside( Vector2 p ) const{
     return (p.x >= top_left.x) && (p.x <= bottom_right.x) && (p.y >= top_left.y) && (p.y <= bottom_right.y);
 }
+
+bool Rect::operator==( const Rect& r ) const{
+    return (top_left==r.top_left) && (bottom_right == r.bottom_right);
+}
 Rect::operator std::string() const{
     char buff[63];
     sprintf(buff , "Rect( %.2f , %.2f , %.2f , %.2f )" , top_left.x , top_left.y , bottom_right.x , bottom_right.y );

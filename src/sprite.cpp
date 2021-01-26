@@ -60,8 +60,12 @@ TextureResource*  Sprite::get_texture() const{
     return texture;
 }
 void            Sprite::set_texture( TextureResource* tex ){
+    TextureResource* old_texture = texture;
     texture = tex;
-    if( texture ) region = Rect( Vector2(0,0) , texture->get_size() );
+    if( texture ){
+        if( region==Rect(0,0,0,0) || !old_texture || (old_texture && region.get_size()==old_texture->get_size() ) ) 
+            region = Rect( Vector2(0,0) , texture->get_size() );
+    }
 }
 short           Sprite::get_h_frames() const{
     return h_frames;

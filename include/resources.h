@@ -52,6 +52,9 @@ class ResourceManager : public SaucerObject {
         static void         set_resource(std::string resource_name , Resource* r );
         static void         free_resource(Resource* p_resource);
         static void         dirty_every_resource();
+        
+        static const decltype(id_by_path)::iterator begin();
+        static const decltype(id_by_path)::iterator end();         
 
         static void         bind_methods();
 };

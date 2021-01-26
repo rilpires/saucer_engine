@@ -80,7 +80,9 @@ void    ResourceManager::set_resource(std::string resource_name , Resource* r ){
 Resource*           ResourceManager::load_resource(std::string filepath){
     std::string str_filepath = filepath;
     Resource* ret = NULL;
-    std::string extension = str_filepath.substr( str_filepath.find_last_of('.') );
+    size_t pos = str_filepath.find_last_of('.');
+    std::string extension = "";
+    if( pos != std::string::npos ) extension = str_filepath.substr( pos );
     
     try
     {
@@ -102,7 +104,7 @@ Resource*           ResourceManager::load_resource(std::string filepath){
         else if (extension == ".glsl"){
             ret = new ShaderResource( filepath );
         } else {
-            saucer_err( "What is this? Couldn't load resource for filepath: " , filepath )
+            if(str_filepath.size()>0)saucer_err( "What is this? Couldn't load resource for: " , filepath );
         }
     }
     catch(const std::exception& e)
@@ -123,6 +125,12 @@ void    ResourceManager::dirty_every_resource(){
         res->flag_as_dirty();
     }
 }
+const decltype(ResourceManager::id_by_path)::iterator ResourceManager::begin(){
+    return id_by_path.begin();
+}
+const decltype(ResourceManager::id_by_path)::iterator ResourceManager::end()  {
+    return id_by_path.end();
+}   
 void    ResourceManager::bind_methods(){
     REGISTER_LUA_GLOBAL_FUNCTION( "load" , ResourceManager::get_resource<Resource> );
 }

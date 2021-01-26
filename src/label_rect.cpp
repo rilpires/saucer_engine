@@ -12,6 +12,7 @@ LabelRect::LabelRect(){
     dirty_vertex_data = true;
     align_flags = HORIZONTAL_ALIGN_CENTER + VERTICAL_ALIGN_CENTER;
     editable = false;
+    enter_is_newline = false;
     set_editable(true);
 }
 LabelRect::~LabelRect(){
@@ -188,14 +189,22 @@ void            LabelRect::set_editable( bool new_val ){
         this->set_ignore_mouse(!new_val);
     }
 }
+bool            LabelRect::get_enter_is_newline() const{
+    return enter_is_newline;
+}
+void            LabelRect::set_enter_is_newline( bool new_val ){
+    enter_is_newline = new_val;
+}
 void            LabelRect::cb_key( Input::InputEventKey& ev ){
     if( !editable ) return;
     if( ev.action == INPUT_EVENT_ACTION::PRESSED ){
         switch (ev.key_unicode)
         {
             case GLFW_KEY_ENTER:
-                set_text( text + '\n' );
-                ev.is_solved = true;
+                if( enter_is_newline ){
+                    set_text( text + '\n' );
+                    ev.is_solved = true;
+                }
                 break;
             
             case GLFW_KEY_BACKSPACE:
@@ -237,6 +246,8 @@ void            LabelRect::bind_methods() {
     REGISTER_LUA_MEMBER_FUNCTION( LabelRect , set_align_flags );
     REGISTER_LUA_MEMBER_FUNCTION( LabelRect , get_editable );
     REGISTER_LUA_MEMBER_FUNCTION( LabelRect , set_editable );
+    REGISTER_LUA_MEMBER_FUNCTION( LabelRect , get_enter_is_newline );
+    REGISTER_LUA_MEMBER_FUNCTION( LabelRect , set_enter_is_newline );
 
 }
 
@@ -248,7 +259,7 @@ void            LabelRect::push_editor_items(){
     PROPERTY_RESOURCE( this, font , FontResource );
     PROPERTY_INT( this, font_size );
     PROPERTY_INT( this, line_gap );
-    PROPERTY_BOOL( this, editable );
+    PROPERTY_BOOL( this, editable ); ImGui::SameLine() ; PROPERTY_BOOL( this , enter_is_newline );
     std::map<int,bool> align_flags_map;
     for( auto i : {
         HORIZONTAL_ALIGN_LEFT,

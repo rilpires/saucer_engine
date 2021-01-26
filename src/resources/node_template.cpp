@@ -14,6 +14,9 @@ SceneNode*  NodeTemplateResource::instantiate_node() const{
     ret->from_yaml_node( yaml_node );
     return ret;
 }
+const YamlNode  NodeTemplateResource::get_yaml_node(){
+    return yaml_node;
+}
 void        NodeTemplateResource::save( std::string path ) const{
     std::ofstream ofs;
     ofs.open(path, std::ofstream::out );

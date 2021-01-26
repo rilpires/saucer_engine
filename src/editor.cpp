@@ -35,7 +35,7 @@ void            SaucerEditor::setup(){
     
     IMGUI_CHECKVERSION();
     CreateContext();    
-    extern_console_streams.push_back(&SaucerEditor::stream);
+    extern_console_streams().push_back(&SaucerEditor::stream);
 
     ImGuiIO& io = GetIO(); (void)io;
     StyleColorsDark();
@@ -63,6 +63,7 @@ void            SaucerEditor::push_scene_tree_window(){
             ofs << object_to_be_saved->to_yaml_node();
             ofs.close();
             object_to_be_saved = nullptr;
+            ResourceManager::get_resource<NodeTemplateResource>(p)->flag_as_dirty();
             CloseCurrentPopup();
         }
         EndPopup();
@@ -76,6 +77,7 @@ void            SaucerEditor::push_scene_tree_window(){
             root_node->get_out();
             root_node->queue_free();
             root_node = new SceneNode();
+            ResourceManager::get_resource<NodeTemplateResource>(popup_open_scene_path)->flag_as_dirty();
             root_node->SaucerObject::from_yaml_node( popup_open_scene_path );
             Engine::get_current_scene()->set_root_node(root_node);
             current_scene_path = popup_open_scene_path;
@@ -153,14 +155,7 @@ void            SaucerEditor::push_inspector(){
         PROPERTY_BOOL(selected_node,relative_z);
         SameLine();
         PROPERTY_BOOL(selected_node,visible);
-        SameLine();
-        PROPERTY_BOOL(selected_node,inherits_transform);
-        
-        std::string lua_script_path;
-        if( selected_node->get_script() ) lua_script_path = selected_node->get_script()->get_path();
-        if( InputText( "Lua script path" , &lua_script_path , ImGuiInputTextFlags_EnterReturnsTrue ) ){
-            selected_node->set_script( ResourceManager::get_resource<LuaScriptResource>(lua_script_path) );
-        }
+        PROPERTY_RESOURCE(selected_node,script,LuaScriptResource);
         
         NewLine();
         
@@ -243,6 +238,19 @@ void            SaucerEditor::push_node_tree( SceneNode* node ){
                 received_node->get_out();
                 node->add_child(received_node);
             }
+        } else {
+            payload = AcceptDragDropPayload("resource_path");
+            if( payload ){
+                std::string& res_path = *static_cast<std::string*>(payload->Data);
+                size_t pos = res_path.find(".node");
+                if( pos == std::string::npos ){
+                    saucer_warn("This doesn't looks like a node template resource... (.node)");
+                } else {
+                    SceneNode* new_child = ResourceManager::get_resource<NodeTemplateResource>(res_path)->instantiate_node();
+                    reference_path[new_child->get_saucer_id()] = res_path;
+                    node->add_child( new_child );
+                }
+            }
         }
         EndDragDropTarget();
     }
@@ -253,6 +261,7 @@ void            SaucerEditor::push_node_tree( SceneNode* node ){
         SameLine(); SmallButton("+"); if( IsItemClicked() ) node->add_child(new SceneNode());
     } else {
         SameLine(); TextColored( ImVec4(1.0,0.5,0.5,1.0) , "[Referenced]" );
+        SameLine(); SmallButton("Unref"); if( IsItemClicked() ) reference_path.erase(node->get_saucer_id());
     }
     SameLine(); SmallButton("-"); if( IsItemClicked() ) node->queue_free();
     
@@ -300,6 +309,8 @@ void            SaucerEditor::push_render_window(){
         node_id_selected = 0;
         currently_playing = true;
         ResourceManager::dirty_every_resource();
+        LuaEngine::reset();
+        stream.clear();
         Engine::get_current_scene()->set_root_node(tree_root_before_play->duplicate());
     }
     if( currently_playing && MenuItem("Stop playing") ){
@@ -392,6 +403,23 @@ void            SaucerEditor::push_console(){
 
     End();
 }
+void            SaucerEditor::push_resource_explorer(){
+    Begin("Resource explorer");
+    static std::string resource_explorer_filter;
+    InputText( "Filter" , &resource_explorer_filter );
+    for( auto it = ResourceManager::begin() ; it != ResourceManager::end() ; it++ ){
+        if( resource_explorer_filter.size() == 0 || it->first.find( resource_explorer_filter ) != std::string::npos ){
+            Button(it->first.c_str());
+            if( BeginDragDropSource( ImGuiDragDropFlags_SourceNoDisableHover ) ){
+                SetDragDropPayload("resource_path" , &(it->first) , sizeof(std::string));
+                EndDragDropSource();
+            }
+        }
+    }
+    End();
+
+
+}
 std::string*    SaucerEditor::get_reference_path( const SceneNode* n ){
     auto it = reference_path.find(n->get_saucer_id());
     if( it != reference_path.end() ){
@@ -425,6 +453,7 @@ void            SaucerEditor::update(){
     push_lua_profiler();
     push_lua_editor();
     push_console();
+    push_resource_explorer();
     // ==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 
     

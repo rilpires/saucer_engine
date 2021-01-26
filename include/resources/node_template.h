@@ -16,8 +16,9 @@ class NodeTemplateResource : public Resource {
     public:
         NodeTemplateResource( std::string path );
 
-        SceneNode*  instantiate_node() const;
-        void        save( std::string path ) const;
+        SceneNode*      instantiate_node() const;
+        const YamlNode  get_yaml_node();
+        void            save( std::string path ) const;
 
         static void bind_methods();
 };

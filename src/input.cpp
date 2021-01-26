@@ -16,7 +16,7 @@ template<> void LuaEngine::push( lua_State* ls , Input::InputEvent* r ){
     *input_pointerpointer = r;
 
 
-    // Pushing a vector2 metatable:
+    // Pushing metatable:
     lua_newtable(ls);
     
     // __index
@@ -25,7 +25,16 @@ template<> void LuaEngine::push( lua_State* ls , Input::InputEvent* r ){
         // Input::InputEvent** ev = (Input::InputEvent**)lua_touserdata(ls,-2);
         const char* arg = lua_tostring(ls,-1);
         lua_pop(ls,2);
-        lua_pushcfunction(ls, LuaEngine::recover_nested_function("InputEvent",arg) );
+        lua_CFunction f = LuaEngine::recover_nested_function("InputEvent",arg);
+        
+        #ifdef DEBUG
+        if( !f ){
+            saucer_err("InputEvent doesn't have this property: " , arg );
+            return 0;
+        } 
+        #endif
+        
+        lua_pushcfunction(ls,f);
         return 1;
     });
     lua_settable(ls,-3);
@@ -181,6 +190,7 @@ void    Input::bind_methods(){
     REGISTER_LUA_CONSTANT(InputEventType,KEY,INPUT_EVENT_TYPE::KEY);
     REGISTER_LUA_CONSTANT(InputEventType,MOUSE_BUTTON,INPUT_EVENT_TYPE::MOUSE_BUTTON);
     REGISTER_LUA_CONSTANT(InputEventType,MOUSE_MOTION,INPUT_EVENT_TYPE::MOUSE_MOTION);
+    REGISTER_LUA_CONSTANT(InputEventType,CHAR,INPUT_EVENT_TYPE::CHAR);
 
     #define REGISTER_GLFW_KEY_INTO_LUA( k )\
         REGISTER_LUA_CONSTANT( KEY , k , GLFW_KEY_##k );

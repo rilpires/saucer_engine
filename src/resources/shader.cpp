@@ -2,7 +2,7 @@
 #include "debug.h"
 #include "debug.h"
 
-ShaderResource::ShaderResource( std::string filename ){
+ShaderResource::ShaderResource( std::string filename ) : Resource(filename){
     shader_program = glCreateProgram();
     std::string shader_file = read_file_as_str( filename );
     std::string vertex_shader;

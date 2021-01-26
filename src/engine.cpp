@@ -157,3 +157,5 @@ bool            Engine::is_editor(){
     return !SaucerEditor::currently_playing; 
 };
 #endif
+
+std::vector<std::ostream*>& extern_console_streams(){ static std::vector<std::ostream*> ret ;return ret;};

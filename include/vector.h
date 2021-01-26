@@ -35,6 +35,7 @@ struct Vector2 {
     bool     operator!= (const Vector2  v     )       ;
     bool     operator== (const Vector2  v     )       ;
 
+    bool operator==( const Vector2& v ) const ;
     operator std::string() const;
 
     static void bind_methods();
@@ -66,6 +67,7 @@ struct Vector3 {
     void     operator/= (const Vector3  v     )       ;
     void     operator/= (const float    div   )       ;
 
+    bool operator==( const Vector3& v ) const; 
     operator std::string() const;
 
     static void bind_methods();

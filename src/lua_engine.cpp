@@ -12,6 +12,7 @@ SceneNode*  LuaEngine::current_actor = NULL;
 std::unordered_map< std::string , std::unordered_map< std::string , lua_CFunction > > LuaEngine::nested_functions_db;
 std::unordered_map< std::string , std::unordered_map< std::string , int > > LuaEngine::constants;
 std::unordered_map< std::string , lua_CFunction > LuaEngine::global_functions_db;
+std::set<std::string> LuaEngine::vanilla_global_keys;
 
 template<>
 lua_CFunction    LuaEngine::recover_nested_function<SaucerObject>( std::string function_name ){
@@ -157,9 +158,10 @@ void            LuaEngine::initialize(){
     LuaEngine::register_function("print", [](lua_State* ls){
         SaucerEditor::stream << "[LUA]\t";
         for( int i = 1 ; i <= lua_gettop(ls) ; i++ ){
-            if( lua_isnumber(ls,i) )     SaucerEditor::stream << lua_tonumber(ls,i);
-            else if (lua_isstring(ls,i)) SaucerEditor::stream << lua_tostring(ls,i);
-            else                         SaucerEditor::stream << "[" << lua_typename(ls,lua_type(ls,i)) << "]";
+            if( lua_isnumber(ls,i) )        SaucerEditor::stream << lua_tonumber(ls,i);
+            else if (lua_isstring(ls,i))    SaucerEditor::stream << lua_tostring(ls,i);
+            else if (lua_isboolean(ls,i))   SaucerEditor::stream << ( ( lua_toboolean(ls,-1) ) ? ("true") : ("false") );
+            else                            SaucerEditor::stream << "[" << lua_typename(ls,lua_type(ls,i)) << "]";
         }
         SaucerEditor::stream << std::endl;
         return 0;
@@ -168,7 +170,26 @@ void            LuaEngine::initialize(){
 
     saucer_print( "Creating lua enviroment..." )
     create_global_env();
+    // Now we fill the global vanilla keys. Anything defined after it will be erased when LuaEngine::reset is called
+    vanilla_global_keys.clear();
+    lua_pushnil(ls);
+    while( lua_next(ls,LUA_GLOBALSINDEX) ){
+        lua_pop(ls,1);
+        SAUCER_ASSERT( lua_type(ls,-1) == LUA_TSTRING , "Is this even possible?");
+        vanilla_global_keys.insert( std::string(lua_tostring(ls,-1)));
+    }
     saucer_print( "Done." )
+}
+void            LuaEngine::reset(){
+    lua_pushnil(ls);
+    while( lua_next(ls,LUA_GLOBALSINDEX) ){
+        lua_pop(ls,1);
+        if( vanilla_global_keys.find(lua_tostring(ls,-1)) == vanilla_global_keys.end() ){
+            lua_pushvalue(ls,-1);
+            lua_pushnil(ls);
+            lua_settable(ls,LUA_GLOBALSINDEX);
+        }
+    }
 }
 void            LuaEngine::finish(){
     lua_close(ls);
@@ -517,13 +538,13 @@ void    LuaEngine::push_editor_items( bool filter_out_functions , bool only_show
             sprintf(line,"%s: [%s]\t%s" , key.c_str() , value_type_str.c_str() , value.c_str() );
 
         if( value_type == LUA_TTABLE ){
-            if( ImGui::TreeNodeEx( key.c_str(), ImGuiTreeNodeFlags_SpanFullWidth , line ) ){
+            if( ImGui::TreeNodeEx( key.c_str(), ImGuiTreeNodeFlags_SpanFullWidth , "%s" , line ) ){
                 lua_pushvalue(ls,-1);
                 push_editor_items(filter_out_functions);
                 ImGui::TreePop();
             }
         } else {
-            ImGui::BulletText( line );
+            ImGui::BulletText( "%s" , line );
         }
     
         lua_pop(ls,1);

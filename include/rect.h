@@ -19,6 +19,7 @@ struct Rect {
     float       get_height() const;
     bool        is_point_inside( Vector2 p ) const;
 
+    bool operator==( const Rect& r ) const;
     operator std::string() const;
 
     static void bind_methods();

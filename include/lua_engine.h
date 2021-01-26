@@ -47,7 +47,8 @@ class LuaEngine {
         static std::unordered_map< std::string , std::unordered_map< std::string , lua_CFunction > > nested_functions_db;
         static std::unordered_map< std::string , std::unordered_map< std::string , int > > constants;
         static std::unordered_map< std::string , lua_CFunction > global_functions_db;
-        
+        static std::set<std::string> vanilla_global_keys;
+
         static const char*      chunk_reader( lua_State* ls , void* data , size_t* size );
         static void             create_global_env();
         static void             change_current_actor_env( SceneNode* new_actor );
@@ -66,6 +67,7 @@ class LuaEngine {
     
     public:
         static void             initialize();
+        static void             reset();
         static void             finish();
 
         static int              get_kb_memory_used();

@@ -24,6 +24,7 @@ class LabelRect : public AnchoredRect {
         int                 line_gap;
         unsigned char       align_flags;
         bool                editable;
+        bool                enter_is_newline;
 
     public:
         LabelRect();
@@ -43,6 +44,8 @@ class LabelRect : public AnchoredRect {
         void                set_align_flags( int new_val );
         bool                get_editable() const;
         void                set_editable( bool new_val );
+        bool                get_enter_is_newline() const;
+        void                set_enter_is_newline( bool new_val );
 
     protected:
         void        cb_key( Input::InputEventKey& ev ) override ;

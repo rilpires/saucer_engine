@@ -108,6 +108,12 @@ void            AnchoredRect::grow(int border, float amount) {
         }
     }
 }
+bool            AnchoredRect::is_hovered() const{
+    return get_node() && get_node()->get_scene() && get_node()->get_scene()->get_current_hovered_anchored_rect() == this; // phew
+}
+bool            AnchoredRect::is_focused() const{
+    return get_node() && get_node()->get_scene() && get_node()->get_scene()->get_current_focused_anchored_rect() == this; // phew
+}
 const std::vector<AnchoredRect*>    AnchoredRect::get_children_rects() const{
     std::vector<AnchoredRect*> ret;
     if( attached_node )
@@ -141,14 +147,15 @@ Transform       AnchoredRect::get_parent_global_transform() const{
     AnchoredRect* parent_rect = get_parent_rect();
     if( starts_on_viewport ){
         return Engine::get_render_engine()->get_camera_transform().translate( Engine::get_render_engine()->get_viewport_rect().get_size()*0.5 ); // this is fucked up
-    } else if( use_scene_node_transform ){
-        return get_node()->get_global_transform();
     } else if( parent_rect ){
         return parent_rect->get_parent_global_transform().translate(parent_rect->rect_pos);
+    } else if( use_scene_node_transform ){
+        return get_node()->get_global_transform();
     } else {
         // Well.. the same as starts_on_viewport
-        return Engine::get_render_engine()->get_camera_transform();
+        return Engine::get_render_engine()->get_camera_transform().translate( Engine::get_render_engine()->get_viewport_rect().get_size()*0.5 );
     }
+    
 }
 void            AnchoredRect::bind_methods() {
     REGISTER_LUA_CONSTANT( BORDER , TOP     ,   TOP_BORDER );
@@ -162,6 +169,8 @@ void            AnchoredRect::bind_methods() {
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , set_rect_pos );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , get_rect_size );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , set_rect_size );
+    REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , is_hovered );
+    REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , is_focused );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , get_starts_on_viewport );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , set_starts_on_viewport );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , get_ignore_mouse );

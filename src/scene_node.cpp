@@ -319,6 +319,8 @@ void        SceneNode::from_yaml_node( YamlNode yaml_node ) {
     SAUCER_ASSERT( children_nodes.size()==0 , "A SceneNode when instantied from YamlNode should not have any children." );
     SAUCER_ASSERT( lua_script==nullptr , "A SceneNode when instantied from YamlNode should not have a lua script attached." );
     SAUCER_ASSERT( scene==nullptr , "A SceneNode when instantied from YamlNode should not be inside a scene." );
+
+    bool referenced = yaml_node["path"].IsDefined();
     
     if( yaml_node["components"].IsDefined() && attached_components.size() == 0 )
     for( auto c : yaml_node["components"] ){
@@ -328,10 +330,10 @@ void        SceneNode::from_yaml_node( YamlNode yaml_node ) {
         attached_components.back()->from_yaml_node(c.second);
     }
 
-    bool referenced = yaml_node["path"].IsDefined();
     if( referenced ){
         std::string node_template_path = yaml_node["path"].as<std::string>();
-        from_yaml_node(YAML::LoadFile(node_template_path));
+        NodeTemplateResource* node_template = ResourceManager::get_resource<NodeTemplateResource>( node_template_path );
+        from_yaml_node( node_template->get_yaml_node() );
         SaucerEditor::flag_as_referenced(this,node_template_path);
     }
     

@@ -11,7 +11,30 @@ enum SAUCER_DEBUG_LOG_{
     SAUCER_DEBUG_LOG_ERROR
 };
 
-extern std::vector<std::ostream*> extern_console_streams;
+extern std::vector<std::ostream*>& extern_console_streams(); // engine.cpp
+
+template<typename T>
+void saucer_log__( std::ostream& os , T t  ){
+    os << t << std::endl;
+}
+template<typename T , typename ... Ts>
+void saucer_log__( std::ostream& os , T t , Ts ... args ){
+    os << t;
+    saucer_log__( os , args... );
+}
+template<typename ... Ts>
+void saucer_log_( int level , const char* location , Ts ... args ){
+    if      ( level == SAUCER_DEBUG_LOG_INFO )  saucer_log__( std::cout , location, "\t[INFO]\t", args... );
+    else if ( level == SAUCER_DEBUG_LOG_WARN )  saucer_log__( std::cerr , location, "\t[WARNING]\t", args... );
+    else if ( level == SAUCER_DEBUG_LOG_ERROR ) saucer_log__( std::cerr , location, "\t[ERROR]\t", args... );
+    for( auto stream : extern_console_streams() ){
+        if      ( level == SAUCER_DEBUG_LOG_INFO )  saucer_log__( *stream , "[INFO]\t", args... );
+        else if ( level == SAUCER_DEBUG_LOG_WARN )  saucer_log__( *stream , "[WARNING]\t", args... );
+        else if ( level == SAUCER_DEBUG_LOG_ERROR ) saucer_log__( *stream , "[ERROR]\t", args... );
+    }
+}
+
+
 
 #define STRINGIFY_(x) #x
 #define STRINGIFY(x) STRINGIFY_(x)
@@ -30,26 +53,6 @@ extern std::vector<std::ostream*> extern_console_streams;
     #define SAUCER_ASSERT(x,msg) ;
 #endif
 
-template<typename T>
-void saucer_log__( std::ostream& os , T t  ){
-    os << t << std::endl;
-}
-template<typename T , typename ... Ts>
-void saucer_log__( std::ostream& os , T t , Ts ... args ){
-    os << t;
-    saucer_log__( os , args... );
-}
-template<typename ... Ts>
-void saucer_log_( int level , const char* location , Ts ... args ){
-    if      ( level == SAUCER_DEBUG_LOG_INFO )  saucer_log__( std::cout , location, "\t[INFO]\t", args... );
-    else if ( level == SAUCER_DEBUG_LOG_WARN )  saucer_log__( std::cerr , location, "\t[WARNING]\t", args... );
-    else if ( level == SAUCER_DEBUG_LOG_ERROR ) saucer_log__( std::cerr , location, "\t[ERROR]\t", args... );
-    for( auto stream : extern_console_streams ){
-        if      ( level == SAUCER_DEBUG_LOG_INFO )  saucer_log__( *stream , "[INFO]\t", args... );
-        else if ( level == SAUCER_DEBUG_LOG_WARN )  saucer_log__( *stream , "[WARNING]\t", args... );
-        else if ( level == SAUCER_DEBUG_LOG_ERROR ) saucer_log__( *stream , "[ERROR]\t", args... );
-    }
-}
 
 #ifdef DEBUG
 #define GL_CALL(x)\

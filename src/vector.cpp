@@ -112,6 +112,9 @@ void Vector2::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(Vector2,rotated);
 }
 
+bool Vector2::operator==( const Vector2& v ) const {
+    return x==v.x && y==v.y;
+}
 Vector2::operator std::string() const {
     char buff[48];
     sprintf(buff , "Vector2(%.2f, %.2f)" , x , y );
@@ -208,6 +211,10 @@ void     Vector3::operator*= (const float    scale )      { x*=scale;y*=scale;z*
 void     Vector3::operator/= (const Vector3  v     )      { x/=v.x;y/=v.y;z/=v.z; }
 void     Vector3::operator/= (const float    div   )      { x/=div;y/=div;z/=div; }
 
+
+bool Vector3::operator==( const Vector3& v ) const {
+    return x==v.x && y==v.y && z==v.z;
+}
 Vector3::operator std::string() const {
     char buff[48];
     sprintf(buff , "Vector3( %.4f , %.4f , %.4f )" , x , y , z );
