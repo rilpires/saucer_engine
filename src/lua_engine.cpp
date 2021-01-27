@@ -535,29 +535,26 @@ void    LuaEngine::push_editor_items( bool filter_out_functions , bool only_show
             default: value = "?";
         }
 
-        char line[127];
+        std::string line;
         if(only_show_actors){
             SceneNode* actor = static_cast<SceneNode*>( SaucerObject::from_saucer_id(lua_tonumber(ls,-2)) );
-            sprintf(line,"%s: [%s]\t%s" , actor->get_name().c_str() , value_type_str.c_str() , value.c_str() );
+            line = actor->get_name() + ": [" + value_type_str + "]\t" + value;
+        } else {
+            line = key + ": [" + value_type_str + "]\t" + value;
         }
-        else
-            sprintf(line,"%s: [%s]\t%s" , key.c_str() , value_type_str.c_str() , value.c_str() );
 
         if( value_type == LUA_TTABLE ){
-            if( ImGui::TreeNodeEx( key.c_str(), ImGuiTreeNodeFlags_SpanFullWidth , "%s" , line ) ){
+            if( ImGui::TreeNodeEx( key.c_str(), ImGuiTreeNodeFlags_SpanFullWidth , "%s" , line.c_str() ) ){
                 lua_pushvalue(ls,-1);
                 push_editor_items(filter_out_functions);
                 ImGui::TreePop();
             }
         } else {
-            ImGui::BulletText( "%s" , line );
+            ImGui::BulletText( "%s" , line.c_str() );
         }
-    
         lua_pop(ls,1);
     }
-
     lua_pop(ls,1);
-
 }
 void    LuaEngine::push_actor_items( SceneNode* actor , bool filter_out_functions ){
     if( actor->get_script() ){

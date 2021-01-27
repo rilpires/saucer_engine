@@ -8,25 +8,22 @@ using namespace ImGui;
 SaucerId        SaucerEditor::node_id_selected = 0;
 bool            SaucerEditor::currently_playing = false;
 SceneNode*      SaucerEditor::tree_root_before_play = nullptr;
-std::string     SaucerEditor::current_scene_path = "";
-SaucerObject*   SaucerEditor::object_to_be_saved = nullptr;
 
 SaucerEditor::EditorStream    SaucerEditor::stream;
 std::unordered_map<SaucerId,std::string> SaucerEditor::reference_path;
+std::unordered_map<std::string, std::vector<std::string> > SaucerEditor::resources_by_type;
 
-
-int SaucerEditor::EditorStream::overflow (int c){
+int             SaucerEditor::EditorStream::overflow (int c){
     str += (char)c;
     return c;
 }
-
-const char* SaucerEditor::EditorStream::get_buffer() const {
+const char*     SaucerEditor::EditorStream::get_buffer() const {
     return str.c_str();
 }
-size_t      SaucerEditor::EditorStream::get_size() const {
+size_t          SaucerEditor::EditorStream::get_size() const {
     return str.size();
 }
-void      SaucerEditor::EditorStream::clear() {
+void            SaucerEditor::EditorStream::clear() {
     str.clear();
 }
 
@@ -47,64 +44,10 @@ void            SaucerEditor::setup(){
 void            SaucerEditor::push_scene_tree_window(){
     SceneNode* root_node = Engine::get_current_scene()->get_root_node();
     SceneNode* selected_node = (SceneNode*)SaucerObject::from_saucer_id(SaucerEditor::node_id_selected);
-
+    static SceneNode* object_to_be_saved = nullptr;
+    static std::string object_to_be_saved_path;
     Begin("Scene tree" );
     
-    if( BeginPopup("save_object") ){
-        SAUCER_ASSERT(object_to_be_saved!=nullptr, "object_to_be_saved should not be null when BeginPopup(\"save_object\") is called!");
-        std::string p;
-        if( object_to_be_saved==root_node && current_scene_path.size() ) p = current_scene_path;
-        bool save_confirmed = InputText("",&p,ImGuiInputTextFlags_EnterReturnsTrue);
-        SameLine();
-        save_confirmed = save_confirmed || Button("Save") ;
-        if( save_confirmed ){
-            std::ofstream ofs;
-            ofs.open( p , std::ofstream::out );
-            ofs << object_to_be_saved->to_yaml_node();
-            ofs.close();
-            object_to_be_saved = nullptr;
-            ResourceManager::get_resource<NodeTemplateResource>(p)->flag_as_dirty();
-            CloseCurrentPopup();
-        }
-        EndPopup();
-    }
-    if( BeginPopup("open_scene") ){
-        static std::string popup_open_scene_path;
-        bool path_confirmed = InputText("",&popup_open_scene_path,ImGuiInputTextFlags_EnterReturnsTrue);
-        SameLine();
-        path_confirmed = path_confirmed || Button("Open") ;
-        if( path_confirmed ){
-            root_node->get_out();
-            root_node->queue_free();
-            root_node = new SceneNode();
-            ResourceManager::get_resource<NodeTemplateResource>(popup_open_scene_path)->flag_as_dirty();
-            root_node->SaucerObject::from_yaml_node( popup_open_scene_path );
-            Engine::get_current_scene()->set_root_node(root_node);
-            current_scene_path = popup_open_scene_path;
-            CloseCurrentPopup();
-        }
-        EndPopup();
-    }
-    if( BeginPopup("open_scene_as_child") ){
-        static std::string open_scene_as_child_path;
-        bool path_confirmed = InputText("",&open_scene_as_child_path,ImGuiInputTextFlags_EnterReturnsTrue);
-        SameLine();
-        path_confirmed = path_confirmed || Button("Open") ;
-        if( path_confirmed ){
-            if( open_scene_as_child_path == current_scene_path ){
-                saucer_warn("You can't put a parent node as a child of one of it's childs!" );
-            } else if (!selected_node){
-                saucer_warn("You have to select a node to instantiate a child.");
-            } else {
-                SceneNode* child_node = new SceneNode();
-                child_node->SaucerObject::from_yaml_node( open_scene_as_child_path );
-                selected_node->add_child(child_node);
-                reference_path[child_node->get_saucer_id()] = open_scene_as_child_path;
-                CloseCurrentPopup();
-            }
-        }
-        EndPopup();
-    }
 
     if(Button("Open node tree") && root_node ){
         OpenPopup("open_scene");
@@ -115,7 +58,7 @@ void            SaucerEditor::push_scene_tree_window(){
         OpenPopup("save_object");
     }
     SameLine();
-    if(Button("Save selected node") && selected_node ){
+    if(Button("Save selected node") && selected_node && (selected_node!=root_node) ){
         object_to_be_saved = selected_node;
         OpenPopup("save_object");
     }
@@ -131,14 +74,54 @@ void            SaucerEditor::push_scene_tree_window(){
     }
     
     Columns(2,"scene_tree_and_inspector",true);
-    //SetColumnWidth(0, GetWindowSize().x * 0.45 );
     if( root_node ){
         SetNextTreeNodeOpen(true);
         push_node_tree(root_node);
     }
     NextColumn();
     push_inspector();
-    clamp_window_on_screen();
+    
+
+    if( BeginPopup("open_scene") ){
+        static std::string popup_open_scene_path;
+        if( push_resource_hint( "NodeTemplateResource" , popup_open_scene_path ) ){
+            NodeTemplateResource* res = ResourceManager::get_resource<NodeTemplateResource>(popup_open_scene_path);
+            if(!res){
+                saucer_err(popup_open_scene_path , " is a invalid file path.");
+            } else {
+                root_node->get_out();
+                root_node->queue_free();
+                root_node = new SceneNode();
+                res->flag_as_dirty();
+                root_node->SaucerObject::from_yaml_node( popup_open_scene_path );
+                Engine::get_current_scene()->set_root_node(root_node);
+                reference_path[root_node->get_saucer_id()] = popup_open_scene_path;
+                CloseCurrentPopup();
+            }
+        }
+        EndPopup();
+    }
+    if( BeginPopup("open_scene_as_child") ){
+        static std::string open_scene_as_child_path;
+
+        if( push_resource_hint( "NodeTemplateResource" , open_scene_as_child_path ) ){
+            if( open_scene_as_child_path == *get_reference_path(root_node) ){
+                saucer_warn("You can't put a parent node as a child of one of it's childs!" );
+            } else if (!selected_node){
+                saucer_warn("You have to select a node to instantiate a child.");
+            } else {
+                SceneNode* child_node = new SceneNode();
+                child_node->SaucerObject::from_yaml_node( open_scene_as_child_path );
+                selected_node->add_child(child_node);
+                reference_path[child_node->get_saucer_id()] = open_scene_as_child_path;
+                CloseCurrentPopup();
+            }
+        }
+        EndPopup();
+    }
+    
+    DefinePopupSaveNode(object_to_be_saved ,object_to_be_saved_path);
+
     End(); // SceneTree
 }
 void            SaucerEditor::push_inspector(){
@@ -210,12 +193,12 @@ void            SaucerEditor::push_config(){
     if( InputFloat2( "initial_window_size" , (float*)&initial_window_size , "%.0f" ) )
         config["initial_window_size"] = initial_window_size;    
     
-    clamp_window_on_screen();
-
     End();
 }
 void            SaucerEditor::push_node_tree( SceneNode* node ){
 
+    bool is_reference = get_reference_path(node) && (Engine::get_current_scene()->get_root_node() != node) ;
+        
     bool is_opened = TreeNodeEx(    (void*)(long long)node->get_saucer_id(),
                             ImGuiTreeNodeFlags_OpenOnArrow 
                             + ImGuiTreeNodeFlags_Selected*(node->get_saucer_id()==SaucerEditor::node_id_selected),
@@ -257,7 +240,7 @@ void            SaucerEditor::push_node_tree( SceneNode* node ){
     if( IsItemClicked() ) SaucerEditor::node_id_selected = node->get_saucer_id();
     
     
-    if( get_reference_path(node)==nullptr ) {
+    if( !is_reference ) {
         SameLine(); SmallButton("+"); if( IsItemClicked() ) node->add_child(new SceneNode());
     } else {
         SameLine(); TextColored( ImVec4(1.0,0.5,0.5,1.0) , "[Referenced]" );
@@ -266,8 +249,7 @@ void            SaucerEditor::push_node_tree( SceneNode* node ){
     SameLine(); SmallButton("-"); if( IsItemClicked() ) node->queue_free();
     
     if( is_opened ){
-        std::string* ref_path = get_reference_path(node);
-        if( ref_path==nullptr )
+        if( is_reference==false )
             for( auto child : node->get_children() ) 
                 push_node_tree(child);
         TreePop();
@@ -330,7 +312,6 @@ void            SaucerEditor::push_render_window(){
         Engine::get_render_engine()->set_viewport_rect(viewport_rect);
     } else
         Engine::get_render_engine()->set_viewport_rect(Rect());
-    clamp_window_on_screen();
     End();
 }
 void            SaucerEditor::push_lua_profiler(){
@@ -406,14 +387,25 @@ void            SaucerEditor::push_console(){
 void            SaucerEditor::push_resource_explorer(){
     Begin("Resource explorer");
     static std::string resource_explorer_filter;
+    resources_by_type.clear();
     InputText( "Filter" , &resource_explorer_filter );
     for( auto it = ResourceManager::begin() ; it != ResourceManager::end() ; it++ ){
         if( resource_explorer_filter.size() == 0 || it->first.find( resource_explorer_filter ) != std::string::npos ){
-            Button(it->first.c_str());
-            if( BeginDragDropSource( ImGuiDragDropFlags_SourceNoDisableHover ) ){
-                SetDragDropPayload("resource_path" , &(it->first) , sizeof(std::string));
-                EndDragDropSource();
+            std::string class_name = SaucerObject::from_saucer_id(it->second)->my_saucer_class_name();
+            resources_by_type[class_name].push_back( it->first );
+        }
+    }
+    for( auto it : resources_by_type ){
+        if( TreeNodeEx(it.first.c_str() , ImGuiTreeNodeFlags_Framed+ImGuiTreeNodeFlags_SpanFullWidth ) ){
+            for( auto& res_path : it.second ){
+                Selectable( res_path.c_str() );
+                if( BeginDragDropSource( ImGuiDragDropFlags_SourceNoDisableHover ) ){
+                    static std::string resource_path_payload = res_path;
+                    SetDragDropPayload("resource_path" , &resource_path_payload , sizeof(std::string));
+                    EndDragDropSource();
+                }
             }
+            TreePop();
         }
     }
     End();
@@ -423,20 +415,28 @@ void            SaucerEditor::push_resource_explorer(){
 std::string*    SaucerEditor::get_reference_path( const SceneNode* n ){
     auto it = reference_path.find(n->get_saucer_id());
     if( it != reference_path.end() ){
-        if( it->second == current_scene_path ) return nullptr;
         return &(it->second);
     } else return nullptr;
 }
 void            SaucerEditor::flag_as_referenced( const SceneNode* n , std::string path ){
     reference_path[n->get_saucer_id()] = path;
 }
-void            SaucerEditor::clamp_window_on_screen(){
-    if( GetWindowPos().x < 0 ) SetWindowPos( ImVec2( 0 , GetWindowPos().y ) );
-    if( GetWindowPos().y < 0 ) SetWindowPos( ImVec2( GetWindowPos().x , 0 ) );
-    if( GetWindowPos().x + GetWindowSize().x > Engine::get_window_size().x ) 
-        SetWindowPos( ImVec2( Engine::get_window_size().x - GetWindowSize().x , GetWindowPos().y ) );
-    if( GetWindowPos().y + GetWindowSize().y > Engine::get_window_size().y ) 
-        SetWindowPos( ImVec2( GetWindowPos().x , Engine::get_window_size().y - GetWindowSize().y ) );
+bool            SaucerEditor::push_resource_hint( std::string resource_type , std::string& path ){
+    bool ret = InputText("",&path,ImGuiInputTextFlags_EnterReturnsTrue);
+    if( TreeNodeEx( resource_type.c_str() , ImGuiTreeNodeFlags_Framed + ImGuiTreeNodeFlags_DefaultOpen ) ){
+        for( auto it : resources_by_type[resource_type] ){
+            if( it.find(path) != std::string::npos && Selectable(it.c_str())){
+                path = it;
+                ret = true;
+            }
+        }
+        TreePop();
+    }
+    if( ret ){
+        Resource* res = ResourceManager::get_resource<Resource>( path );
+        if(!res) saucer_err("Resource with path \"",path,"\" is not valid");
+    }
+    return ret;
 }
 void            SaucerEditor::update(){
     
@@ -456,9 +456,35 @@ void            SaucerEditor::update(){
     push_resource_explorer();
     // ==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 
-    
+    static std::string path;
+    // Shortcuts .-.-.-.-.-.-.-.-.-.-.-.-
+    if( ImGui::IsKeyDown(GLFW_KEY_LEFT_CONTROL) ){
+        if( ImGui::IsKeyPressed(GLFW_KEY_S,false) ){
+            OpenPopup("save_object");
+        }
+    }
+    DefinePopupSaveNode( Engine::get_current_scene()->get_root_node() , path );
 
     Render();
     ImGui_ImplOpenGL3_RenderDrawData(GetDrawData());
 }
-
+void            SaucerEditor::DefinePopupSaveNode( SceneNode* node , std::string& path ){
+    if(!node)return;
+    if( BeginPopup("save_object") ){
+        std::string* ref_path = get_reference_path(node);
+        if( ref_path ) path = *ref_path;
+        bool save_confirmed = InputText("",&path,ImGuiInputTextFlags_EnterReturnsTrue);
+        SameLine();
+        save_confirmed = save_confirmed || Button("Save tree") ;
+        if( save_confirmed && path.size() ){
+            
+            if(ref_path) reference_path.erase(node->get_saucer_id());
+            node->save_as_file(path);
+            reference_path[node->get_saucer_id()] = path;
+            
+            ResourceManager::get_resource<NodeTemplateResource>(path)->flag_as_dirty();
+            CloseCurrentPopup();
+        }
+        EndPopup();
+    }
+}

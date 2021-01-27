@@ -53,14 +53,16 @@ bool            AnchoredRect::get_ignore_mouse() const{
 void            AnchoredRect::set_ignore_mouse(bool new_val){
     ignore_mouse = new_val;
 }
-void            AnchoredRect::grow(int border, float amount , bool propagate ) {
+void            AnchoredRect::grow(int border, float amount , bool updated_position ) {
     if( amount == 0 ) return;
+    std::string name = attached_node->get_name();
     switch (border)
     {
         case LEFT_BORDER:
             amount = std::max(amount,-rect_size.x);
             rect_size.x += amount;
-            attached_node->position.x -= amount;
+            if(!updated_position)attached_node->position.x -= amount;
+            updated_position = true;
             dirty_vertex_data = true;
             break;
         case RIGHT_BORDER:
@@ -71,7 +73,8 @@ void            AnchoredRect::grow(int border, float amount , bool propagate ) {
         case TOP_BORDER:
             amount = std::max(amount,-rect_size.y);
             rect_size.y += amount;
-            attached_node->position.y -= amount;
+            if(!updated_position)attached_node->position.y -= amount;
+            updated_position = true;
             dirty_vertex_data = true;
             break;
         case BOTTOM_BORDER:
@@ -83,14 +86,12 @@ void            AnchoredRect::grow(int border, float amount , bool propagate ) {
             saucer_err("Invalid border: " , border );
             break;
     }
-    if( propagate ){
-        for( auto& child_rect : get_children_rects() ){
-            if( child_rect->starts_on_viewport==false )
-            for( int child_border : {LEFT_BORDER,RIGHT_BORDER,TOP_BORDER,BOTTOM_BORDER}){
-                if( child_rect->is_border_anchored(child_border,border) ){
-                    if(child_border==border)    child_rect->grow(child_border,amount , false);
-                    else                        child_rect->grow(child_border,-amount , false);
-                }
+    for( auto& child_rect : get_children_rects() ){
+        if( child_rect->starts_on_viewport==false )
+        for( int child_border : {LEFT_BORDER,RIGHT_BORDER,TOP_BORDER,BOTTOM_BORDER}){
+            if( child_rect->is_border_anchored(child_border,border) ){
+                if(child_border==border)    child_rect->grow(child_border,amount , updated_position);
+                else                        child_rect->grow(child_border,-amount , updated_position);
             }
         }
     }
@@ -122,10 +123,10 @@ void            AnchoredRect::set_centered(bool new_val){
     centered = new_val;
 }
 Vector2         AnchoredRect::get_offset() const{
-    return ( get_centered() )?( get_rect_size()*-0.5 ):(offset);
+    return ( centered )?( get_rect_size()*-0.5 ):(offset);
 }
 void            AnchoredRect::set_offset(Vector2 new_val){
-    offset = new_val;
+    if(!centered) offset = new_val;
 }
 void            AnchoredRect::cb_mouse_entered( ){
     //    

@@ -44,7 +44,12 @@ void    SaucerObject::from_yaml_node( std::string p  ){
         saucer_err( "YAML::BadFile: " , p );
     }
 }
-
-void SaucerObject::bind_methods(){
+void    SaucerObject::save_as_file( std::string p ) const {
+    std::ofstream ofs;
+    ofs.open( p , std::ofstream::out );
+    ofs << this->to_yaml_node();
+    ofs.close();
+}
+void    SaucerObject::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION( SaucerObject , get_saucer_id )   
 }

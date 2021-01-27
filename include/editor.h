@@ -29,10 +29,9 @@ namespace SaucerEditor {
     extern EditorStream     stream;
     extern SaucerId         node_id_selected;
     extern SceneNode*       tree_root_before_play;
-    extern std::string      current_scene_path;
     extern bool             currently_playing;
-    extern SaucerObject*    object_to_be_saved;
     extern std::unordered_map<SaucerId,std::string> reference_path;
+    extern std::unordered_map<std::string, std::vector<std::string> > resources_by_type;
 
     // Called once
     void setup();
@@ -48,9 +47,12 @@ namespace SaucerEditor {
     void push_engine_profiler();
     void push_console();
     void push_resource_explorer();
-    void clamp_window_on_screen();
+    bool push_resource_hint( std::string resource_type , std::string& path );
+
     std::string* get_reference_path( const SceneNode* );
     void flag_as_referenced( const SceneNode* , std::string );
+
+    void DefinePopupSaveNode( SceneNode* , std::string& );
 
     // called by Engine every frame
     void update();
@@ -66,17 +68,21 @@ namespace SaucerEditor {
 #define PROPERTY_INT(obj,prop_name)     int prop_name = obj->get_##prop_name(); if( ImGui::InputInt(#prop_name,&prop_name) ) obj->set_##prop_name(prop_name);
 #define PROPERTY_BOOL(obj,prop_name)    bool prop_name = obj->get_##prop_name(); if( ImGui::Checkbox(#prop_name,&prop_name) ) obj->set_##prop_name(prop_name);
 #define PROPERTY_RECT(obj,prop_name)   Rect prop_name = obj->get_##prop_name(); if( ImGui::DragFloat4(#prop_name,(float*)&prop_name,1.0f,0.0f,0.0f,"%.2f") ) obj->set_##prop_name(prop_name);
-#define PROPERTY_RESOURCE(obj,PROPERTY_NAME,RESOURCE_TYPE)                                                                                  \
-                std::string PROPERTY_NAME##_path;                                                                                           \
-                if( obj->get_##PROPERTY_NAME() ) PROPERTY_NAME##_path = obj->get_##PROPERTY_NAME()->get_path();                             \
-                if( ImGui::InputText( #PROPERTY_NAME" path" , &PROPERTY_NAME##_path , ImGuiInputTextFlags_EnterReturnsTrue ) )              \
-                    obj->set_##PROPERTY_NAME( ResourceManager::get_resource<RESOURCE_TYPE>(PROPERTY_NAME##_path) );                         \
-                if( ImGui::BeginDragDropTarget() ){                                                                                         \
-                    const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("resource_path");                                            \
-                    if( payload )                                                                                                           \
-                        obj->set_##PROPERTY_NAME( ResourceManager::get_resource<RESOURCE_TYPE>(*static_cast<std::string*>(payload->Data)) );\
-                    ImGui::EndDragDropTarget();                                                                                             \
-                }                                                                                                                           
+#define PROPERTY_RESOURCE(obj,PROPERTY_NAME,RESOURCE_TYPE)                                              \
+                std::string path;                                                                       \
+                if( obj->get_##PROPERTY_NAME() ) path = obj->get_##PROPERTY_NAME()->get_path();         \
+                if( ImGui::Button(path.c_str()) ){                                                      \
+                    ImGui::OpenPopup(#PROPERTY_NAME);                                                   \
+                }                                                                                       \
+                ImGui::SameLine();                                                                      \
+                ImGui::Text(#PROPERTY_NAME);                                                            \
+                if(ImGui::BeginPopup(#PROPERTY_NAME)){                                                  \
+                    if( SaucerEditor::push_resource_hint(RESOURCE_TYPE::class_name , path) ){           \
+                        obj->set_##PROPERTY_NAME( ResourceManager::get_resource<RESOURCE_TYPE>(path) ); \
+                        ImGui::CloseCurrentPopup();                                                     \
+                    }                                                                                   \
+                    ImGui::EndPopup();                                                                  \
+                } 
 #define PROPERTY_ENUM(obj,prop_name,map)                                                                        \
                 if(ImGui::BeginPopup("select_"#prop_name)){                                                     \
                     for( auto p : map ) if( ImGui::Selectable(p.second.c_str()) )                               \

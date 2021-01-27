@@ -46,7 +46,7 @@ void            Engine::initialize( YamlNode config ){
     if( config["root"].IsDefined() ){
         root->from_yaml_node( config["root"] );
         #ifdef SAUCER_EDITOR
-        SaucerEditor::current_scene_path = config["root"]["path"].as<std::string>();
+        SaucerEditor::reference_path[root->get_saucer_id()] = config["root"]["path"].as<std::string>();
         #endif
     }
     scene->set_root_node(root);

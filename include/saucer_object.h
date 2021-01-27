@@ -54,9 +54,14 @@ class SaucerObject {
         SaucerId                get_saucer_id() const ;
         static SaucerObject*    from_saucer_id( const SaucerId& ); 
         static void             bind_methods();
+
         virtual YamlNode        to_yaml_node() const ;
         virtual void            from_yaml_node( YamlNode );
         void                    from_yaml_node( std::string );
+        void                    save_as_file( std::string ) const;
+
+        virtual uint32_t my_saucer_class_id() const { return SaucerClassId<SaucerObject>::value; }
+        virtual const char* my_saucer_class_name() const { return class_name; }
 
     protected:
         virtual ~SaucerObject();

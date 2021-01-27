@@ -36,7 +36,7 @@ class AnchoredRect : public RenderObject {
         void                set_starts_on_viewport( bool new_val );
         bool                get_ignore_mouse() const;
         void                set_ignore_mouse(bool new_val);
-        void                grow( int border , float amount , bool propagate = true );
+        void                grow( int border , float amount , bool updated_position = false );
         bool                is_hovered() const;
         bool                is_focused() const;
         AnchoredRect*       get_parent_rect() const;

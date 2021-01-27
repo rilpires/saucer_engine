@@ -137,9 +137,9 @@ YamlNode        Sprite::to_yaml_node() const {
 void            Sprite::from_yaml_node( YamlNode yaml_node ){
     if( yaml_node["texture"].IsDefined() )
         set_texture(ResourceManager::get_resource<TextureResource>(yaml_node["texture"].as<std::string>()));
-    set_h_frames( yaml_node["h_frames"].as<decltype(h_frames)>() );
-    set_v_frames( yaml_node["v_frames"].as<decltype(v_frames)>() );
-    set_frame_index( yaml_node["frame_index"].as<decltype(frame_index)>() );
-    set_centralized( yaml_node["centralized"].as<decltype(centralized)>() );
-    set_region( yaml_node["region"].as<decltype(region)>() );
+    SET_FROM_YAML_NODE_PROPERTY(yaml_node,h_frames);
+    SET_FROM_YAML_NODE_PROPERTY(yaml_node,v_frames);
+    SET_FROM_YAML_NODE_PROPERTY(yaml_node,frame_index);
+    SET_FROM_YAML_NODE_PROPERTY(yaml_node,centralized);
+    SET_FROM_YAML_NODE_PROPERTY(yaml_node,region);
 }
