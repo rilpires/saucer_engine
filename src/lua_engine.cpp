@@ -371,6 +371,9 @@ void            LuaEngine::push_actor_table( lua_State* ls, SceneNode* actor){
     lua_insert(ls,-3);
     lua_pop(ls,2);
 }
+bool            LuaEngine::has_actor_table( SceneNode* node ){
+    return existent_actors.count(node->get_saucer_id()) > 0;
+}
 void            LuaEngine::describe_stack(){
     saucer_print( "Stack (size=" , lua_gettop(ls) , ")" )
     char s[128];
@@ -487,7 +490,6 @@ void            LuaEngine::create_actor_env( SceneNode* new_actor ){
 
     // Now inserting it into _G["_SAUCER"]["_NODES"][id]
     // Current stack: . [actor env table]
-    describe_stack();
     lua_pushstring(ls,"_SAUCER");
     lua_gettable(ls,LUA_GLOBALSINDEX);
     lua_pushstring(ls,"_NODES");

@@ -50,7 +50,7 @@ CollisionWorld* Scene::get_collision_world() const{
 void            Scene::loop_draw(){
     
     // Traversing the whole tree filling render_datas in proper order
-    std::queue< AccumulatedTreeNode > nodes_queue;
+    std::stack< AccumulatedTreeNode > node_stack;
     std::vector< AccumulatedTreeNode > render_objs;
     std::vector< RenderData > render_datas;
     if( root_node && root_node->get_visible() ){
@@ -58,12 +58,13 @@ void            Scene::loop_draw(){
         tree_node.n = root_node;
         tree_node.t = root_node->get_transform();
         tree_node.c = root_node->get_modulate();
-        nodes_queue.push(tree_node);
+        node_stack.push(tree_node);
     }
-    while( nodes_queue.size() ){
-        AccumulatedTreeNode tree_node = nodes_queue.front();
+    while( node_stack.size() ){
+        AccumulatedTreeNode tree_node = node_stack.top();
         SceneNode* scene_node = tree_node.n;
         render_objs.push_back(tree_node);
+        node_stack.pop();
         for( auto child : scene_node->get_children() ){
             if( child->get_visible() ){
                 AccumulatedTreeNode child_tree_node;
@@ -86,10 +87,9 @@ void            Scene::loop_draw(){
                         child_tree_node.t = child_transf;
                     }
                 }
-                nodes_queue.push( child_tree_node );
+                node_stack.push( child_tree_node );
             }
         }
-        nodes_queue.pop();
     }
 
     // Z-sorting. Must be stable_sort or else unexpected "z flips" can occur between same z-level sprites sometimes...
@@ -208,19 +208,24 @@ void            Scene::loop_input(){
 }
 void            Scene::loop_script(){
     if( Engine::is_editor() ) return;
-    std::queue< SceneNode* > nodes_queue;
+    std::stack< SceneNode* > node_stack;
+    std::vector< SceneNode* > actors;
     double last_frame_duration = Engine::get_last_frame_duration();
 
-    // Traversing the three while solving "_frame_start" script 
+    // Discovering tree DFS
     if( root_node )
-        nodes_queue.push(root_node);
-    while( nodes_queue.size() ){
-        SceneNode* scene_node = nodes_queue.front();;
-        LuaEngine::execute_callback("frame_start", scene_node , last_frame_duration );
+        node_stack.push(root_node);
+    while( node_stack.size() ){
+        SceneNode* scene_node = node_stack.top();
+        node_stack.pop();
+        if( LuaEngine::has_actor_table(scene_node) ) actors.push_back(scene_node);
         for( auto child : scene_node->get_children() )
-            nodes_queue.push( child );
-        nodes_queue.pop();
+            node_stack.push( child );
     }
+
+    // Calling frame_start in reverse tree DFS discovering order (root will be called last)
+    for( auto actor_it = actors.rbegin() ; actor_it != actors.rend() ; actor_it++ )
+        LuaEngine::execute_callback("frame_start", *actor_it , last_frame_duration );
 
 }
 void            Scene::set_current_hovered_anchored_rect( AnchoredRect* r ){
@@ -268,4 +273,6 @@ void            Scene::loop(){
 void            Scene::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION( Scene , get_root_node );
     REGISTER_LUA_MEMBER_FUNCTION( Scene , set_root_node );
+    REGISTER_LUA_MEMBER_FUNCTION( Scene , get_current_hovered_anchored_rect );
+    REGISTER_LUA_MEMBER_FUNCTION( Scene , get_current_focused_anchored_rect );
 }

@@ -81,6 +81,7 @@ class LuaEngine {
         static void             create_actor_env( SceneNode* new_actor );
         static void             destroy_actor_env( SceneNode* new_actor );
         static void             push_actor_table(  lua_State* ls , SceneNode* actor);
+        static bool             has_actor_table( SceneNode* node );
 
         static void             register_constant( std::string enum_name , std::string index_name , int i );
         static void             register_function( std::string global_function_name , lua_CFunction f );

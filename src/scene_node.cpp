@@ -177,6 +177,14 @@ SceneNode*              SceneNode::get_node( std::string child_name ) const{
     for( auto c : children_nodes ) if(c->get_name()==child_name) return c;
     return nullptr;
 }
+SceneNode*              SceneNode::find_node( std::string child_name ) const{
+    for( auto c : children_nodes ) if(c->get_name()==child_name) return c;
+    for( auto c : children_nodes ){
+        SceneNode* node = c->find_node(child_name);
+        if( node ) return node;
+    }
+    return nullptr;
+}
 SceneNode*              SceneNode::get_parent( ) const { return parent_node;};
 Scene*                  SceneNode::get_scene() const{
     return scene;
@@ -272,6 +280,7 @@ void        SceneNode::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,is_parent_of);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,add_child);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_node);
+    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,find_node);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_parent);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_scene);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_children);

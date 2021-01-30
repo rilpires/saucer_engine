@@ -79,6 +79,7 @@ class SceneNode : public SaucerObject {
         bool                    is_parent_of( SceneNode* ) const;
         void                    add_child( SceneNode* p_child_node );
         SceneNode*              get_node( std::string child_name ) const;
+        SceneNode*              find_node( std::string child_name ) const;
         SceneNode*              get_parent( ) const ;
         Scene*                  get_scene() const;
         void                    queue_free();
