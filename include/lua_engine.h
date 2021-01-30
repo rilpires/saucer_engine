@@ -157,7 +157,6 @@ template<> Input::InputEvent*   LuaEngine::pop( lua_State* ls );
 template<> void     LuaEngine::push_metatable<SceneNode>( lua_State* ls );
 
 
-
 #include "lua_engine.tpp"
 
 #endif

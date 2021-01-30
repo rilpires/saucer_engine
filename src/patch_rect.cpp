@@ -68,10 +68,10 @@ std::vector<RenderData> PatchRect::generate_render_data() {
             if( empty ) size = Vector2(0,0);
 
             unsigned short vertex_data_offset = 4*(xi + yi*3);
-            vertex_data[ vertex_data_offset     ].pos = Vector3(dx,             dy,             0);
-            vertex_data[ vertex_data_offset + 1 ].pos = Vector3(dx + size.x,    dy,             0);
-            vertex_data[ vertex_data_offset + 2 ].pos = Vector3(dx,             size.y + dy,    0);
-            vertex_data[ vertex_data_offset + 3 ].pos = Vector3(dx + size.x,    size.y + dy,    0);
+            vertex_data[ vertex_data_offset     ].pos = Vector3( get_offset().x + dx,          get_offset().y + dy,             0);
+            vertex_data[ vertex_data_offset + 1 ].pos = Vector3( get_offset().x + dx + size.x, get_offset().y + dy,             0);
+            vertex_data[ vertex_data_offset + 2 ].pos = Vector3( get_offset().x + dx,          get_offset().y + size.y + dy,    0);
+            vertex_data[ vertex_data_offset + 3 ].pos = Vector3( get_offset().x + dx + size.x, get_offset().y + size.y + dy,    0);
             
             vertex_data[ vertex_data_offset     ].uv = top_left_uv;
             vertex_data[ vertex_data_offset + 1 ].uv = Vector2(bottom_right_uv.x,top_left_uv.y);

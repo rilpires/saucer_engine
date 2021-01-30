@@ -75,48 +75,100 @@ template<> std::string  LuaEngine::pop( lua_State* ls ){
 
 
 template<> void     LuaEngine::push_metatable<SceneNode>( lua_State* ls ){
-    lua_newtable(ls);
-    lua_pushstring(ls,"__index");
-    lua_pushcfunction(ls,[](lua_State* ls){
-        SceneNode* node = (SceneNode*)SaucerObject::from_saucer_id( *(SaucerId*)lua_touserdata(ls,-2) );
-        SAUCER_ASSERT(node , "Trying to access a SceneNode that was previously freed.");
-        const char* arg = lua_tostring(ls,-1);
-        lua_pop(ls,2);
-        lua_CFunction nested_function = LuaEngine::recover_nested_function<SceneNode>(arg);
-        if( nested_function != nullptr ){
-            lua_pushcfunction( ls , nested_function );
-        } else {
+    static bool initialized = false;
+    
+    if( !initialized ){
+
+        lua_pushstring(ls,"_SAUCER");
+        lua_gettable(ls,LUA_GLOBALSINDEX);
+        lua_pushstring(ls,"_METATABLES");
+        lua_gettable(ls,-2);
+        lua_remove(ls,-2);
+        // stack: [table _METATABLES]
+        lua_pushstring(ls,"SceneNode");
+
+
+        lua_newtable(ls);   
+        
+        lua_pushstring(ls,"__index");
+        lua_pushcfunction(ls,[](lua_State* ls){
+            SceneNode* node = (SceneNode*)SaucerObject::from_saucer_id( *(SaucerId*)lua_touserdata(ls,-2) );
+            if( !node ){
+                // Trying to access a SceneNode that was previously freed.
+                lua_pop(ls,2);
+                lua_pushnil(ls);
+                return 1;
+            }
+            const char* arg = lua_tostring(ls,-1);
+            lua_pop(ls,2);
+            lua_CFunction nested_function = LuaEngine::recover_nested_function<SceneNode>(arg);
+            if( nested_function != nullptr ){
+                lua_pushcfunction( ls , nested_function );
+            } else {
+                lua_pushstring(ls,"_SAUCER");
+                lua_gettable(ls,LUA_GLOBALSINDEX);
+                lua_pushstring(ls,"_NODES");
+                lua_gettable(ls,-2);
+                lua_pushnumber(ls,node->get_saucer_id());
+                lua_gettable(ls,-2);
+                lua_pushstring(ls,arg);
+                lua_gettable(ls,-2);
+                lua_insert(ls,1);
+                lua_pop(ls,3);
+            }
+            return 1;
+        });
+        lua_settable(ls,-3);
+        
+        lua_pushstring(ls,"__newindex");
+        lua_pushcfunction(ls,[](lua_State* ls){
+            SceneNode* node = (SceneNode*)SaucerObject::from_saucer_id( *(SaucerId*)lua_touserdata(ls,-3) );
+            const char* key = lua_tostring(ls,-2);
             lua_pushstring(ls,"_SAUCER");
             lua_gettable(ls,LUA_GLOBALSINDEX);
             lua_pushstring(ls,"_NODES");
             lua_gettable(ls,-2);
             lua_pushnumber(ls,node->get_saucer_id());
             lua_gettable(ls,-2);
-            lua_pushstring(ls,arg);
-            lua_gettable(ls,-2);
-            lua_insert(ls,1);
-            lua_pop(ls,3);
-        }
-        return 1;
-    });
-    lua_settable(ls,-3);
-    lua_pushstring(ls,"__newindex");
-    lua_pushcfunction(ls,[](lua_State* ls){
-        SceneNode* node = (SceneNode*)SaucerObject::from_saucer_id( *(SaucerId*)lua_touserdata(ls,-3) );
-        const char* key = lua_tostring(ls,-2);
-        lua_pushstring(ls,"_SAUCER");
-        lua_gettable(ls,LUA_GLOBALSINDEX);
-        lua_pushstring(ls,"_NODES");
-        lua_gettable(ls,-2);
-        lua_pushnumber(ls,node->get_saucer_id());
-        lua_gettable(ls,-2);
-        lua_pushstring(ls,key);
-        lua_pushvalue(ls,-5);
+            lua_pushstring(ls,key);
+            lua_pushvalue(ls,-5);
+            lua_settable(ls,-3);
+            lua_pop(ls,6);
+            return 0;
+        });
         lua_settable(ls,-3);
-        lua_pop(ls,6);
-        return 0;
-    });
-    lua_settable(ls,-3);
+
+        lua_pushstring(ls,"__eq");
+        lua_pushcfunction(ls,[](lua_State* ls){
+            if( lua_type(ls,-1) != lua_type(ls,-2) ){
+                lua_pop(ls,2);
+                lua_pushboolean(ls,false);
+                return 1;
+            }
+            SceneNode* node1 = (SceneNode*)SaucerObject::from_saucer_id( *(SaucerId*)lua_touserdata(ls,-2) );
+            SceneNode* node2 = (SceneNode*)SaucerObject::from_saucer_id( *(SaucerId*)lua_touserdata(ls,-1) );
+            lua_pop(ls,2);
+            lua_pushboolean( ls , node1 == node2 );
+            return 1;
+        });
+        lua_settable(ls,-3);
+
+        lua_settable(ls,-3);
+        lua_remove(ls,-1);
+        
+        initialized = true;
+    }
+
+
+    lua_pushstring(ls,"_SAUCER");
+    lua_gettable(ls,LUA_GLOBALSINDEX);
+    lua_pushstring(ls,"_METATABLES");
+    lua_gettable(ls,-2);
+    lua_pushstring(ls,"SceneNode");
+    lua_gettable(ls,-2);
+    lua_remove(ls,-2);
+    lua_remove(ls,-2);
+
 }
 
 
@@ -207,7 +259,12 @@ void            LuaEngine::create_global_env( ){
     // Creating nodes table
     lua_pushstring(ls,"_NODES");
     lua_newtable(ls);
-    lua_settable(ls,2);
+    lua_settable(ls,-3);
+    // Creating metatables book
+    lua_pushstring(ls,"_METATABLES");
+    lua_newtable(ls);
+    lua_settable(ls,-3);
+    
     lua_settable(ls,LUA_GLOBALSINDEX);
 
     // Pushing nested functions

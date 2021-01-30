@@ -5,7 +5,6 @@
 LabelRect::LabelRect(){
     text = "";
     font = nullptr;
-    font_size = 12;
     line_gap = 2;
     vertex_data = nullptr;
     vertex_data_count = 0;
@@ -47,7 +46,8 @@ void            LabelRect::update_vertex_data(){
 
     Vector2 rect_size = get_rect_size();
     int     max_height  = font->get_max_pixels_height();
-    float   scale       = float(font_size) / max_height;
+    // float   scale       = float(font_size) / max_height;
+    float   scale = 1; // Until add custom attributes for font type (ttf)
     char    last_char   = 0;
     int     last_line_index = 0;
     std::vector<int> lines_index;
@@ -84,10 +84,10 @@ void            LabelRect::update_vertex_data(){
                               + char_data.bearing*Vector2(1,-1) * scale;
 
         unsigned short vertex_data_offset = 4*char_index;
-        vertex_data[ vertex_data_offset     ].pos = Vector3( char_offset.x,             char_offset.y,             0);
-        vertex_data[ vertex_data_offset + 1 ].pos = Vector3( char_offset.x + size.x,    char_offset.y,             0);
-        vertex_data[ vertex_data_offset + 2 ].pos = Vector3( char_offset.x,             size.y + char_offset.y,    0);
-        vertex_data[ vertex_data_offset + 3 ].pos = Vector3( char_offset.x + size.x,    size.y + char_offset.y,    0);
+        vertex_data[ vertex_data_offset     ].pos = Vector3( get_offset().x + char_offset.x,          get_offset().y + char_offset.y,          0 );
+        vertex_data[ vertex_data_offset + 1 ].pos = Vector3( get_offset().x + char_offset.x + size.x, get_offset().y + char_offset.y,          0 );
+        vertex_data[ vertex_data_offset + 2 ].pos = Vector3( get_offset().x + char_offset.x,          get_offset().y + size.y + char_offset.y, 0 );
+        vertex_data[ vertex_data_offset + 3 ].pos = Vector3( get_offset().x + char_offset.x + size.x, get_offset().y + size.y + char_offset.y, 0 );
         
         vertex_data[ vertex_data_offset     ].uv = char_data.top_left_uv;
         vertex_data[ vertex_data_offset + 1 ].uv = Vector2(char_data.bottom_right_uv.x, char_data.top_left_uv.y);
@@ -149,15 +149,6 @@ FontResource*   LabelRect::get_font() const {
 void            LabelRect::set_font(FontResource* f) {
     if(font != f){
         font = f;
-        dirty_vertex_data = true;
-    }
-}
-int             LabelRect::get_font_size() const{
-    return font_size;
-}
-void            LabelRect::set_font_size(int new_val){
-    if( font_size != new_val ){
-        font_size = new_val;
         dirty_vertex_data = true;
     }
 }
@@ -246,8 +237,6 @@ void            LabelRect::bind_methods() {
     REGISTER_LUA_MEMBER_FUNCTION( LabelRect , set_text );
     REGISTER_LUA_MEMBER_FUNCTION( LabelRect , get_font );
     REGISTER_LUA_MEMBER_FUNCTION( LabelRect , set_font );
-    REGISTER_LUA_MEMBER_FUNCTION( LabelRect , get_font_size );
-    REGISTER_LUA_MEMBER_FUNCTION( LabelRect , set_font_size );
     REGISTER_LUA_MEMBER_FUNCTION( LabelRect , get_line_gap );
     REGISTER_LUA_MEMBER_FUNCTION( LabelRect , set_line_gap );
     REGISTER_LUA_MEMBER_FUNCTION( LabelRect , set_align_flags );
@@ -266,7 +255,6 @@ void            LabelRect::push_editor_items(){
     AnchoredRect::push_editor_items();
     PROPERTY_STRING( this, text );
     PROPERTY_RESOURCE( this, font , FontResource );
-    PROPERTY_INT( this, font_size );
     PROPERTY_INT( this, line_gap );
     PROPERTY_FLOAT_RANGE( this, percent_visible , 0 , 1 );
     PROPERTY_BOOL( this, editable ); ImGui::SameLine() ; PROPERTY_BOOL( this , enter_is_newline );
@@ -301,7 +289,6 @@ YamlNode        LabelRect::to_yaml_node() const {
     YamlNode ret = AnchoredRect::to_yaml_node();
     
     ret["text"] = text;
-    ret["font_size"] = font_size;
     ret["line_gap"] = line_gap;
     ret["align_flags"] = align_flags;
     ret["editable"] = editable;
@@ -314,7 +301,6 @@ void            LabelRect::from_yaml_node( YamlNode yaml_node ){
     AnchoredRect::from_yaml_node(yaml_node);
 
     SET_FROM_YAML_NODE_PROPERTY(yaml_node,text);
-    SET_FROM_YAML_NODE_PROPERTY(yaml_node,font_size);
     SET_FROM_YAML_NODE_PROPERTY(yaml_node,line_gap);
     SET_FROM_YAML_NODE_PROPERTY(yaml_node,align_flags);
     SET_FROM_YAML_NODE_PROPERTY(yaml_node,editable);

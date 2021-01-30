@@ -27,7 +27,6 @@ void            SaucerEditor::EditorStream::clear() {
     str.clear();
 }
 
-
 void            SaucerEditor::setup(){
     
     IMGUI_CHECKVERSION();
@@ -39,7 +38,6 @@ void            SaucerEditor::setup(){
     ImGui_ImplGlfw_InitForOpenGL( Engine::get_render_engine()->get_glfw_window(), true );
     ImGui_ImplOpenGL3_Init("#version 150");
 }
-
 
 void            SaucerEditor::push_scene_tree_window(){
     SceneNode* root_node = Engine::get_current_scene()->get_root_node();
@@ -64,7 +62,7 @@ void            SaucerEditor::push_scene_tree_window(){
     }
     SameLine();
     if(Button("New node")){
-        if( selected_node && get_reference_path(selected_node)==nullptr ) selected_node->add_child( new SceneNode() );
+        if( selected_node && get_reference_path(selected_node).empty() ) selected_node->add_child( new SceneNode() );
         else if(root_node ) root_node->add_child( new SceneNode() );
         else Engine::get_current_scene()->set_root_node(new SceneNode());  
     }
@@ -105,7 +103,7 @@ void            SaucerEditor::push_scene_tree_window(){
         static std::string open_scene_as_child_path;
 
         if( push_resource_hint( "NodeTemplateResource" , open_scene_as_child_path ) ){
-            if( open_scene_as_child_path == *get_reference_path(root_node) ){
+            if( open_scene_as_child_path == get_reference_path(root_node) ){
                 saucer_warn("You can't put a parent node as a child of one of it's childs!" );
             } else if (!selected_node){
                 saucer_warn("You have to select a node to instantiate a child.");
@@ -197,10 +195,13 @@ void            SaucerEditor::push_config(){
 }
 void            SaucerEditor::push_node_tree( SceneNode* node ){
 
-    bool is_reference = get_reference_path(node) && (Engine::get_current_scene()->get_root_node() != node) ;
-        
-    bool is_opened = TreeNodeEx(    (void*)(long long)node->get_saucer_id(),
+    bool is_reference = !get_reference_path(node).empty() && (Engine::get_current_scene()->get_root_node() != node) ;
+    bool is_leaf = (node->get_children().size()==0);
+    bool is_opened; 
+
+    is_opened = TreeNodeEx(    (void*)(long long)node->get_saucer_id(),
                             ImGuiTreeNodeFlags_OpenOnArrow 
+                            + ImGuiTreeNodeFlags_Bullet*is_leaf
                             + ImGuiTreeNodeFlags_Selected*(node->get_saucer_id()==SaucerEditor::node_id_selected),
                             "%s" , node->get_name().c_str() );
     
@@ -247,7 +248,15 @@ void            SaucerEditor::push_node_tree( SceneNode* node ){
         SameLine(); SmallButton("Unref"); if( IsItemClicked() ) reference_path.erase(node->get_saucer_id());
     }
     SameLine(); SmallButton("-"); if( IsItemClicked() ) node->queue_free();
-    
+    if( node->get_parent() ){
+        SameLine(); SmallButton(".."); if( IsItemClicked() ){
+            SceneNode* copy = node->duplicate();
+            std::string reference_path = get_reference_path(node);
+            if( !reference_path.empty() ) flag_as_referenced(copy,reference_path);
+            node->get_parent()->add_child( copy );   
+        }
+    }
+
     if( is_opened ){
         if( is_reference==false )
             for( auto child : node->get_children() ) 
@@ -258,7 +267,7 @@ void            SaucerEditor::push_node_tree( SceneNode* node ){
 void            SaucerEditor::push_render_window(){
 
     SetNextWindowBgAlpha(0);
-    
+    SceneNode* root_node = Engine::get_current_scene()->get_root_node();
     Vector2 mouse_pos = Input::get_screen_mouse_position();
     Rect current_viewport_rect = Engine::get_render_engine()->get_viewport_rect();
     bool window_inside_viewport = current_viewport_rect.is_point_inside(mouse_pos);
@@ -285,15 +294,18 @@ void            SaucerEditor::push_render_window(){
             }
         EndMenu();
     }
-    if( !currently_playing && MenuItem("Play current scene") ){
-        tree_root_before_play = Engine::get_current_scene()->get_root_node();
+    if( root_node && !currently_playing && MenuItem("Play current scene") ){
+        tree_root_before_play = root_node;
+        std::string current_tree_root_path = get_reference_path(root_node);
         Engine::get_current_scene()->set_root_node( nullptr );
         node_id_selected = 0;
         currently_playing = true;
         ResourceManager::dirty_every_resource();
         LuaEngine::reset();
         stream.clear();
-        Engine::get_current_scene()->set_root_node(tree_root_before_play->duplicate());
+        if( !current_tree_root_path.empty() ) reference_path.erase(root_node->get_saucer_id()); // We don't want the new duplicated root to know that it is referenced, so that's why we are temporarily disabling it
+        Engine::get_current_scene()->set_root_node( tree_root_before_play->duplicate() );
+        if( !current_tree_root_path.empty() ) reference_path[tree_root_before_play->get_saucer_id()] = current_tree_root_path; 
     }
     if( currently_playing && MenuItem("Stop playing") ){
         SceneNode* root_while_played = Engine::get_current_scene()->get_root_node();
@@ -412,27 +424,34 @@ void            SaucerEditor::push_resource_explorer(){
 
 
 }
-std::string*    SaucerEditor::get_reference_path( const SceneNode* n ){
+std::string     SaucerEditor::get_reference_path( const SceneNode* n ){
     auto it = reference_path.find(n->get_saucer_id());
     if( it != reference_path.end() ){
-        return &(it->second);
-    } else return nullptr;
+        return it->second;
+    } else return std::string();
 }
 void            SaucerEditor::flag_as_referenced( const SceneNode* n , std::string path ){
     reference_path[n->get_saucer_id()] = path;
 }
 bool            SaucerEditor::push_resource_hint( std::string resource_type , std::string& path ){
-    bool ret = InputText("",&path,ImGuiInputTextFlags_EnterReturnsTrue);
-    if( TreeNodeEx( resource_type.c_str() , ImGuiTreeNodeFlags_Framed + ImGuiTreeNodeFlags_DefaultOpen ) ){
+    bool ret = false;
+    std::string input_string;
+    if( InputText("",&input_string,ImGuiInputTextFlags_EnterReturnsTrue) ){
+        path = input_string;
+        ret = true;
+    } else if( TreeNodeEx( resource_type.c_str() , ImGuiTreeNodeFlags_Framed + ImGuiTreeNodeFlags_DefaultOpen ) ){
         for( auto it : resources_by_type[resource_type] ){
-            if( it.find(path) != std::string::npos && Selectable(it.c_str())){
-                path = it;
-                ret = true;
+            if( path.empty() || it.find(input_string) != std::string::npos ){
+                if( Selectable(it.c_str())){
+                    path = it;
+                    ret = true;
+                    break;
+                }
             }
         }
         TreePop();
     }
-    if( ret ){
+    if( !path.empty() && ret ){
         Resource* res = ResourceManager::get_resource<Resource>( path );
         if(!res) saucer_err("Resource with path \"",path,"\" is not valid");
     }
@@ -456,14 +475,14 @@ void            SaucerEditor::update(){
     push_resource_explorer();
     // ==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
 
-    static std::string path;
     // Shortcuts .-.-.-.-.-.-.-.-.-.-.-.-
     if( ImGui::IsKeyDown(GLFW_KEY_LEFT_CONTROL) ){
         if( ImGui::IsKeyPressed(GLFW_KEY_S,false) ){
             OpenPopup("save_object");
         }
     }
-    DefinePopupSaveNode( Engine::get_current_scene()->get_root_node() , path );
+    std::string save_path;
+    DefinePopupSaveNode( Engine::get_current_scene()->get_root_node() , save_path );
 
     Render();
     ImGui_ImplOpenGL3_RenderDrawData(GetDrawData());
@@ -471,14 +490,14 @@ void            SaucerEditor::update(){
 void            SaucerEditor::DefinePopupSaveNode( SceneNode* node , std::string& path ){
     if(!node)return;
     if( BeginPopup("save_object") ){
-        std::string* ref_path = get_reference_path(node);
-        if( ref_path ) path = *ref_path;
+        std::string ref_path = get_reference_path(node);
+        if( !ref_path.empty() ) path = ref_path;
         bool save_confirmed = InputText("",&path,ImGuiInputTextFlags_EnterReturnsTrue);
         SameLine();
         save_confirmed = save_confirmed || Button("Save tree") ;
         if( save_confirmed && path.size() ){
             
-            if(ref_path) reference_path.erase(node->get_saucer_id());
+            if(!ref_path.empty()) reference_path.erase(node->get_saucer_id());
             node->save_as_file(path);
             reference_path[node->get_saucer_id()] = path;
             

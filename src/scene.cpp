@@ -1,6 +1,7 @@
 #include "scene.h"
 #include "core.h"
 #include <queue>
+#include <stack>
 #include <algorithm>
 
 
@@ -123,23 +124,29 @@ void            Scene::loop_draw(){
 }
 void            Scene::loop_input(){
     if( Engine::is_editor() ){ while( Input::pop_event_queue() ){} return; }
-    std::queue< SceneNode* > nodes_queue;
+    
+    std::stack< SceneNode* > node_stack;
+    
     std::vector< SceneNode* > script_actors;
     Vector2 world_mouse_pos = Input::get_world_mouse_position();
     AnchoredRect* next_hovered = nullptr;
 
     // Traversing the tree looking for the hovered AnchoredRect  
     if( root_node && root_node->get_visible() )
-        nodes_queue.push(root_node);
-    while( nodes_queue.size() ){
-        SceneNode* scene_node = nodes_queue.front();
+        node_stack.push(root_node);
+    while( node_stack.size() ){
+        SceneNode* scene_node = node_stack.top();
+        node_stack.pop();
+        for( auto child : scene_node->get_children() )
+            if( child->get_visible() )
+                node_stack.push( child );
         auto anchored_rects = AnchoredRect::recover_range_from_node(scene_node);
         for( auto& it = anchored_rects.first ; it != anchored_rects.second ; it++ ){
             AnchoredRect* rect = it->second;
             if( rect->ignore_mouse ) continue;
             Transform t = scene_node->get_global_transform();
-            Vector2 world_top_left        = t * Vector2(0,0) ;
-            Vector2 world_bottom_right    = t * rect->get_rect_size(); // I hope it isn't rotated! won't work
+            Vector2 world_top_left        = t * Vector2(0,0) + rect->get_offset();
+            Vector2 world_bottom_right    = t * rect->get_rect_size()+ rect->get_offset(); // I hope it isn't rotated! won't work
             if( world_mouse_pos.x > world_top_left.x 
             &&  world_mouse_pos.x < world_bottom_right.x 
             &&  world_mouse_pos.y > world_top_left.y 
@@ -147,10 +154,6 @@ void            Scene::loop_input(){
                 next_hovered = rect;
             }
         }
-        for( auto child : scene_node->get_children() )
-            if( child->get_visible() )
-                nodes_queue.push( child );
-        nodes_queue.pop();
     }
     set_current_hovered_anchored_rect(next_hovered);
     
@@ -184,22 +187,19 @@ void            Scene::loop_input(){
         }
         
         if( root_node && !(next_input_event->is_solved()) )
-            nodes_queue.push(root_node);
-        while( nodes_queue.size() ){
-            SceneNode* scene_node = nodes_queue.front();
+            node_stack.push(root_node);
+        while( node_stack.size() ){
+            SceneNode* scene_node = node_stack.top();
+            node_stack.pop();
+            for( auto child : scene_node->get_children() )
+                node_stack.push( child );
 
             if( scene_node->get_script() )
                 LuaEngine::execute_callback( "input" , scene_node , next_input_event );
             
-            if( next_input_event->is_solved() ) {
-                while( nodes_queue.size() ) 
-                    nodes_queue.pop();
-            } 
-            else {
-                for( auto child : scene_node->get_children() )
-                    nodes_queue.push( child );
-                nodes_queue.pop();
-            }
+            if( next_input_event->is_solved() ) 
+                while( node_stack.size() ) 
+                    node_stack.pop();
         }
 
         delete next_input_event;   

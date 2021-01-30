@@ -8,40 +8,69 @@ template<> void LuaEngine::push<Rect>( lua_State* ls , Rect r ){
     void* userdata = lua_newuserdata( ls , sizeof(Rect) );
     (*(Rect*)userdata) = r;
 
-    // Pushing a Rect metatable:
-    lua_newtable(ls);
     
-    // __index
-    lua_pushstring(ls,"__index");
-    lua_pushcfunction(ls, [](lua_State* ls){
-        Rect* r = (Rect*)lua_touserdata(ls,-2);
-        const char* arg = lua_tostring(ls,-1);
-        lua_pop(ls,2);
-                if(!strcmp(arg,"x1"))   lua_pushnumber(ls,r->top_left.x);
-        else    if(!strcmp(arg,"y1"))   lua_pushnumber(ls,r->top_left.y);
-        else    if(!strcmp(arg,"x2"))   lua_pushnumber(ls,r->bottom_right.x);
-        else    if(!strcmp(arg,"y2"))   lua_pushnumber(ls,r->bottom_right.y);
-        else    lua_pushcfunction(ls, LuaEngine::recover_nested_function("Rect",arg) );
-        return 1;
-    });
-    lua_settable(ls,-3);
+    static bool metatable_initialized = false;
+    if(!metatable_initialized){
+        metatable_initialized = true;
+        lua_pushstring(ls,"_SAUCER");
+        lua_gettable(ls,LUA_GLOBALSINDEX);
+        lua_pushstring(ls,"_METATABLES");
+        lua_gettable(ls,-2);
+        lua_remove(ls,-2);
+        lua_pushstring(ls,"Rect");
+        
+        
+        // Pushing a Rect metatable:
+        lua_newtable(ls);
+        
+        // __index
+        lua_pushstring(ls,"__index");
+        lua_pushcfunction(ls, [](lua_State* ls){
+            Rect* r = (Rect*)lua_touserdata(ls,-2);
+            const char* arg = lua_tostring(ls,-1);
+            lua_pop(ls,2);
+                    if(!strcmp(arg,"x1"))   lua_pushnumber(ls,r->top_left.x);
+            else    if(!strcmp(arg,"y1"))   lua_pushnumber(ls,r->top_left.y);
+            else    if(!strcmp(arg,"x2"))   lua_pushnumber(ls,r->bottom_right.x);
+            else    if(!strcmp(arg,"y2"))   lua_pushnumber(ls,r->bottom_right.y);
+            else    lua_pushcfunction(ls, LuaEngine::recover_nested_function("Rect",arg) );
+            return 1;
+        });
+        lua_settable(ls,-3);
 
-    // __newindex
-    lua_pushstring(ls,"__newindex");
-    lua_pushcfunction(ls, [](lua_State* ls){
-        Rect* r = (Rect*)lua_touserdata(ls,-3);
-        const char* arg = lua_tostring(ls,-2);
-        float new_val = lua_tonumber(ls,-1);
-        lua_pop(ls,3);
-                if(!strcmp(arg,"x1"))    r->top_left.x=new_val;
-        else    if(!strcmp(arg,"y1"))    r->top_left.y=new_val;
-        else    if(!strcmp(arg,"x2"))    r->bottom_right.x=new_val;
-        else    if(!strcmp(arg,"y2"))    r->bottom_right.y=new_val;
-        return 0;
-    });
-    lua_settable(ls,-3);
+        // __newindex
+        lua_pushstring(ls,"__newindex");
+        lua_pushcfunction(ls, [](lua_State* ls){
+            Rect* r = (Rect*)lua_touserdata(ls,-3);
+            const char* arg = lua_tostring(ls,-2);
+            float new_val = lua_tonumber(ls,-1);
+            lua_pop(ls,3);
+                    if(!strcmp(arg,"x1"))    r->top_left.x=new_val;
+            else    if(!strcmp(arg,"y1"))    r->top_left.y=new_val;
+            else    if(!strcmp(arg,"x2"))    r->bottom_right.x=new_val;
+            else    if(!strcmp(arg,"y2"))    r->bottom_right.y=new_val;
+            return 0;
+        });
+        lua_settable(ls,-3);
+        lua_settable(ls,-3);
+        // only [_METATABLES table] on stack now
+        lua_pushstring(ls,"Rect");
+        lua_gettable(ls,-2);
+        lua_remove(ls,-2);
+    } 
+    else {
+        lua_pushstring(ls,"_SAUCER");
+        lua_gettable(ls,LUA_GLOBALSINDEX);
+        lua_pushstring(ls,"_METATABLES");
+        lua_gettable(ls,-2);
+        lua_remove(ls,-2);
+        lua_pushstring(ls,"Rect");
+        lua_gettable(ls,-2);
+        lua_remove(ls,-2);
+    }
 
     lua_setmetatable(ls,-2);
+
 
 }
 

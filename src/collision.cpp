@@ -341,5 +341,5 @@ void            CollisionBody::from_yaml_node( YamlNode yaml_node ){
     set_fixed_rotation( yaml_node["fixed_rotation"].as<decltype(fixed_rotation)>() );
     collision_layer = yaml_node["collision_layer"].as<decltype(collision_layer)>();
     collision_layer = yaml_node["collision_mask"].as<decltype(collision_mask)>();
-    set_body_type( yaml_node["body_type"].as<decltype(body_type)>() );
+    set_body_type( yaml_node["body_type"].as<int>() );
 }

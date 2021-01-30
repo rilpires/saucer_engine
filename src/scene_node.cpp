@@ -21,15 +21,15 @@ SceneNode::SceneNode(){
     visible = true;
 }
 SceneNode::~SceneNode(){
+    std::vector<SceneNode*> children_nodes_copy = children_nodes;
+    for( size_t i = 0 ; i < children_nodes_copy.size() ; i++ ) 
+        delete children_nodes_copy[i]; // they will call get_out
+    children_nodes.clear(); // probably unnecessary tho
     for( Component* component : attached_components ){
         component->erase_from_component_map();
         delete component;
     }
     attached_components.clear();
-    std::vector<SceneNode*> children_nodes_copy = children_nodes;
-    for( size_t i = 0 ; i < children_nodes_copy.size() ; i++ ) 
-        delete children_nodes_copy[i]; // they will call get_out
-    children_nodes.clear(); // probably unnecessary tho
     get_out();
     LuaEngine::destroy_actor_env(this);
 }
@@ -299,11 +299,11 @@ YamlNode    SceneNode::to_yaml_node() const{
 
     for( auto c : attached_components) ret["components"][c->get_component_name()] = c->to_yaml_node();
 
-    std::string* ref_path = SaucerEditor::get_reference_path(this);
-    if( ref_path ){
-        ret["path"] = *ref_path;
-    } else {
+    std::string ref_path = SaucerEditor::get_reference_path(this);
+    if( ref_path.empty() ){
         for( auto c : children_nodes ) ret["children"].push_back(c->to_yaml_node());
+    } else {
+        ret["path"] = ref_path;
     }
     return ret;
 }

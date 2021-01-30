@@ -82,21 +82,46 @@ T       LuaEngine::pop( lua_State* ls ){
 // The default metatable that is created...
 template< typename T>
 void    LuaEngine::push_metatable( lua_State* ls ){
-    lua_newtable(ls);
-    lua_pushstring(ls,"__index");
-    lua_pushcfunction(ls,[](lua_State* ls){
-        const char* arg = lua_tostring(ls,-1);
-        lua_pop(ls,2);
-        auto f = LuaEngine::recover_nested_function<T>(arg);
-        if(f){
-            lua_pushcfunction( ls , f );
-            return 1;
-        } else {
-            saucer_err( arg , " is not a valid function.");
-            return 0;
-        }
-    });
-    lua_settable(ls,-3);
+    static bool initialized = false;
+    if(!initialized){
+        lua_pushstring(ls,"_SAUCER");
+        lua_gettable(ls,LUA_GLOBALSINDEX);
+        lua_pushstring(ls,"_METATABLES");
+        lua_gettable(ls,-2);
+        lua_remove(ls,-2);
+
+        lua_pushstring(ls,T::class_name);
+
+        lua_newtable(ls);
+        lua_pushstring(ls,"__index");
+        lua_pushcfunction(ls,[](lua_State* ls){
+            const char* arg = lua_tostring(ls,-1);
+            lua_pop(ls,2);
+            auto f = LuaEngine::recover_nested_function<T>(arg);
+            if(f){
+                lua_pushcfunction( ls , f );
+                return 1;
+            } else {
+                saucer_err( arg , " is not a valid function.");
+                return 0;
+            }
+        });
+        lua_settable(ls,-3);
+            
+        lua_settable(ls,-3);
+        lua_remove(ls,-1);
+        
+        initialized = true;
+    }
+
+        lua_pushstring(ls,"_SAUCER");
+        lua_gettable(ls,LUA_GLOBALSINDEX);
+        lua_pushstring(ls,"_METATABLES");
+        lua_gettable(ls,-2);
+        lua_remove(ls,-2);
+        lua_pushstring(ls,T::class_name);
+        lua_gettable(ls,-2);
+        lua_remove(ls,-2);
 }
 
 /*

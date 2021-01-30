@@ -49,7 +49,7 @@ namespace SaucerEditor {
     void push_resource_explorer();
     bool push_resource_hint( std::string resource_type , std::string& path );
 
-    std::string* get_reference_path( const SceneNode* );
+    std::string get_reference_path( const SceneNode* );
     void flag_as_referenced( const SceneNode* , std::string );
 
     void DefinePopupSaveNode( SceneNode* , std::string& );
@@ -71,6 +71,7 @@ namespace SaucerEditor {
 #define PROPERTY_RESOURCE(obj,PROPERTY_NAME,RESOURCE_TYPE)                                              \
                 std::string path;                                                                       \
                 if( obj->get_##PROPERTY_NAME() ) path = obj->get_##PROPERTY_NAME()->get_path();         \
+                else path = "None";                                                                     \
                 if( ImGui::Button(path.c_str()) ){                                                      \
                     ImGui::OpenPopup(#PROPERTY_NAME);                                                   \
                 }                                                                                       \

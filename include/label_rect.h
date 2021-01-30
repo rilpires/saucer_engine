@@ -20,7 +20,6 @@ class LabelRect : public AnchoredRect {
     private:
         std::string         text;
         FontResource*       font;
-        int                 font_size;
         int                 line_gap;
         unsigned char       align_flags;
         bool                editable;
@@ -38,8 +37,6 @@ class LabelRect : public AnchoredRect {
         void                set_text( std::string s );
         FontResource*       get_font() const;
         void                set_font( FontResource* f );
-        int                 get_font_size() const;
-        void                set_font_size(int new_val);
         int                 get_line_gap() const;
         void                set_line_gap(int new_val);
         void                set_align_flags( int new_val );

@@ -14,8 +14,10 @@ FontResource::FontResource(std::string filepath) : Resource(filepath) {
     if(FT_New_Face( ft , filepath.c_str() ,  0 , &face ))
         saucer_err("Couldn't load FontResource " , filepath);
     
-    int pixel_font_size = 64; // This won't do the highest character be 64px tall, so I won't save it
-    FT_CALL( FT_Set_Pixel_Sizes( face , pixel_font_size , pixel_font_size ) );
+    int font_pixel_width = 24;
+    int font_pixel_height = 24;
+    
+    FT_CALL( FT_Set_Pixel_Sizes( face , font_pixel_width , font_pixel_height ) );
 
     size_t max_char_bitmap_width = 0;
     size_t max_char_bitmap_height = 0;
@@ -38,8 +40,9 @@ FontResource::FontResource(std::string filepath) : Resource(filepath) {
     memset( data , 0 , data_size );
 
     for( int i = 0 ; i < face->num_glyphs ; i++ ){
-        FT_CALL( FT_Load_Glyph( face , i , FT_LOAD_RENDER ) );
+        FT_CALL( FT_Load_Glyph( face , i , 0 ) );
         auto& glyph = face->glyph;
+        FT_CALL( FT_Render_Glyph( glyph , FT_RENDER_MODE_NORMAL ) );
         int col = i % num_cols;
         int row = i / num_cols;
         for( size_t dx = 0 ; dx < glyph->bitmap.width ; dx++ )
@@ -69,8 +72,8 @@ FontResource::FontResource(std::string filepath) : Resource(filepath) {
     GL_CALL( glBindTexture(GL_TEXTURE_2D,tex_id) );
     GL_CALL( glPixelStorei(GL_UNPACK_ALIGNMENT, 1) );  
 
-    GL_CALL( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR) );
-    GL_CALL( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR) );
+    GL_CALL( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST ) );
+    GL_CALL( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST ) );
     
     GL_CALL( glTexImage2D(GL_TEXTURE_2D,0,GL_R8,num_cols*max_char_bitmap_width,num_rows*max_char_bitmap_height,0,GL_RED,GL_UNSIGNED_BYTE,data) );
     glActiveTexture( GL_TEXTURE0 );

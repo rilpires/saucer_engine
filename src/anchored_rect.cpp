@@ -13,8 +13,11 @@ AnchoredRect::AnchoredRect() {
     ignore_mouse = true;
 }
 AnchoredRect::~AnchoredRect() {
-    if( attached_node && attached_node->get_scene() ){
-        Scene* scene = attached_node->get_scene();
+    std::vector<Scene*> scenes_to_check;
+    scenes_to_check.push_back( Engine::get_current_scene() );
+    if( attached_node && attached_node->get_scene() ) 
+        scenes_to_check.push_back( attached_node->get_scene() );
+    for( Scene* scene : scenes_to_check){
         if( scene->get_current_hovered_anchored_rect() == this )
             scene->set_current_hovered_anchored_rect(nullptr);
         if( scene->get_current_focused_anchored_rect() == this )
@@ -120,13 +123,19 @@ bool            AnchoredRect::get_centered() const{
     return centered;
 }
 void            AnchoredRect::set_centered(bool new_val){
-    centered = new_val;
+    if( centered!=new_val ){
+        dirty_vertex_data = true;
+        centered = new_val;
+    }
 }
 Vector2         AnchoredRect::get_offset() const{
     return ( centered )?( get_rect_size()*-0.5 ):(offset);
 }
 void            AnchoredRect::set_offset(Vector2 new_val){
-    if(!centered) offset = new_val;
+    if(!centered && offset!=new_val ){
+        dirty_vertex_data = true;
+        offset = new_val;
+    }
 }
 void            AnchoredRect::cb_mouse_entered( ){
     //    
@@ -155,6 +164,10 @@ void            AnchoredRect::bind_methods() {
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , set_anchored_border );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , get_rect_size );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , set_rect_size );
+    REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , get_offset );
+    REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , set_offset );
+    REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , get_centered );
+    REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , set_centered );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , is_hovered );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , is_focused );
     REGISTER_LUA_MEMBER_FUNCTION( AnchoredRect , get_starts_on_viewport );

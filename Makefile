@@ -40,8 +40,16 @@ RELEASE ?= 0
 
 CXX	      := g++
 CXX_FLAGS := -std=c++11 -Wall -Wextra
-SRC_FILES := $(wildcard src/*.cpp) $(wildcard src/*/*.cpp)
-OBJ_FILES := $(patsubst src/%.cpp, obj/%.o, $(SRC_FILES) )
+
+CORE_SRC_FILES := $(wildcard src/*.cpp) $(wildcard src/*/*.cpp)
+CORE_OBJ_FILES := $(patsubst src/%.cpp, obj/%.o, $(CORE_SRC_FILES) )
+
+EXTRA_SRC_FILES := $(wildcard res/*/*.cpp)
+EXTRA_OBJ_FILES := $(patsubst res/%.cpp, obj/%.o, $(EXTRA_SRC_FILES) )
+
+SRC_FILES := $(CORE_SRC_FILES) $(EXTRA_SRC_FILES)
+OBJ_FILES := $(CORE_OBJ_FILES) $(EXTRA_OBJ_FILES)
+
 EXEC_NAME := main
 
 ifeq ($(RELEASE),0)
@@ -81,6 +89,10 @@ obj/imgu%.o : deps/imgui/imgu%.cpp
 
 obj/%.release.o obj/%.debug.o : src/%.cpp
 	@echo Compiling $@
+	$(CXX) $(CXX_FLAGS) $< -c -o $@  $(patsubst %, -I%, $(INCLUDE_PATHS))
+
+obj/%.release.o obj/%.debug.o : res/%.cpp
+	@echo Compiling extra module: $@
 	$(CXX) $(CXX_FLAGS) $< -c -o $@  $(patsubst %, -I%, $(INCLUDE_PATHS)) 
 
 clean:
