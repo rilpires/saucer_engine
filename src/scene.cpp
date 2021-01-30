@@ -194,8 +194,7 @@ void            Scene::loop_input(){
             for( auto child : scene_node->get_children() )
                 node_stack.push( child );
 
-            if( scene_node->get_script() )
-                LuaEngine::execute_callback( "input" , scene_node , next_input_event );
+            LuaEngine::execute_callback( "input" , scene_node , next_input_event );
             
             if( next_input_event->is_solved() ) 
                 while( node_stack.size() ) 
@@ -217,8 +216,7 @@ void            Scene::loop_script(){
         nodes_queue.push(root_node);
     while( nodes_queue.size() ){
         SceneNode* scene_node = nodes_queue.front();;
-        if( scene_node->get_script() )
-            LuaEngine::execute_callback("frame_start", scene_node , last_frame_duration );
+        LuaEngine::execute_callback("frame_start", scene_node , last_frame_duration );
         for( auto child : scene_node->get_children() )
             nodes_queue.push( child );
         nodes_queue.pop();

@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 #include <vector>
+#include <unordered_set>
 #include <string.h>
 
 #include "rect.h"
@@ -47,13 +48,12 @@ class LuaEngine {
         static std::unordered_map< std::string , std::unordered_map< std::string , lua_CFunction > > nested_functions_db;
         static std::unordered_map< std::string , std::unordered_map< std::string , int > > constants;
         static std::unordered_map< std::string , lua_CFunction > global_functions_db;
-        static std::set<std::string> vanilla_global_keys;
+        static std::unordered_set< SaucerId > existent_actors;  
+        static std::unordered_set<std::string> vanilla_global_keys;
 
         static const char*      chunk_reader( lua_State* ls , void* data , size_t* size );
         static void             create_global_env();
         static void             change_current_actor_env( SceneNode* new_actor );
-        static void             push_actor_table(  lua_State* ls , SceneNode* actor);
-        static void             push_actor_userdata(   lua_State* ls , SceneNode* actor);
         static void             describe_stack();
         static void             print_error( int err , LuaScriptResource* script );
         static lua_CFunction    recover_nested_function( std::string class_name , std::string function_name );
@@ -80,6 +80,7 @@ class LuaEngine {
 
         static void             create_actor_env( SceneNode* new_actor );
         static void             destroy_actor_env( SceneNode* new_actor );
+        static void             push_actor_table(  lua_State* ls , SceneNode* actor);
 
         static void             register_constant( std::string enum_name , std::string index_name , int i );
         static void             register_function( std::string global_function_name , lua_CFunction f );

@@ -33,51 +33,51 @@ SceneNode::~SceneNode(){
     get_out();
     LuaEngine::destroy_actor_env(this);
 }
-void                SceneNode::set_scene(Scene* new_scene){
+void                    SceneNode::set_scene(Scene* new_scene){
     scene = new_scene;
     for( auto& child : children_nodes ) child->set_scene(new_scene);
 }
-SceneNode*          SceneNode::lua_new(){ return new SceneNode(); }
-std::string         SceneNode::get_name() const{
+SceneNode*              SceneNode::lua_new(){ return new SceneNode(); }
+std::string             SceneNode::get_name() const{
     return name;
 }
-void                SceneNode::set_name( std::string new_val ){
+void                    SceneNode::set_name( std::string new_val ){
     name = new_val;
 }
-void                SceneNode::set_position( const Vector2 new_pos ){ position = new_pos; }
-Vector2             SceneNode::get_position( ) const{ return position; }
-void                SceneNode::set_scale( const Vector2 new_scale ){
+void                    SceneNode::set_position( const Vector2 new_pos ){ position = new_pos; }
+Vector2                 SceneNode::get_position( ) const{ return position; }
+void                    SceneNode::set_scale( const Vector2 new_scale ){
     scale = new_scale;
 }
-Vector2             SceneNode::get_scale( ) const{
+Vector2                 SceneNode::get_scale( ) const{
     return scale;
 }
-void                SceneNode::set_global_position( const Vector2 new_pos ){
+void                    SceneNode::set_global_position( const Vector2 new_pos ){
     if( get_parent() ){
         Transform parent_transform = get_parent()->get_global_transform();
         set_position( parent_transform.inverted() * new_pos );
     } else set_position( new_pos );
 }
-Vector2             SceneNode::get_global_position() const{
+Vector2                 SceneNode::get_global_position() const{
     if( parent_node == NULL ) return position;
     else return parent_node->get_global_transform() * position;
 }
-void                SceneNode::set_rotation_degrees( float new_rotation_degrees_cw ){
+void                    SceneNode::set_rotation_degrees( float new_rotation_degrees_cw ){
     rotation_degrees=new_rotation_degrees_cw;
 }
-float               SceneNode::get_rotation_degrees( ) const {
+float                   SceneNode::get_rotation_degrees( ) const {
     return rotation_degrees;
 }
-float               SceneNode::get_global_rotation_degrees() const{
+float                   SceneNode::get_global_rotation_degrees() const{
     if(!parent_node) return rotation_degrees;
     else return parent_node->get_global_rotation_degrees() + rotation_degrees;
 }
-Transform           SceneNode::get_transform() const{
+Transform               SceneNode::get_transform() const{
     return Transform().scale(scale)
                       .rotate_z( rotation_degrees )  
                       .translate( Vector3( position.x , position.y , ((float)z)/SHORT_MAX ) );
 }
-Transform           SceneNode::get_global_transform() const{
+Transform               SceneNode::get_global_transform() const{
     Transform ret = get_transform();
     if( inherits_transform && parent_node ){
         Transform parent_global_transform = parent_node->get_global_transform();
@@ -86,26 +86,26 @@ Transform           SceneNode::get_global_transform() const{
     }
     return ret;
 }
-void                SceneNode::set_z( short new_z ){z=new_z;}
-short               SceneNode::get_z( ) const {return z;}
-short               SceneNode::get_global_z() const {
+void                    SceneNode::set_z( short new_z ){z=new_z;}
+short                   SceneNode::get_z( ) const {return z;}
+short                   SceneNode::get_global_z() const {
     if( relative_z && parent_node )
         return parent_node->get_global_z()+z;
     return z;
 }
-Color               SceneNode::get_modulate() const {
+Color                   SceneNode::get_modulate() const {
     return modulate;
 }
-void                SceneNode::set_modulate( Color new_col ){
+void                    SceneNode::set_modulate( Color new_col ){
     modulate = new_col;
 }
-Color               SceneNode::get_self_modulate() const {
+Color                   SceneNode::get_self_modulate() const {
     return self_modulate;
 }
-void                SceneNode::set_self_modulate( Color new_col ){
+void                    SceneNode::set_self_modulate( Color new_col ){
     self_modulate = new_col;
 }
-Color               SceneNode::get_global_modulate() const{
+Color                   SceneNode::get_global_modulate() const{
     Color ret = self_modulate;
     const SceneNode* node = this;
     while(node){
@@ -114,16 +114,16 @@ Color               SceneNode::get_global_modulate() const{
     }
     return ret;
 }
-void                SceneNode::set_relative_z(bool new_val){relative_z=new_val;}
-bool                SceneNode::get_relative_z() const {return relative_z;}
-bool                SceneNode::get_visible() const{
+void                    SceneNode::set_relative_z(bool new_val){relative_z=new_val;}
+bool                    SceneNode::get_relative_z() const {return relative_z;}
+bool                    SceneNode::get_visible() const{
     return visible;
 }
-void                SceneNode::set_visible( bool new_val ){
+void                    SceneNode::set_visible( bool new_val ){
     visible = new_val;
 }
-LuaScriptResource*  SceneNode::get_script() const { return lua_script;};
-void                SceneNode::set_script( LuaScriptResource* ls ){
+LuaScriptResource*      SceneNode::get_script() const { return lua_script;};
+void                    SceneNode::set_script( LuaScriptResource* ls ){
     if( !Engine::is_editor() && ls && lua_script && ls != lua_script ){
         saucer_err( "Hmm you shouldn't runtime change scripts attached in a node once set..." );
     }
@@ -134,14 +134,14 @@ void                SceneNode::set_script( LuaScriptResource* ls ){
         // validate script maybe
     }
 }
-bool                SceneNode::is_parent_of( SceneNode* other ) const{
+bool                    SceneNode::is_parent_of( SceneNode* other ) const{
     while( other->get_parent() ){
         if( other->get_parent() == this ) return true;
         other = other->get_parent();
     }
     return false;
 }
-void                SceneNode::get_out(){
+void                    SceneNode::get_out(){
     if( get_scene() && get_scene()->get_root_node() == this ){
         get_scene()->set_root_node(nullptr);
     }
@@ -160,7 +160,7 @@ void                SceneNode::get_out(){
         set_scene(nullptr);
     }
 }
-void                SceneNode::add_child( SceneNode* p_child_node ){
+void                    SceneNode::add_child( SceneNode* p_child_node ){
     SAUCER_ASSERT(p_child_node!=nullptr , "Trying to add a child SceneNode but it is null.");
     if(p_child_node->parent_node) saucer_err( "Trying to add a node as a child but it already has a parent. " ) 
     else{
@@ -173,15 +173,15 @@ void                SceneNode::add_child( SceneNode* p_child_node ){
     }
 
 }
-SceneNode*          SceneNode::get_node( std::string child_name ) const{
+SceneNode*              SceneNode::get_node( std::string child_name ) const{
     for( auto c : children_nodes ) if(c->get_name()==child_name) return c;
     return nullptr;
 }
-SceneNode*          SceneNode::get_parent( ) const { return parent_node;};
-Scene*              SceneNode::get_scene() const{
+SceneNode*              SceneNode::get_parent( ) const { return parent_node;};
+Scene*                  SceneNode::get_scene() const{
     return scene;
 }
-void                SceneNode::queue_free(){
+void                    SceneNode::queue_free(){
     Engine::get_current_scene()->queue_free_node(this);
 }
 NodeTemplateResource*   SceneNode::pack_as_resource() const{
@@ -197,13 +197,13 @@ SceneNode*              SceneNode::duplicate() const{
 std::vector<SceneNode*> const&  SceneNode::get_children() const { 
     return children_nodes; 
 }
-bool                SceneNode::get_inherits_transform() const{
+bool                    SceneNode::get_inherits_transform() const{
     return inherits_transform;
 }
-void                SceneNode::set_inherits_transform(bool new_val){
+void                    SceneNode::set_inherits_transform(bool new_val){
     inherits_transform = new_val;
 }
-void                SceneNode::destroy_component( Component* c ){
+void                    SceneNode::destroy_component( Component* c ){
     SAUCER_ASSERT(c->get_node()==this , "Trying to destroy a component that isn't attached to the right SceneNode.");
     auto it = attached_components.begin();
     for( ; it != attached_components.end() ; it++ )
@@ -216,7 +216,7 @@ void                SceneNode::destroy_component( Component* c ){
     (*it)->erase_from_component_map();
     delete (*it);
 }
-std::vector<Component*>   SceneNode::get_attached_components() const{
+std::vector<Component*> SceneNode::get_attached_components() const{
     std::vector<Component*> ret;
     for( Component* c : attached_components ) ret.push_back(c);
     return ret;

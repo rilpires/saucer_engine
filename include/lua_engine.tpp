@@ -12,10 +12,10 @@ lua_CFunction    LuaEngine::recover_nested_function( std::string function_name )
 
 template < typename T_arg1 >
 void             LuaEngine::execute_callback( const char* callback_name , SceneNode* actor , T_arg1 arg1 ){
-    if( actor->get_script() == NULL )return;
+    if( existent_actors.find(actor->get_saucer_id()) == existent_actors.end() ) return;
     SceneNode* old_actor = current_actor;
     change_current_actor_env( actor );
-    push_actor_userdata( ls , actor );
+    push<SceneNode*>( ls , actor );
     lua_pushstring( ls , (std::string("_")+std::string(callback_name)).c_str() );
     lua_gettable(ls,-2);
     lua_insert(ls,-2);
