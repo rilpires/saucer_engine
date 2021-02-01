@@ -26,7 +26,7 @@ struct VertexData{
 struct RenderData {
     GLuint              texture_id = 0;
     VertexData*         vertex_data = nullptr;
-    short               vertex_data_count = 0;
+    unsigned short      vertex_data_count = 0;
     ShaderResource*     shader_program = nullptr;
     bool                use_tree_transform = true;
     bool                tex_is_alpha_mask = false; // Useful for fonts...

@@ -45,12 +45,12 @@ void saucer_log_( int level , const char* location , Ts ... args ){
 
 // Runtime assert. Enabled only if DEBUG is defined
 #ifdef DEBUG
-#define SAUCER_ASSERT(x,msg) ;\
+#define SAUCER_ASSERT(x,...) ;\
     if( ((bool)(x)) == false ){                 \
-        saucer_err("Assertion failed: " , #x , "\n" , msg ); \
+        saucer_err("Assertion failed: " , #x , "\n" , __VA_ARGS__ ); \
     }                                           
 #else
-    #define SAUCER_ASSERT(x,msg) ;
+    #define SAUCER_ASSERT(x,...) ;
 #endif
 
 

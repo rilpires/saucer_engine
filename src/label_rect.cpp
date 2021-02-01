@@ -139,6 +139,9 @@ std::string     LabelRect::get_text() const {
 }
 void            LabelRect::set_text(std::string s) {
     if( (text.size()!=s.size()) || (text != s) ){
+        if( text.size() >= MAX_VERTEX_COUNT/4 ){
+            s = s.substr(0,MAX_VERTEX_COUNT/4);
+        }
         text = s;
         dirty_vertex_data = true;
     }

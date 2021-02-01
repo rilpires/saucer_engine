@@ -225,8 +225,7 @@ void                RenderEngine::update( const std::vector<RenderData>& draws  
             
     for( size_t i = 0 ; i < draws.size() ; i++ ){
         const RenderData& render_data = draws[i];
-        
-        for( short int k = 0 ; k < render_data.vertex_data_count ; k++ )
+        for( unsigned short k = 0 ; k < render_data.vertex_data_count && k < MAX_VERTEX_COUNT ; k++ )
             m_VBO[k] = render_data.vertex_data[k];
         
         if( i==0 || current_shader_resource!=render_data.shader_program )
@@ -243,11 +242,13 @@ void                RenderEngine::update( const std::vector<RenderData>& draws  
             float(render_data.final_modulate.b)/255.0f,
             float(render_data.final_modulate.a)/255.0f,
         };
+
+        size_t vertex_count = ((render_data.vertex_data_count<MAX_VERTEX_COUNT)?(render_data.vertex_data_count):(MAX_VERTEX_COUNT));
         GL_CALL( glUniform1i( tex_is_alpha_mask_attrib_location , render_data.tex_is_alpha_mask ) );
         GL_CALL( glUniform4fv( modulate_attrib_location , 1 , modulate_as_float ) );
         GL_CALL( glUniformMatrix4fv( model_transf_attrib_location , 1 , false , render_data.model_transform.m ) );
         GL_CALL( glUnmapBuffer(GL_ARRAY_BUFFER) );
-        GL_CALL( glDrawElements(GL_TRIANGLES,(render_data.vertex_data_count/4)*6,GL_UNSIGNED_SHORT,nullptr ) );
+        GL_CALL( glDrawElements(GL_TRIANGLES,(vertex_count/4)*6,GL_UNSIGNED_SHORT,nullptr ) );
         GL_CALL( m_VBO = (VertexData*)glMapBuffer(GL_ARRAY_BUFFER , GL_WRITE_ONLY ) );
     }
 

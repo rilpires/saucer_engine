@@ -65,6 +65,9 @@ void    LuaEngine::push( lua_State* ls , T obj ){
 // pop signature for saucer objects , (a.k.a pointers... except for inputevents, these should be specialized)
  template< typename T , class C1  >
 T       LuaEngine::pop( lua_State* ls ){
+    #ifdef DEBUG
+        SAUCER_ASSERT( lua_isuserdata(ls,-1) , "Expecting userdata from Lua stack, got " , lua_typename(ls,-1) , " : " , lua_tostring(ls,-1) );
+    #endif
     SaucerId saucer_id = *(SaucerId*)lua_touserdata(ls,-1);
     T ret = static_cast<T>( SaucerObject::from_saucer_id(saucer_id) );
     lua_pop(ls,1);
