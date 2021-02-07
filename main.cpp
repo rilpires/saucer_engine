@@ -1,5 +1,3 @@
-#define GLEW_STATIC
-
 #include "core.h"
 
 

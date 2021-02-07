@@ -1,6 +1,8 @@
 #include "transform.h"
-#include <math.h>
 #include "debug.h"
+
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 Transform::Transform(){
     // Identity transform

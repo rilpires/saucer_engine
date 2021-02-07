@@ -1,7 +1,8 @@
 #include "vector.h"
 #include "lua_engine.h"
-#include <math.h>
 
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 template<> void LuaEngine::push<Vector2>( lua_State* ls , Vector2 v ){
     void* userdata = lua_newuserdata( ls , sizeof(Vector2) );

@@ -224,18 +224,9 @@ STATIC_METHOD_BOILERPLATE
 TEMPLATE_SIGNATURE                                                                                                                                   \
 struct LuaEngine::to_lua_cfunction<FUNCTION_SIGNATURE>{                                                                                              \
     using function_type = FUNCTION_SIGNATURE;                                                                                                        \
-    using const_function_type = FUNCTION_SIGNATURE const;                                                                                        \
     using class_type = typename to_used_type<C>::type;                                                                                               \
                                                                                                                                                      \
     template< typename ret_type , function_type f , class = typename std::enable_if<std::is_same< ret_type ,void>::value>::type >                    \
-    static lua_CFunction   generate_lambda( ){                                                                                                       \
-        return []( lua_State* ls ) {                                                                                                                 \
-            ARGUMENTS_POPPING                                                                                                                        \
-            C& obj_ref = to_ref<C>(obj);                                                                                                             \
-            VOID_RETURN                                                                                                                              \
-        };                                                                                                                                           \
-    }                                                                                                                                                \
-    template< typename ret_type , const_function_type f , class = typename std::enable_if<std::is_same< ret_type ,void>::value>::type >              \
     static lua_CFunction   generate_lambda( ){                                                                                                       \
         return []( lua_State* ls ) {                                                                                                                 \
             ARGUMENTS_POPPING                                                                                                                        \
@@ -251,7 +242,21 @@ struct LuaEngine::to_lua_cfunction<FUNCTION_SIGNATURE>{                         
             NON_VOID_RETURN                                                                                                                          \
         };                                                                                                                                           \
     }                                                                                                                                                \
-    template< typename ret_type , const_function_type f , class = typename std::enable_if<!std::is_same< ret_type ,void>::value>::type , class=int > \
+};                                                                                                                                                   \
+TEMPLATE_SIGNATURE                                                                                                                                   \
+struct LuaEngine::to_lua_cfunction<FUNCTION_SIGNATURE const>{                                                                                        \
+    using function_type = FUNCTION_SIGNATURE const;                                                                                                  \
+    using class_type = typename to_used_type<C>::type;                                                                                               \
+                                                                                                                                                     \
+    template< typename ret_type , function_type f , class = typename std::enable_if<std::is_same< ret_type ,void>::value>::type >                    \
+    static lua_CFunction   generate_lambda( ){                                                                                                       \
+        return []( lua_State* ls ) {                                                                                                                 \
+            ARGUMENTS_POPPING                                                                                                                        \
+            C& obj_ref = to_ref<C>(obj);                                                                                                             \
+            VOID_RETURN                                                                                                                              \
+        };                                                                                                                                           \
+    }                                                                                                                                                \
+    template< typename ret_type , function_type f , class = typename std::enable_if<!std::is_same< ret_type ,void>::value>::type , class=int >       \
     static lua_CFunction   generate_lambda( ){                                                                                                       \
         return []( lua_State* ls ) {                                                                                                                 \
             ARGUMENTS_POPPING                                                                                                                        \
@@ -259,7 +264,7 @@ struct LuaEngine::to_lua_cfunction<FUNCTION_SIGNATURE>{                         
             NON_VOID_RETURN                                                                                                                          \
         };                                                                                                                                           \
     }                                                                                                                                                \
-};
+};                                                                                                                     
 
 #define TEMPLATE_SIGNATURE template< typename R , typename C >
 #define FUNCTION_SIGNATURE R(C::*)()

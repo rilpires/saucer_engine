@@ -2,8 +2,10 @@
 #include "lua_engine.h"
 #include "scene_node.h"
 #include "scene.h"
-#include "math.h"
 #include "editor.h"
+
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 #define METERS_PER_PIXEL 0.01f
 

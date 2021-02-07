@@ -9,7 +9,6 @@ AudioEngine::AudioEngine( const char* device_name ){
     if( !device ){
         if(device_name) saucer_err( "No audio device found with name:" , device_name )
         else            saucer_err( "No default audio device found" )
-        exit(1);
     } else saucer_print( "Loaded audio device:" , alcGetString( device , ALC_DEVICE_SPECIFIER ) )
     context = alcCreateContext( device , nullptr );
     if( !context ){

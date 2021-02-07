@@ -1,0 +1,21 @@
+[submodule "deps/yaml-cpp"]
+	path = deps/yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp
+[submodule "deps/glfw"]
+	path = deps/glfw
+	url = https://github.com/glfw/glfw
+[submodule "deps/box2d"]
+	path = deps/box2d
+	url = https://github.com/erincatto/box2d
+[submodule "deps/openal-soft"]
+	path = deps/openal-soft
+	url = https://github.com/kcat/openal-soft
+[submodule "deps/audiofile"]
+	path = deps/audiofile
+	url = https://github.com/adamstark/AudioFile
+[submodule "deps/imgui"]
+	path = deps/imgui
+	url = https://github.com/ocornut/imgui
+[submodule "deps/glew"]
+	path = deps/glew
+	url = https://github.com/Perlmint/glew-cmake
