@@ -1,7 +1,11 @@
 # VS/VScode stuffs
 .vscode/
 .vs/
+CMakeSettings.json
+
+# general build folder
 out/
+build/
 
 # Compiled Object files
 *.slo
