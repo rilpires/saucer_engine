@@ -1,8 +1,10 @@
 # Third-party deps
 deps/
 
-# VScode stuffs
+# VS/VScode stuffs
 .vscode/
+.vs/
+out/
 
 # Compiled Object files
 *.slo
