@@ -13,7 +13,7 @@ LabelRect::LabelRect(){
     editable = false;
     enter_is_newline = false;
     percent_visible = 1.0f;
-    set_editable(true);
+    set_editable(false);
 }
 LabelRect::~LabelRect(){
     if(vertex_data)delete[] vertex_data;

@@ -12,6 +12,7 @@ Scene*              Engine::current_scene   = nullptr;
 double              Engine::next_frame_time   = 0;
 YamlNode            Engine::config;
 std::list<double>   Engine::last_uptimes;
+bool                Engine::exiting = false;
 
 
 void            Engine::initialize( YamlNode config ){
@@ -131,7 +132,11 @@ AudioEngine*    Engine::get_audio_engine(){
     return audio_engine;
 }
 bool            Engine::should_close() {
-    return ( render_engine && render_engine->should_close() );
+    return exiting || ( render_engine && render_engine->should_close() );
+}
+void             Engine::exit(){
+    if( current_scene && current_scene->get_root_node() ) current_scene->get_root_node()->queue_free();
+    exiting = true;
 }
 YamlNode&        Engine::get_config(){
     return config;
@@ -150,6 +155,7 @@ void            Engine::bind_methods(){
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , is_fullscreen );
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_render_engine );
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_audio_engine );
+    REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , exit );
 
 }
 #ifdef SAUCER_EDITOR

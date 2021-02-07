@@ -89,22 +89,18 @@ std::vector<RenderData> PatchRect::generate_render_data() {
     }
     return ret;
 }
-
-short PatchRect::get_margin(int border) const {
+short               PatchRect::get_margin(int border) const {
     SAUCER_ASSERT( border >= 0 && border <= 4 , "Invalid border index(get_margin)");
     return margins[border];
 }
-
-void PatchRect::set_margin(int border, short new_val) {
+void                PatchRect::set_margin(int border, short new_val) {
     SAUCER_ASSERT( border >= 0 && border <= 4 , "Invalid border index(set_margin)");
     margins[border] = new_val;
 }
-
-TextureResource* PatchRect::get_texture() const {
+TextureResource*    PatchRect::get_texture() const {
     return texture;
 }
-
-void    PatchRect::set_texture(TextureResource* tex) {
+void                PatchRect::set_texture(TextureResource* tex) {
     TextureResource* old_texture = texture;
     texture = tex;
     if( texture ){
@@ -112,19 +108,19 @@ void    PatchRect::set_texture(TextureResource* tex) {
             region = Rect( Vector2(0,0) , texture->get_size() );
     }
 }
-void        PatchRect::set_draw_center( bool new_val){
+void                PatchRect::set_draw_center( bool new_val){
     draw_center=new_val;
 }
-bool        PatchRect::get_draw_center() const{
+bool                PatchRect::get_draw_center() const{
     return draw_center;
 }
-Rect        PatchRect::get_region() const{
+Rect                PatchRect::get_region() const{
     return region;
 }
-void        PatchRect::set_region(Rect new_val){
+void                PatchRect::set_region(Rect new_val){
     region = new_val;
 }
-void PatchRect::bind_methods() {    
+void                PatchRect::bind_methods() {    
     REGISTER_COMPONENT_HELPERS(PatchRect,"patch_rect");
 
     REGISTER_LUA_MEMBER_FUNCTION( PatchRect , get_margin );
@@ -137,7 +133,7 @@ void PatchRect::bind_methods() {
     REGISTER_LUA_MEMBER_FUNCTION( PatchRect , set_region );
 
 }
-void            PatchRect::push_editor_items(){
+void                PatchRect::push_editor_items(){
 #ifdef SAUCER_EDITOR
     AnchoredRect::push_editor_items();
     PROPERTY_RESOURCE(this,texture,TextureResource);
@@ -149,7 +145,7 @@ void            PatchRect::push_editor_items(){
     PROPERTY_BOOL( this , draw_center );
 #endif
 }
-YamlNode        PatchRect::to_yaml_node() const {
+YamlNode            PatchRect::to_yaml_node() const {
     YamlNode ret = AnchoredRect::to_yaml_node();
     if(texture) ret["texture"] = texture->get_path();
     for( int i : margins ) ret["margins"].push_back(i);
@@ -157,7 +153,7 @@ YamlNode        PatchRect::to_yaml_node() const {
     ret["region"] = region;
     return ret;
 }
-void            PatchRect::from_yaml_node( YamlNode yaml_node ){
+void                PatchRect::from_yaml_node( YamlNode yaml_node ){
     AnchoredRect::from_yaml_node(yaml_node);
     if( yaml_node["texture"].IsDefined() ) 
         set_texture(ResourceManager::get_resource<TextureResource>(yaml_node["texture"].as<std::string>()));

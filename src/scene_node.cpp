@@ -190,6 +190,7 @@ Scene*                  SceneNode::get_scene() const{
     return scene;
 }
 void                    SceneNode::queue_free(){
+    this->get_out();
     Engine::get_current_scene()->queue_free_node(this);
 }
 NodeTemplateResource*   SceneNode::pack_as_resource() const{
@@ -286,7 +287,6 @@ void        SceneNode::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_children);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,queue_free);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,get_children);
-    REGISTER_LUA_MEMBER_FUNCTION(SceneNode,queue_free);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,pack_as_resource);
     REGISTER_LUA_MEMBER_FUNCTION(SceneNode,duplicate);
     

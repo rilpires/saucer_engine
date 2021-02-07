@@ -65,7 +65,10 @@ void            Scene::loop_draw(){
         SceneNode* scene_node = tree_node.n;
         render_objs.push_back(tree_node);
         node_stack.pop();
-        for( auto child : scene_node->get_children() ){
+
+        auto node_children = scene_node->get_children();
+        for( auto it = node_children.rbegin() ; it != node_children.rend() ; it++ ){
+            SceneNode* child = *it;
             if( child->get_visible() ){
                 AccumulatedTreeNode child_tree_node;
                 Transform child_transf = child->get_transform();
@@ -126,10 +129,11 @@ void            Scene::loop_input(){
     if( Engine::is_editor() ){ while( Input::pop_event_queue() ){} return; }
     
     std::stack< SceneNode* > node_stack;
-    
+    std::vector< AnchoredRect* > anchored_rects;
     std::vector< SceneNode* > script_actors;
     Vector2 world_mouse_pos = Input::get_world_mouse_position();
     AnchoredRect* next_hovered = nullptr;
+    int next_hovered_z = (short)(1<<15);
 
     // Traversing the tree looking for the hovered AnchoredRect  
     if( root_node && root_node->get_visible() )
@@ -137,22 +141,29 @@ void            Scene::loop_input(){
     while( node_stack.size() ){
         SceneNode* scene_node = node_stack.top();
         node_stack.pop();
-        for( auto child : scene_node->get_children() )
+        auto children = scene_node->get_children();
+        for( auto it = children.rbegin() ; it != children.rend() ; it++ ){
+            SceneNode* child = *it;
             if( child->get_visible() )
                 node_stack.push( child );
-        auto anchored_rects = AnchoredRect::recover_range_from_node(scene_node);
-        for( auto& it = anchored_rects.first ; it != anchored_rects.second ; it++ ){
-            AnchoredRect* rect = it->second;
-            if( rect->ignore_mouse ) continue;
-            Transform t = scene_node->get_global_transform();
-            Vector2 world_top_left        = t * Vector2(0,0) + rect->get_offset();
-            Vector2 world_bottom_right    = t * rect->get_rect_size()+ rect->get_offset(); // I hope it isn't rotated! won't work
-            if( world_mouse_pos.x > world_top_left.x 
-            &&  world_mouse_pos.x < world_bottom_right.x 
-            &&  world_mouse_pos.y > world_top_left.y 
-            &&  world_mouse_pos.y < world_bottom_right.y  ){
-                next_hovered = rect;
-            }
+        }
+        auto attached_anchored_rects = AnchoredRect::recover_range_from_node(scene_node);
+        for( auto& it = attached_anchored_rects.first ; it != attached_anchored_rects.second ; it++ )
+            if( it->second->ignore_mouse == false )
+                anchored_rects.push_back(it->second);
+    }
+    for( auto rect_it = anchored_rects.begin() ; rect_it != anchored_rects.end() ; rect_it++ ){
+        AnchoredRect* rect = *rect_it;
+        Transform t = rect->get_node()->get_global_transform();
+        Vector2 world_top_left     = t * ( rect->get_offset() );
+        Vector2 world_bottom_right = t * ( rect->get_rect_size() + rect->get_offset() ); // I hope it isn't rotated! won't work
+        if( world_mouse_pos.x > world_top_left.x 
+        &&  world_mouse_pos.x < world_bottom_right.x 
+        &&  world_mouse_pos.y > world_top_left.y 
+        &&  world_mouse_pos.y < world_bottom_right.y
+        &&  rect->get_node()->get_global_z() >= next_hovered_z ){
+            next_hovered = rect;
+            next_hovered_z = rect->get_node()->get_global_z();
         }
     }
     set_current_hovered_anchored_rect(next_hovered);

@@ -26,6 +26,7 @@ class Engine : public SaucerObject{
         static std::list<double>    last_uptimes;
         static double               next_frame_time;
         static YamlNode             config;
+        static bool                 exiting;
     public:
         
         /**
@@ -159,9 +160,14 @@ class Engine : public SaucerObject{
          */
         static bool             should_close();
 
+        /**
+         * @brief Close the entire application. Proper callbacks will be called (_exiting_tree)
+         */
+        static void             exit();
+
         static YamlNode&        get_config();
 
-        static void         bind_methods();
+        static void             bind_methods();
 
         #ifdef SAUCER_EDITOR
         static bool is_editor();
