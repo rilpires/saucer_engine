@@ -1,0 +1,2 @@
+C:\Users\Romeu I. L. Pires\source\repos\rilpires\saucer_engine\deps\freetype\objs\Win32\Debug\freetype.dll
+C:\Users\Romeu I. L. Pires\source\repos\rilpires\saucer_engine\deps\freetype\objs\Win32\Debug\freetype.pdb

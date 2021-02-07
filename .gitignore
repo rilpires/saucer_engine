@@ -1,6 +1,3 @@
-# Third-party deps
-deps/
-
 # VS/VScode stuffs
 .vscode/
 .vs/
