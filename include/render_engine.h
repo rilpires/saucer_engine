@@ -94,7 +94,6 @@ class RenderEngine {
         void                update( const std::vector<RenderData>& draws);
 
         static void         __window_resize_callback( GLFWwindow* , int , int );
-
 };
 
 #endif

@@ -19,24 +19,23 @@ template<> void LuaEngine::push( lua_State* ls , Input::InputEvent* r ){
     // Pushing metatable:
     lua_newtable(ls);
     
+
     // __index
-    lua_pushstring(ls,"__index");
-    lua_pushcfunction(ls, [](lua_State* ls)->int{
+    auto __index_function = [](lua_State* p_ls)->int {
         // Input::InputEvent** ev = (Input::InputEvent**)lua_touserdata(ls,-2);
-        const char* arg = lua_tostring(ls,-1);
-        lua_pop(ls,2);
-        lua_CFunction f = LuaEngine::recover_nested_function("InputEvent",arg);
-        
+        const char* arg = lua_tostring(p_ls, -1);
+        lua_pop(p_ls, 2);
+        lua_CFunction f = LuaEngine::recover_nested_function("InputEvent", arg);
+
         #ifdef DEBUG
-        if( !f ){
-            saucer_err("InputEvent doesn't have this property: " , arg );
-            return 0;
-        } 
+        if (!f) { saucer_err("InputEvent doesn't have this property: ", arg); return 0; }
         #endif
-        
-        lua_pushcfunction(ls,f);
+
+        lua_pushcfunction(p_ls, f);
         return 1;
-    });
+    };
+    lua_pushstring(ls,"__index");
+    lua_pushcfunction(ls, __index_function);
     lua_settable(ls,-3);
     lua_setmetatable(ls,-2);
 }

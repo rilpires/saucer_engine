@@ -14,6 +14,7 @@ if( MSVC )
 else()
 	add_subdirectory("deps/zlib")
 	list( APPEND LINK_LIBRARIES zlibstatic )
+	set( ZLIB_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/deps/zlib) # idk why but still needed by Mingw 
 endif()
 
 # AudioFile (header only)

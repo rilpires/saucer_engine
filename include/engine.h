@@ -9,6 +9,7 @@
 #include "saucer_object.h"
 #include "vector.h"
 
+
 class Scene;
 class AudioEngine;
 class RenderEngine;
@@ -161,7 +162,10 @@ class Engine : public SaucerObject{
 
         static YamlNode&        get_config();
 
-        static void         bind_methods();
+        static void             bind_methods();
+    private:
+        static void             u_sleep( long long int nano_s_sleep );
+    public:
 
         #ifdef SAUCER_EDITOR
         static bool is_editor();
