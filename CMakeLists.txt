@@ -2,8 +2,6 @@ cmake_minimum_required( VERSION 3.5 )
 
 project(saucer_engine)
 
-set( PROJECT_TARGET saucer )
-
 
 # zlib
 if( MSVC )
@@ -41,7 +39,7 @@ list( APPEND LINK_LIBRARIES glfw )
 option( glew-cmake_BUILD_SHARED "" OFF )
 option( ONLY_LIBS "" ON )
 add_subdirectory("deps/glew")
-set(OPENGL_opengl_LIBRARY GL) # Overriding this from cmake find module 
+set(OPENGL_opengl_LIBRARY GL CACHE STRING "" FORCE ) # Overriding this from cmake find module 
 list( APPEND LINK_LIBRARIES libglew_static )
 
 # openal-soft
@@ -85,16 +83,20 @@ target_include_directories( imgui PUBLIC
 		${PROJECT_SOURCE_DIR}/deps/imgui/examples 
 		${PROJECT_SOURCE_DIR}/deps/imgui/misc/cpp )
 target_link_libraries( imgui PUBLIC glfw libglew_static )
-list(	APPEND LINK_LIBRARIES imgui )
-
+list(	APPEND LINK_LIBRARIES $<$<CONFIG:Editor>:imgui> )
 
 set( CMAKE_CXX_STANDARD 11)
 
-# Linking everything - directly linking from cpps
+# Linking everything - 
 file(GLOB_RECURSE CORE_ENGINE_SRCS ${PROJECT_SOURCE_DIR}/src/*.cpp )
 list( APPEND INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include)
 
-add_executable( ${PROJECT_TARGET} ${PROJECT_SOURCE_DIR}/main.cpp ${CORE_ENGINE_SRCS} )
-target_compile_definitions( ${PROJECT_TARGET} PUBLIC SAUCER_EDITOR DEBUG GLEW_STATIC )
-target_include_directories( ${PROJECT_TARGET} PUBLIC ${INCLUDE_DIRECTORIES} )
-target_link_libraries( ${PROJECT_TARGET} PUBLIC ${LINK_LIBRARIES} )
+
+add_executable( saucer ${PROJECT_SOURCE_DIR}/main.cpp ${CORE_ENGINE_SRCS} )
+target_compile_definitions( saucer PUBLIC GLEW_STATIC 
+	$<$<CONFIG:Debug>: DEBUG >
+	$<$<CONFIG:Editor>: DEBUG SAUCER_EDITOR > 
+)
+target_include_directories( saucer PUBLIC ${INCLUDE_DIRECTORIES} )
+target_link_libraries( saucer PUBLIC ${LINK_LIBRARIES} )
+
