@@ -11,7 +11,8 @@ int main( int argc , char** argv ){
     try { 
         config = YAML::LoadFile("config.yaml"); 
     }
-    catch(const YAML::BadFile::Exception& e) { 
+    catch(const YAML::BadFile::Exception& e) {
+        UNUSED(e);
         saucer_warn("No config.yaml file found.");
         config["initial_window_size"] = Vector2(640,480);
     }

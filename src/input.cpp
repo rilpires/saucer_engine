@@ -62,10 +62,10 @@ unsigned int    Input::InputEvent::get_unicode() const{
 }
 std::string Input::InputEvent::get_type_str() const { 
     switch(input_event_key.type){
-        case INPUT_EVENT_TYPE::KEY:          return "key";
-        case INPUT_EVENT_TYPE::MOUSE_MOTION: return "mouse_motion";
-        case INPUT_EVENT_TYPE::MOUSE_BUTTON: return "mouse_button";
-        case INPUT_EVENT_TYPE::CHAR:         return "char";
+        case INPUT_EVENT_TYPE_KEY:          return "key";
+        case INPUT_EVENT_TYPE_MOUSE_MOTION: return "mouse_motion";
+        case INPUT_EVENT_TYPE_MOUSE_BUTTON: return "mouse_button";
+        case INPUT_EVENT_TYPE_CHAR:         return "char";
     } return "call the cops";
 }
 void        Input::InputEvent::solve(){ 
@@ -118,11 +118,11 @@ void Input::mouse_pos_callback( GLFWwindow* glfw_window , double x_pos , double 
     UNUSED(glfw_window);
     Input::InputEvent* new_input_event = new Input::InputEvent();
     new_input_event->input_event_mouse_motion.is_solved = false;
-    new_input_event->input_event_mouse_motion.type = INPUT_EVENT_TYPE::MOUSE_MOTION;
+    new_input_event->input_event_mouse_motion.type = INPUT_EVENT_TYPE_MOUSE_MOTION;
     new_input_event->input_event_mouse_motion.window_x = x_pos;
     new_input_event->input_event_mouse_motion.window_y = y_pos;
     // If last event queued is a mouse motion, it is discarded, since it hasn't been solved yet and we already got a new one
-    if( !event_queue.empty() && event_queue.back()->input_event_mouse_motion.type == INPUT_EVENT_TYPE::MOUSE_MOTION ){
+    if( !event_queue.empty() && event_queue.back()->input_event_mouse_motion.type == INPUT_EVENT_TYPE_MOUSE_MOTION ){
         delete event_queue.back();
         event_queue.pop_back();
     }
@@ -138,7 +138,7 @@ void Input::key_callback( GLFWwindow* glfw_window , int key, int scancode, int a
     key_pressed[key] = (action!=RELEASED);
     Input::InputEvent* new_input_event = new Input::InputEvent();
     new_input_event->input_event_key.is_solved = false;
-    new_input_event->input_event_key.type = INPUT_EVENT_TYPE::KEY;
+    new_input_event->input_event_key.type = INPUT_EVENT_TYPE_KEY;
     new_input_event->input_event_key.key_unicode = key;
     new_input_event->input_event_key.action = (INPUT_EVENT_ACTION)action;
     event_queue.push_back( new_input_event );
@@ -152,7 +152,7 @@ void Input::mouse_button_callback( GLFWwindow* glfw_window , int button , int ac
     mouse_pressed[button] = (action!=RELEASED);
     Input::InputEvent* new_input_event = new Input::InputEvent();
     new_input_event->input_event_mouse_button.is_solved = false;
-    new_input_event->input_event_mouse_button.type = INPUT_EVENT_TYPE::MOUSE_BUTTON;
+    new_input_event->input_event_mouse_button.type = INPUT_EVENT_TYPE_MOUSE_BUTTON;
     new_input_event->input_event_mouse_button.mouse_button = (INPUT_EVENT_MOUSE_BUTTON)button;
     new_input_event->input_event_mouse_button.action = (INPUT_EVENT_ACTION)action;
     event_queue.push_back( new_input_event );
@@ -164,7 +164,7 @@ void    Input::char_callback( GLFWwindow* glfw_window , unsigned int unicode ){
     UNUSED(glfw_window);
     Input::InputEvent* new_input_event = new Input::InputEvent();
     new_input_event->input_event_char.is_solved = false;
-    new_input_event->input_event_char.type = INPUT_EVENT_TYPE::CHAR;
+    new_input_event->input_event_char.type = INPUT_EVENT_TYPE_CHAR;
     new_input_event->input_event_char.unicode = unicode;
     event_queue.push_back( new_input_event );
 }
@@ -186,10 +186,10 @@ void    Input::bind_methods(){
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Input , get_screen_mouse_position );
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Input , get_world_mouse_position );
     
-    REGISTER_LUA_CONSTANT(InputEventType,KEY,INPUT_EVENT_TYPE::KEY);
-    REGISTER_LUA_CONSTANT(InputEventType,MOUSE_BUTTON,INPUT_EVENT_TYPE::MOUSE_BUTTON);
-    REGISTER_LUA_CONSTANT(InputEventType,MOUSE_MOTION,INPUT_EVENT_TYPE::MOUSE_MOTION);
-    REGISTER_LUA_CONSTANT(InputEventType,CHAR,INPUT_EVENT_TYPE::CHAR);
+    REGISTER_LUA_CONSTANT(InputEventType,KEY,INPUT_EVENT_TYPE_KEY);
+    REGISTER_LUA_CONSTANT(InputEventType,MOUSE_BUTTON,INPUT_EVENT_TYPE_MOUSE_BUTTON);
+    REGISTER_LUA_CONSTANT(InputEventType,MOUSE_MOTION,INPUT_EVENT_TYPE_MOUSE_MOTION);
+    REGISTER_LUA_CONSTANT(InputEventType,CHAR,INPUT_EVENT_TYPE_CHAR);
 
     #define REGISTER_GLFW_KEY_INTO_LUA( k )\
         REGISTER_LUA_CONSTANT( KEY , k , GLFW_KEY_##k );

@@ -3,6 +3,9 @@
 .vs/
 CMakeSettings.json
 
+# Extra components folder
+components/
+
 # general build folder
 out/
 build/
