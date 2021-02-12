@@ -26,7 +26,7 @@ extern "C" {
 
 
 #define REGISTER_LUA_MEMBER_FUNCTION(C,F)\
-    LuaEngine::register_function(#C,#F, LuaEngine::to_lua_cfunction< function_member_unconstantizer<decltype(&C::F)>::type >::generate_lambda< function_ret_type<decltype(&C::F)>::type ,&C::F>() );
+    LuaEngine::register_function(#C,#F, LuaEngine::to_lua_cfunction< decltype(&C::F) >::generate_lambda< function_ret_type<decltype(&C::F)>::type , &C::F >() );
 #define REGISTER_LUA_NESTED_STATIC_FUNCTION(C,F)\
     LuaEngine::register_function(#C,#F, LuaEngine::to_lua_cfunction< decltype(C::F) >::generate_lambda< function_ret_type<decltype(C::F)>::type ,C::F>() );
 #define REGISTER_LUA_GLOBAL_FUNCTION(F_NAME,F)\

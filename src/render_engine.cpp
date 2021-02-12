@@ -48,7 +48,6 @@ RenderEngine::RenderEngine( Vector2 initial_window_size ){
     GL_CALL( glEnableVertexAttribArray( 2 ) );
 
     unsigned int veb;
-    unsigned short veb_array[MAX_VERTEX_COUNT];
     for( size_t i = 0 , offset=0 ; i < MAX_VERTEX_COUNT ; i+=6 , offset+=4 ){
         veb_array[i+0] = offset+0;
         veb_array[i+1] = offset+1;

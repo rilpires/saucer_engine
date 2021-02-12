@@ -70,10 +70,10 @@ template<> void LuaEngine::push( lua_State* ls , Color v ){
 }
 template<> lua_CFunction    LuaEngine::create_lua_constructor<Color>( ){
     return [](lua_State* ls){
-        unsigned char r = 255.0 * std::min( 1.0f , std::max( 0.0f , (float)lua_tonumber(ls,-4) ) );
-        unsigned char g = 255.0 * std::min( 1.0f , std::max( 0.0f , (float)lua_tonumber(ls,-3) ) );
-        unsigned char b = 255.0 * std::min( 1.0f , std::max( 0.0f , (float)lua_tonumber(ls,-2) ) );
-        unsigned char a = 255.0 * std::min( 1.0f , std::max( 0.0f , (float)lua_tonumber(ls,-1) ) );
+        unsigned char r = static_cast<unsigned char>( 255.0f * std::min( 1.0f , std::max( 0.0f , (float)lua_tonumber(ls,-4) )));
+        unsigned char g = static_cast<unsigned char>( 255.0f * std::min( 1.0f , std::max( 0.0f , (float)lua_tonumber(ls,-3) )));
+        unsigned char b = static_cast<unsigned char>( 255.0f * std::min( 1.0f , std::max( 0.0f , (float)lua_tonumber(ls,-2) )));
+        unsigned char a = static_cast<unsigned char>( 255.0f * std::min( 1.0f , std::max( 0.0f , (float)lua_tonumber(ls,-1) )));
         lua_pop( ls , 3 );
         LuaEngine::push( ls , Color(  r,g,b,a) );
         return 1;
@@ -82,10 +82,11 @@ template<> lua_CFunction    LuaEngine::create_lua_constructor<Color>( ){
 
 
 Color::Color( float r , float g , float b , float a ){
-    this->r = r * 255U;
-    this->g = g * 255U;
-    this->b = b * 255U;
-    this->a = a * 255U;
+    this->r = static_cast<unsigned char>(r * 255U);
+    this->g = static_cast<unsigned char>(g * 255U);
+    this->b = static_cast<unsigned char>(b * 255U);
+    this->a = static_cast<unsigned char>(a * 255U);
+
 }
 Color::Color( unsigned char r , unsigned char g , unsigned char b , unsigned char a ){
     this->r = r;
@@ -94,16 +95,16 @@ Color::Color( unsigned char r , unsigned char g , unsigned char b , unsigned cha
     this->a = a;
 }
 Color::Color( int color ){
-    this->r = (color >> 24) | 255;
-    this->g = (color >> 16) | 255;
-    this->b = (color >> 8)  | 255;
-    this->a = (color >> 0)  | 255;
+    this->r = (unsigned char)(color >> 24) | 255;
+    this->g = (unsigned char)(color >> 16) | 255;
+    this->b = (unsigned char)(color >> 8)  | 255;
+    this->a = (unsigned char)(color >> 0)  | 255;
 }
 Color::Color( int r , int g , int b , int a ){
-    this->r = r;
-    this->g = g;
-    this->b = b;
-    this->a = a;
+    this->r = (unsigned char)r;
+    this->g = (unsigned char)g;
+    this->b = (unsigned char)b;
+    this->a = (unsigned char)a;
 }
     
 Color   Color::operator*   (const Color  c     ) const {

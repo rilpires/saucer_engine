@@ -10,10 +10,10 @@
 #include <list>
 
 
-enum INPUT_EVENT_TYPE { KEY , 
-                        MOUSE_BUTTON , 
-                        MOUSE_MOTION , 
-                        CHAR };
+enum INPUT_EVENT_TYPE { INPUT_EVENT_TYPE_KEY , 
+                        INPUT_EVENT_TYPE_MOUSE_BUTTON , 
+                        INPUT_EVENT_TYPE_MOUSE_MOTION , 
+                        INPUT_EVENT_TYPE_CHAR };
 
 enum INPUT_EVENT_ACTION {       PRESSED=1 , 
                                 RELEASED=0,

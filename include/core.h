@@ -1,6 +1,14 @@
 #ifndef CORE_H
 #define CORE_H
 
+
+#ifdef _WIN32
+	#include <chrono>
+	#include <thread>
+#else
+	#include <unistd.h>
+#endif
+
 // Basic data structures
 #include "color.h"
 #include "vector.h"

@@ -62,7 +62,8 @@ class RenderEngine {
         GLuint              viewport_size_attrib_location;
         GLuint              tex_is_alpha_mask_attrib_location;
         GLuint              time_attrib_location;
-        
+
+        unsigned short      veb_array[MAX_VERTEX_COUNT];
         
     public:
         RenderEngine( Vector2 initial_window_size );
@@ -93,7 +94,6 @@ class RenderEngine {
         void                update( const std::vector<RenderData>& draws);
 
         static void         __window_resize_callback( GLFWwindow* , int , int );
-
 };
 
 #endif

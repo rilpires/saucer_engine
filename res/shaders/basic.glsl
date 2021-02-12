@@ -1,6 +1,6 @@
 
 #vertex
-#version 150 core
+#version 130
 #extension GL_ARB_explicit_attrib_location: enable
 #extension GL_ARB_explicit_uniform_location: enable
 
@@ -37,7 +37,7 @@ void main(){
 
 
 #fragment
-#version 150 core
+#version 130
 #extension GL_ARB_explicit_uniform_location : enable
 
 in vec2 uv;

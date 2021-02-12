@@ -36,7 +36,7 @@ void            SaucerEditor::setup(){
     ImGuiIO& io = GetIO(); (void)io;
     StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL( Engine::get_render_engine()->get_glfw_window(), true );
-    ImGui_ImplOpenGL3_Init("#version 150");
+    ImGui_ImplOpenGL3_Init("#version 130");
 }
 
 void            SaucerEditor::push_scene_tree_window(){

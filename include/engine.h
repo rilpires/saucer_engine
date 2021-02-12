@@ -9,6 +9,7 @@
 #include "saucer_object.h"
 #include "vector.h"
 
+
 class Scene;
 class AudioEngine;
 class RenderEngine;
@@ -27,6 +28,8 @@ class Engine : public SaucerObject{
         static double               next_frame_time;
         static YamlNode             config;
         static bool                 exiting;
+
+        static void                 u_sleep( long long int nano_s_sleep );
     public:
         
         /**
@@ -168,6 +171,7 @@ class Engine : public SaucerObject{
         static YamlNode&        get_config();
 
         static void             bind_methods();
+    public:
 
         #ifdef SAUCER_EDITOR
         static bool is_editor();

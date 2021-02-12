@@ -3,7 +3,7 @@
 
 #include <string>
 
-class Transform;
+struct Transform;
 
 #ifdef SAUCER_EDITOR
 #include "imgui.h"

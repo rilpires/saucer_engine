@@ -1,10 +1,14 @@
-# Third-party deps
-deps/
-
 # VS/VScode stuffs
 .vscode/
 .vs/
+CMakeSettings.json
+
+# Extra components folder
+components/
+
+# general build folder
 out/
+build/
 
 # Compiled Object files
 *.slo

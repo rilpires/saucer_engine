@@ -174,7 +174,7 @@ void            Scene::loop_input(){
     while(next_input_event){
 
         // We may have a new focused rect:
-        if( next_input_event->get_type() == INPUT_EVENT_TYPE::MOUSE_BUTTON 
+        if( next_input_event->get_type() == INPUT_EVENT_TYPE_MOUSE_BUTTON 
         && next_input_event->is_pressed() 
         && next_input_event->get_button() == INPUT_EVENT_MOUSE_BUTTON::BUTTON_LEFT ){
             set_current_focused_anchored_rect( current_hovered_anchored_rect );
@@ -184,13 +184,13 @@ void            Scene::loop_input(){
         if( current_focused_anchored_rect ){
             switch (next_input_event->get_type())
             {
-                case INPUT_EVENT_TYPE::MOUSE_BUTTON:
+                case INPUT_EVENT_TYPE_MOUSE_BUTTON:
                     current_focused_anchored_rect->cb_mouse_button(next_input_event->input_event_mouse_button);
                     break;
-                case INPUT_EVENT_TYPE::KEY:
+                case INPUT_EVENT_TYPE_KEY:
                     current_focused_anchored_rect->cb_key(next_input_event->input_event_key);
                     break;
-                case INPUT_EVENT_TYPE::CHAR:
+                case INPUT_EVENT_TYPE_CHAR:
                     current_focused_anchored_rect->cb_char(next_input_event->input_event_char);
                     break;
                 default: break;
@@ -233,7 +233,7 @@ void            Scene::loop_script(){
         for( auto child : scene_node->get_children() )
             node_stack.push( child );
     }
-
+    
     // Calling frame_start in reverse tree DFS discovering order (root will be called last)
     for( auto actor_it = actors.rbegin() ; actor_it != actors.rend() ; actor_it++ )
         LuaEngine::execute_callback("frame_start", *actor_it , last_frame_duration );

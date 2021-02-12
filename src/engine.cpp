@@ -1,7 +1,6 @@
 #include "engine.h"
 #include "core.h"
 
-#include <unistd.h>
 
 // How many last frames should be accounted to calculate frames per second
 #define FPS_FRAMES_TO_ACCOUNT 30
@@ -60,7 +59,7 @@ void            Engine::close(){
 }
 void            Engine::update(){
     double remaining_time = next_frame_time - get_uptime(); 
-    if( remaining_time>0 ) usleep( remaining_time * 1000000 );
+    if (remaining_time > 0) Engine::u_sleep(remaining_time * 1000000);
     next_frame_time = get_uptime() + 1.0/60.0;
     glfwPollEvents();
     last_uptimes.push_front( get_uptime() ); 
@@ -162,6 +161,18 @@ void            Engine::bind_methods(){
 bool            Engine::is_editor(){ 
     return !SaucerEditor::currently_playing; 
 };
+#endif
+
+#ifdef _WIN32
+void            Engine::u_sleep( long long int usec)
+{
+    std::this_thread::sleep_for(std::chrono::milliseconds(usec/1000));
+}
+#else
+void            Engine::u_sleep( long long int usec)
+{
+    usleep(usec);
+}
 #endif
 
 std::vector<std::ostream*>& extern_console_streams(){ static std::vector<std::ostream*> ret ;return ret;};
