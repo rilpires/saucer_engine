@@ -1,14 +1,13 @@
-# saucer_engine
-Game engine made with C++11, using OpenGL 3.0 as rendering back-end.
-The focus on this engine was primarily for learning graphics programming, and then some low level game development in general. I'll be trying to do the best pratices to make this engine in a very modular way, so anyone can feel free to insert any C++ components.
+# Saucer Engine
+2D Game engine made with C++11, using OpenGL 3.0 as rendering back-end.
+The focus on this engine was primarily for learning graphics programming, and then some low level development in general. It evolved a little bit further, with an integrated gui editor, with embedded lua profiling and scene editor ([ImGui](https://github.com/ocornut/imgui) is indeed an amazing library).
+
+I'll be trying to do the best pratices to make this engine in a very modular way, so anyone can feel free to insert any C++ components.
 
 Currently I'm developing this engine alongside a simple game I'm making with it. My short plan is to develop this engine until then.
 
-Documentation is being created with Doxygen. (Incomplete)
-
-Currently working on CMake building and availability for Windows and Linux
- 
-Apart from C++ STL libs, these are all third-party dependencies:
+# Dependencies 
+Apart from heavy use of C++ STL libs, these below are all third-party dependencies:
 - [GLFW 3.3.2(*)](https://github.com/glfw/glfw/tree/3.3.2), for window management and graphics context.
 - [GLEW 2.1(*)](https://github.com/nigels-com/glew/tree/glew-2.1.0), runtime checkups and bindings for OpenGL drivers.
 - [libPNG 1.6.37](http://www.libpng.org/pub/png/libpng.html), reading png files.
@@ -23,7 +22,13 @@ Apart from C++ STL libs, these are all third-party dependencies:
 
 (*) - Included as a git submodule
 
-Nexts TO-DO's (by priority):
+# Building
+Currently, I'm working on building a proper release build (resource packaging). For now, you can easily build the editor executable with CMake. Don't forget to include all git submodules.
+
+# Documentation
+Documentation is being created with Doxygen. (Incomplete)
+
+# Nexts TO-DO's (by priority):
 - Packing resources to a proper release build
 - More audio formats, cursor and possibly positioning("3D") sound.
 - Networking module

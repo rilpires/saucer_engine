@@ -59,8 +59,7 @@ option( ALSOFT_INSTALL 	"" OFF )
 option( ALSOFT_UTILS 	"" OFF )
 add_subdirectory("deps/openal-soft")
 get_target_property( OPENAL_OpenAL_INCLUDE_DIRS OpenAL INTERFACE_INCLUDE_DIRECTORIES )
-get_target_property( OPENAL_ex-common_INCLUDE_DIRS ex-common INTERFACE_INCLUDE_DIRECTORIES )
-list( APPEND INCLUDE_DIRECTORIES ${OPENAL_OpenAL_INCLUDE_DIRS} ${OPENAL_ex-common_INCLUDE_DIRS} )
+list( APPEND INCLUDE_DIRECTORIES ${OPENAL_OpenAL_INCLUDE_DIRS} )
 list( APPEND LINK_LIBRARIES OpenAL common ex-common )
 
 
