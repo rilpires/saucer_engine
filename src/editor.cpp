@@ -1,3 +1,5 @@
+#ifdef SAUCER_EDITOR
+
 #include "editor.h"
 #include "core.h"
 #include <fstream>
@@ -507,3 +509,5 @@ void            SaucerEditor::DefinePopupSaveNode( SceneNode* node , std::string
         EndPopup();
     }
 }
+
+#endif

@@ -308,13 +308,20 @@ YamlNode    SceneNode::to_yaml_node() const{
 
     for( auto c : attached_components) ret["components"][c->get_component_name()] = c->to_yaml_node();
 
-    std::string ref_path = SaucerEditor::get_reference_path(this);
+
+    std::string ref_path = "";
+    
+    #ifdef SAUCER_EDITOR
+    ref_path = SaucerEditor::get_reference_path(this);
+    #endif
+
     if( ref_path.empty() ){
         for( auto c : children_nodes ) ret["children"].push_back(c->to_yaml_node());
     } else {
         ret["path"] = ref_path;
     }
     return ret;
+
 }
 void        SceneNode::from_yaml_node( YamlNode yaml_node ) {
     SAUCER_ASSERT( children_nodes.size()==0 , "A SceneNode when instantied from YamlNode should not have any children." );
@@ -335,7 +342,9 @@ void        SceneNode::from_yaml_node( YamlNode yaml_node ) {
         std::string node_template_path = yaml_node["path"].as<std::string>();
         NodeTemplateResource* node_template = ResourceManager::get_resource<NodeTemplateResource>( node_template_path );
         from_yaml_node( node_template->get_yaml_node() );
+        #ifdef SAUCER_EDITOR
         SaucerEditor::flag_as_referenced(this,node_template_path);
+        #endif
     }
     
     if( yaml_node["name"].IsDefined())               set_name               ( yaml_node["name"].as<decltype(name)>()                             );
@@ -351,11 +360,12 @@ void        SceneNode::from_yaml_node( YamlNode yaml_node ) {
     if( yaml_node["lua"].IsDefined() )               set_script( ResourceManager::get_resource<LuaScriptResource>(yaml_node["lua"].as<std::string>())); 
     
 
-    if( !referenced && yaml_node["children"].IsDefined() )
-    for( auto c : yaml_node["children"] ){
-        SceneNode* new_child = new SceneNode();
-        new_child->from_yaml_node( c );
-        add_child(new_child);
+    if( yaml_node["children"].IsDefined() && !referenced /*Children may have already been instantiated*/  ){
+        for( auto c : yaml_node["children"] ){
+            SceneNode* new_child = new SceneNode();
+            new_child->from_yaml_node( c );
+            add_child(new_child);
+        }
     }
-    
+
 }

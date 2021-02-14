@@ -96,6 +96,8 @@ namespace SaucerEditor {
 #else 
 // If SAUCER_EDITOR is not defined, still gotta fill those macros
 
+#include <string>
+
 namespace SaucerEditor {
     void setup();
     extern std::string current_scene_path;

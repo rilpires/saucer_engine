@@ -1,6 +1,6 @@
 #include "core.h"
 
-void open_project();
+void open_project( std::string config_path="res/config.yaml"  );
 void pack_resources();
 
 int main( int argc , char** argv ){
@@ -13,20 +13,20 @@ int main( int argc , char** argv ){
             pack_resources();
             return 0;
         }
+        else open_project( argv[1] );
     }
-
     open_project();
 
 }
 
-void open_project(){
+void open_project( std::string config_path ){
     YamlNode config;
     try { 
-        config = YAML::LoadFile("config.yaml"); 
+        config = YAML::LoadFile(config_path); 
     }
     catch(const YAML::BadFile::Exception& e) {
         UNUSED(e);
-        saucer_warn("No config.yaml file found.");
+        saucer_warn("Configuration file \"" , config_path , "\" not found. Generating a new one.");
         config["initial_window_size"] = Vector2(640,480);
     }
     

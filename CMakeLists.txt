@@ -102,19 +102,19 @@ list( APPEND IMGUI_INCLUDE_DIRECTORIES
 target_include_directories( imgui PUBLIC ${IMGUI_INCLUDE_DIRECTORIES} )
 target_link_libraries( imgui PUBLIC glfw libglew_static )
 list( APPEND INCLUDE_DIRECTORIES ${IMGUI_INCLUDE_DIRECTORIES} )
-list( APPEND LINK_LIBRARIES $<$<BOOL:SAUCER_BUILD_EDITOR>:imgui> )
+list( APPEND LINK_LIBRARIES $<$<AND:$<BOOL:SAUCER_BUILD_EDITOR>,$<CONFIG:Debug>>:imgui> )
 
 set( CMAKE_CXX_STANDARD 11)
 
 # Linking everything into saucer_core lib 
 file( GLOB_RECURSE CORE_ENGINE_SRCS ${PROJECT_SOURCE_DIR}/src/*.cpp )
 list( APPEND ENGINE_SRCS ${CORE_ENGINE_SRCS} )
-list( APPEND INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include)
+list( APPEND INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/src )
 
 add_library( saucer_core STATIC ${ENGINE_SRCS} )
 target_compile_definitions( saucer_core PUBLIC GLEW_STATIC 
 	$<$<CONFIG:Debug>: DEBUG >
-	$<$<BOOL:SAUCER_BUILD_EDITOR>:SAUCER_EDITOR> 
+	$<$<AND:$<BOOL:SAUCER_BUILD_EDITOR>,$<CONFIG:Debug>>:SAUCER_EDITOR> 
 )
 target_include_directories( saucer_core PUBLIC ${INCLUDE_DIRECTORIES} )
 target_link_libraries( saucer_core PUBLIC ${LINK_LIBRARIES} ${COMPONENT_LIBRARIES} )
