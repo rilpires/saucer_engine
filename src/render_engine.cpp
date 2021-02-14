@@ -221,6 +221,7 @@ void                RenderEngine::update( const std::vector<RenderData>& draws  
     GL_CALL( glUniform1f( time_attrib_location , Engine::get_uptime() ) );
     GL_CALL( glUniform2f( viewport_size_attrib_location , viewport_rect.get_size().x , viewport_rect.get_size().y ) );
     GL_CALL( glUniformMatrix4fv( view_transf_attrib_location , 1 , GL_FALSE , view_transform.m ) );
+    GL_CALL( glActiveTexture( GL_TEXTURE0 ) );
             
     for( size_t i = 0 ; i < draws.size() ; i++ ){
         const RenderData& render_data = draws[i];

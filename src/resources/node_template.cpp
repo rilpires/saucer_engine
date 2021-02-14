@@ -2,12 +2,14 @@
 #include "scene_node.h"
 #include "lua_engine.h"
 
-
 NodeTemplateResource::NodeTemplateResource(){
     // SceneNode::pack_as_resource
 }
-NodeTemplateResource::NodeTemplateResource( std::string path ) : Resource(path){
-    yaml_node = YAML::LoadFile(path);
+NodeTemplateResource::NodeTemplateResource( const std::vector<uint8_t>& data ) {
+    std::string content;
+    content.resize(data.size());
+    memcpy( &(content[0]) , &(data[0]) , content.size() );
+    yaml_node = YAML::Load( content );
 }
 SceneNode*  NodeTemplateResource::instantiate_node() const{
     SceneNode* ret = new SceneNode();

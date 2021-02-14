@@ -9,7 +9,6 @@ std::vector<void*>& __class_bind_methods(){
     static std::vector<void*> ret;
     return ret;
 }
-
 SaucerObject::SaucerObject(){
     id = open_id++;
     saucer_objs[id] = this;

@@ -12,9 +12,9 @@ class NodeTemplateResource : public Resource {
     friend class SceneNode;    
     private:
         YamlNode    yaml_node;
-        NodeTemplateResource();
+        NodeTemplateResource( );
     public:
-        NodeTemplateResource( std::string path );
+        NodeTemplateResource( const std::vector<uint8_t>& data );
 
         SceneNode*      instantiate_node() const;
         const YamlNode  get_yaml_node();

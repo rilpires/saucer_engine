@@ -23,7 +23,7 @@ class TextureResource : public Resource {
         TextureId               tex_id;
         ~TextureResource();
     public:
-        TextureResource( std::string filepath );
+        TextureResource( const std::vector<uint8_t>& mem_data );
         TextureId               get_texture_id() const {return tex_id;}
         Color                   get_pixel(size_t x , size_t y) const;
         Vector2                 get_size() const;

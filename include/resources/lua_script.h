@@ -14,7 +14,7 @@ class LuaScriptResource : public Resource {
         std::string src;
         std::set<std::string> existent_callbacks;
     public:
-        LuaScriptResource( std::string filepath );
+        LuaScriptResource( const std::vector<uint8_t>& data );
         ~LuaScriptResource();
 
         const std::string&          get_src() const {return src;}

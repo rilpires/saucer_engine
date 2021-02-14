@@ -15,7 +15,7 @@ class ShaderResource : public Resource {
         void    attach_shader( GLenum shader_type , std::string shader_src );
 
     public:
-        ShaderResource( std::string filename );
+        ShaderResource( const std::vector<uint8_t>& mem_data );
         ~ShaderResource();
 
         

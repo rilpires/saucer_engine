@@ -31,7 +31,7 @@ void            SaucerEditor::setup(){
     
     IMGUI_CHECKVERSION();
     CreateContext();    
-    extern_console_streams().push_back(&SaucerEditor::stream);
+    saucer_debug::extern_console_streams().push_back(&SaucerEditor::stream);
 
     ImGuiIO& io = GetIO(); (void)io;
     StyleColorsDark();

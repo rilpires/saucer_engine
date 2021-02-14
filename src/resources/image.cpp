@@ -6,7 +6,7 @@
 #include "debug.h"
 
 
-TextureResource::TextureResource( std::string filepath ) : Resource(filepath) {
+TextureResource::TextureResource( const std::vector<uint8_t>& mem_data ) {
 
     png_image image; /* The control structure used by libpng */
 
@@ -14,7 +14,7 @@ TextureResource::TextureResource( std::string filepath ) : Resource(filepath) {
     memset(&image, 0, (sizeof image));
     image.version = PNG_IMAGE_VERSION;
 
-    if (png_image_begin_read_from_file(&image,filepath.c_str()) != 0)
+    if (png_image_begin_read_from_memory(&image,&(mem_data[0]),mem_data.size()) != 0)
     {
         image.format = PNG_FORMAT_RGBA;
         data = new unsigned char[PNG_IMAGE_SIZE(image)];
@@ -23,10 +23,11 @@ TextureResource::TextureResource( std::string filepath ) : Resource(filepath) {
 
         if (data == NULL || png_image_finish_read(&image, NULL/*background*/, data, 0/*row_stride*/, NULL/*colormap*/) == 0){
             png_image_free(&image);
-            saucer_err( "Error loading image from " , filepath )
+            saucer_err( "Error loading PNG image" );
         }
         else{
             GLuint old_binded_tex = Engine::get_render_engine()->get_last_used_texture();
+            GL_CALL( glActiveTexture( GL_TEXTURE0 ) );
             GL_CALL( glGenTextures(1,&tex_id) );
             GL_CALL( glBindTexture(GL_TEXTURE_2D,tex_id) );
             GL_CALL( glTexParameteri(GL_TEXTURE_2D , GL_TEXTURE_MAG_FILTER , GL_NEAREST ) );
@@ -37,7 +38,7 @@ TextureResource::TextureResource( std::string filepath ) : Resource(filepath) {
             return;
         }
     }
-    else saucer_err( "Error loading image from " , filepath )
+    else saucer_err( "Error loading PNG image");
 }
 TextureResource::~TextureResource(){
     delete[] data;

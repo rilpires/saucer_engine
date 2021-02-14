@@ -9,6 +9,7 @@ components/
 # general build folder
 out/
 build/
+release/
 
 # Compiled Object files
 *.slo

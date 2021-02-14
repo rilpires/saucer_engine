@@ -10,9 +10,10 @@ FT_Library FontResource::ft;
 #define FT_CALL(x)\
 if(x) saucer_err("FreeType error: " , #x );
 
-FontResource::FontResource(std::string filepath) : Resource(filepath) {
-    if(FT_New_Face( ft , filepath.c_str() ,  0 , &face ))
-        saucer_err("Couldn't load FontResource " , filepath);
+FontResource::FontResource( const std::vector<uint8_t>& mem_data ) {
+    raw_data = mem_data;
+    if(FT_New_Memory_Face( ft , &(raw_data[0]) , raw_data.size() , 0 , &face ))
+        saucer_err("Couldn't load FontResource.");
     
     int font_pixel_width = 24;
     int font_pixel_height = 24;

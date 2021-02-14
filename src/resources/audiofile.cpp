@@ -2,10 +2,11 @@
 #include "lua_engine.h"
 #include "AudioFile.h" // .wav files
 
-AudioResource::AudioResource( std::string filepath ) : Resource(filepath){
+AudioResource::AudioResource( const std::vector<uint8_t>& mem_data ) {
+    //
 }
 AudioResource::~AudioResource(){
-    delete[] ((char*)buffer_data);
+    // delete[] ((char*)buffer_data);
 }
 
 int         AudioResource::get_sample_rate() const {
@@ -37,41 +38,41 @@ void        AudioResource::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION( AudioResource , get_num_channels );
 }
 
-WavAudioResource::WavAudioResource( std::string filepath ) : AudioResource(filepath) {
-    AudioFile<float> audio_file;
-    audio_file.load( filepath );
-    
-    sample_rate         = audio_file.getSampleRate();
-    bit_depth           = audio_file.getBitDepth();
-    samples_per_channel = audio_file.getNumSamplesPerChannel();
-    length_seconds      = audio_file.getLengthInSeconds();
-    num_channels        = audio_file.getNumChannels();
-    buffer_size         = num_channels*samples_per_channel*(bit_depth/8);
-    buffer_data         = static_cast<void*>( new char[buffer_size] );
-
-    if( bit_depth == 8 && num_channels == 1 ) {
-        for( int i = 0 ; i < samples_per_channel ; i++ ){
-            ((char*)buffer_data)[i] = 127*audio_file.samples[0][i];
-        }
-    } else if( bit_depth == 8 && num_channels == 2 ) {
-        for( int i = 0 ; i < samples_per_channel ; i++ ){
-            ((char*)buffer_data)[2*i+0] = 127*audio_file.samples[0][i];
-            ((char*)buffer_data)[2*i+1] = 127*audio_file.samples[1][i];
-        }
-    } else if( bit_depth == 16 && num_channels == 1 ) {
-        for( int i = 0 ; i < samples_per_channel ; i++ ){
-            ((short*)buffer_data)[i] = (~0b1000000000000000)*audio_file.samples[0][i];
-        }
-    } else if( bit_depth == 16 && num_channels == 2 ) {
-        for( int i = 0 ; i < samples_per_channel ; i++ ){
-            ((short*)buffer_data)[2*i+0] = (~0b1000000000000000)*audio_file.samples[0][i];
-            ((short*)buffer_data)[2*i+1] = (~0b1000000000000000)*audio_file.samples[1][i];
-        }
-    }
-    
-    else {
-        saucer_err( "bit_depth==",bit_depth," && num_channels==" , num_channels )
-    }
+WavAudioResource::WavAudioResource( const std::vector<uint8_t>& mem_data ) : AudioResource(mem_data) {
+    // AudioFile<float> audio_file;
+    // audio_file.load( filepath );
+    // 
+    // sample_rate         = audio_file.getSampleRate();
+    // bit_depth           = audio_file.getBitDepth();
+    // samples_per_channel = audio_file.getNumSamplesPerChannel();
+    // length_seconds      = audio_file.getLengthInSeconds();
+    // num_channels        = audio_file.getNumChannels();
+    // buffer_size         = num_channels*samples_per_channel*(bit_depth/8);
+    // buffer_data         = static_cast<void*>( new char[buffer_size] );
+    // 
+    // if( bit_depth == 8 && num_channels == 1 ) {
+    //     for( int i = 0 ; i < samples_per_channel ; i++ ){
+    //         ((char*)buffer_data)[i] = 127*audio_file.samples[0][i];
+    //     }
+    // } else if( bit_depth == 8 && num_channels == 2 ) {
+    //     for( int i = 0 ; i < samples_per_channel ; i++ ){
+    //         ((char*)buffer_data)[2*i+0] = 127*audio_file.samples[0][i];
+    //         ((char*)buffer_data)[2*i+1] = 127*audio_file.samples[1][i];
+    //     }
+    // } else if( bit_depth == 16 && num_channels == 1 ) {
+    //     for( int i = 0 ; i < samples_per_channel ; i++ ){
+    //         ((short*)buffer_data)[i] = (~0b1000000000000000)*audio_file.samples[0][i];
+    //     }
+    // } else if( bit_depth == 16 && num_channels == 2 ) {
+    //     for( int i = 0 ; i < samples_per_channel ; i++ ){
+    //         ((short*)buffer_data)[2*i+0] = (~0b1000000000000000)*audio_file.samples[0][i];
+    //         ((short*)buffer_data)[2*i+1] = (~0b1000000000000000)*audio_file.samples[1][i];
+    //     }
+    // }
+    // 
+    // else {
+    //     saucer_err( "bit_depth==",bit_depth," && num_channels==" , num_channels )
+    // }
 
 }
 WavAudioResource::~WavAudioResource(){

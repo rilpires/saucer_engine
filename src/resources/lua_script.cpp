@@ -3,8 +3,9 @@
 #include "core.h"
 
 
-LuaScriptResource::LuaScriptResource( std::string filepath ) : Resource( filepath ){
-    src = read_file_as_str(filepath.c_str());
+LuaScriptResource::LuaScriptResource( const std::vector<uint8_t>& mem_data ) {
+    src.resize( mem_data.size() );
+    memcpy( &(src[0]) , &(mem_data[0]) , src.size() );
 }
 LuaScriptResource::~LuaScriptResource(){
     
@@ -17,7 +18,7 @@ void    LuaScriptResource::flag_as_dirty(){
     dirty = true;
 }
 bool    LuaScriptResource::reload(){
-    src = read_file_as_str( get_path() );
+    //
     return true;
 }
 

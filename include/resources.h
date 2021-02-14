@@ -16,9 +16,8 @@ class Resource : public SaucerObject {
     protected:
         std::string         path;
         bool                dirty;
-        Resource( std::string filepath );
-    public:
         Resource();
+    public:
         ~Resource();
         std::string         get_path() const ;
         
@@ -34,7 +33,6 @@ class Resource : public SaucerObject {
          */
         virtual bool        reload();
 
-        static std::string  read_file_as_str( std::string filename );
         static void         bind_methods();   
 };
 
@@ -42,16 +40,36 @@ class Resource : public SaucerObject {
 class ResourceManager : public SaucerObject {
     REGISTER_SAUCER_OBJECT(ResourceManager,SaucerObject);
     
-    private:        
-        static std::unordered_map<std::string,SaucerObject::SaucerId> id_by_path;
-        
-        static Resource*    load_resource(std::string filepath);
     public:
+        struct ContentTableEntry{
+            friend class ResourceManager;
+            private:
+            ContentTableEntry();
+            char            path[256];
+            uint64_t        offset;
+            uint64_t        compressed_size;
+            
+            public:
+            ContentTableEntry( std::string p_path , uint64_t p_offset , uint64_t p_compressed_size );
+            std::string     get_path();
+            const uint64_t  get_offset();
+            const uint64_t  get_compressed_size();
+        };
+
+    private:
+        static std::unordered_map<std::string,SaucerObject::SaucerId> id_by_path;
+        static std::unordered_map<std::string,ContentTableEntry> toc_entries;
+        static std::ifstream package_stream;
+
+        static Resource*            load_resource(std::string filepath);
+    public:
+        static void                 fetch_package(std::string package_filepath = "package.data" );
+        static std::vector<uint8_t> get_data( std::string filepath );
         template<typename T = Resource>
-        static T*           get_resource(std::string p_resource_path);
-        static void         set_resource(std::string resource_name , Resource* r );
-        static void         free_resource(Resource* p_resource);
-        static void         dirty_every_resource();
+        static T*                   get_resource(std::string p_resource_path);
+        static void                 set_resource(std::string resource_name , Resource* r );
+        static void                 free_resource(Resource* p_resource);
+        static void                 dirty_every_resource();
         
         static const decltype(id_by_path)::iterator begin();
         static const decltype(id_by_path)::iterator end();         

@@ -16,7 +16,7 @@ class AudioResource : public Resource {
         void*       buffer_data;
 
     protected:
-        AudioResource( std::string filepath );
+        AudioResource( const std::vector<uint8_t>& data );
         ~AudioResource();
 
     public:
@@ -36,7 +36,7 @@ class AudioResource : public Resource {
 class WavAudioResource : public AudioResource {
     REGISTER_SAUCER_OBJECT(WavAudioResource,AudioResource)
     public:
-        WavAudioResource( std::string filepath );
+        WavAudioResource( const std::vector<uint8_t>& data );
         ~WavAudioResource();
 
 };

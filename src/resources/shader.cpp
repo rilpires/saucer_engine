@@ -2,9 +2,9 @@
 #include "debug.h"
 #include "debug.h"
 
-ShaderResource::ShaderResource( std::string filename ) : Resource(filename){
+ShaderResource::ShaderResource( const std::vector<uint8_t>& mem_data ){
     shader_program = glCreateProgram();
-    std::string shader_file = read_file_as_str( filename );
+    std::string shader_file;
     std::string vertex_shader;
     std::string frag_shader;
 
@@ -13,10 +13,13 @@ ShaderResource::ShaderResource( std::string filename ) : Resource(filename){
     size_t frag_header;
     size_t frag_src_begin;
 
+    shader_file.resize(mem_data.size());
+    memcpy( &(shader_file[0]) , &(mem_data[0]) , shader_file.size() );
+
     vertex_header = shader_file.find("#vertex");
     frag_header = shader_file.find("#fragment");
     if( vertex_header == std::string::npos || frag_header == std::string::npos )
-        saucer_err( "Error while parsing shader file \"" , filename , "\", unexpected behavior ahead" )
+        saucer_err( "Error while parsing shader file:\n======\n" , shader_file , "\n=====\nUnexpected behavior ahead" );
     vertex_src_begin = shader_file.find('\n',vertex_header)+1;
     frag_src_begin = shader_file.find('\n',frag_header)+1;
     vertex_shader = shader_file.substr( vertex_src_begin , frag_header-vertex_src_begin );

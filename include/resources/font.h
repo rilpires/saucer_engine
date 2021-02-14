@@ -9,10 +9,9 @@
 class FontResource : public Resource {
     REGISTER_SAUCER_OBJECT(FontResource,Resource)
     private:
+        std::vector<unsigned char> raw_data; // Must be allocated during lifetime
         static FT_Library   ft;
         FT_Face             face;
-    
-    
     public:
         struct CharData {
             uint64_t    unicode;
@@ -30,7 +29,7 @@ class FontResource : public Resource {
         
 
     public:
-        FontResource( std::string filepath );
+        FontResource( const std::vector<uint8_t>& data );
         ~FontResource();
 
         

@@ -15,6 +15,8 @@ bool                Engine::exiting = false;
 
 
 void            Engine::initialize( YamlNode config ){
+    ResourceManager::fetch_package();
+    
     Engine::config = config;    
     render_engine = new RenderEngine( config["initial_window_size"].as<Vector2>() );
     audio_engine = new AudioEngine();
@@ -33,6 +35,7 @@ void            Engine::initialize( YamlNode config ){
     glfwSetWindowSizeCallback( render_engine->get_glfw_window(), RenderEngine::__window_resize_callback );
 
     if( is_editor() ) SaucerEditor::setup();
+
 
     if( config["cursor"].IsDefined() ){
         auto cursor_texture = ResourceManager::get_resource<TextureResource>( config["cursor"].as<std::string>() );
@@ -174,5 +177,3 @@ void            Engine::u_sleep( long long int usec)
     usleep(usec);
 }
 #endif
-
-std::vector<std::ostream*>& extern_console_streams(){ static std::vector<std::ostream*> ret ;return ret;};

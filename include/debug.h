@@ -5,13 +5,18 @@
 #include <string.h>
 #include <vector>
 
+namespace saucer_debug{
+
 enum SAUCER_DEBUG_LOG_{
     SAUCER_DEBUG_LOG_INFO,
     SAUCER_DEBUG_LOG_WARN,
     SAUCER_DEBUG_LOG_ERROR
 };
 
-extern std::vector<std::ostream*>& extern_console_streams(); // engine.cpp
+extern std::vector<std::ostream*>& extern_console_streams();
+
+// This is necessary since I don't want to other people know my local path I had on __LINE__ when compiled 
+std::string saucer_path_format( const char* file );
 
 template<typename T>
 void saucer_log__( std::ostream& os , T t  ){
@@ -24,9 +29,9 @@ void saucer_log__( std::ostream& os , T t , Ts ... args ){
 }
 template<typename ... Ts>
 void saucer_log_( int level , const char* location , Ts ... args ){
-    if      ( level == SAUCER_DEBUG_LOG_INFO )  saucer_log__( std::cout , location, "\t[INFO]\t", args... );
-    else if ( level == SAUCER_DEBUG_LOG_WARN )  saucer_log__( std::cerr , location, "\t[WARNING]\t", args... );
-    else if ( level == SAUCER_DEBUG_LOG_ERROR ) saucer_log__( std::cerr , location, "\t[ERROR]\t", args... );
+    if      ( level == SAUCER_DEBUG_LOG_INFO )  saucer_log__( std::cout , saucer_path_format(location), "\t[INFO]\t", args... );
+    else if ( level == SAUCER_DEBUG_LOG_WARN )  saucer_log__( std::cerr , saucer_path_format(location), "\t[WARNING]\t", args... );
+    else if ( level == SAUCER_DEBUG_LOG_ERROR ) saucer_log__( std::cerr , saucer_path_format(location), "\t[ERROR]\t", args... );
     for( auto stream : extern_console_streams() ){
         if      ( level == SAUCER_DEBUG_LOG_INFO )  saucer_log__( *stream , "[INFO]\t", args... );
         else if ( level == SAUCER_DEBUG_LOG_WARN )  saucer_log__( *stream , "[WARNING]\t", args... );
@@ -34,13 +39,11 @@ void saucer_log_( int level , const char* location , Ts ... args ){
     }
 }
 
-
-
 #define STRINGIFY_(x) #x
 #define STRINGIFY(x) STRINGIFY_(x)
-#define saucer_print(...) saucer_log_( SAUCER_DEBUG_LOG_INFO ,  __FILE__ ":" STRINGIFY(__LINE__) ,  __VA_ARGS__);
-#define saucer_warn(...) saucer_log_( SAUCER_DEBUG_LOG_WARN ,  __FILE__ ":" STRINGIFY(__LINE__) , __VA_ARGS__);
-#define saucer_err(...) saucer_log_( SAUCER_DEBUG_LOG_ERROR ,  __FILE__ ":" STRINGIFY(__LINE__) , __VA_ARGS__);
+#define saucer_print(...) saucer_debug::saucer_log_( saucer_debug::SAUCER_DEBUG_LOG_INFO ,  __FILE__ ":" STRINGIFY(__LINE__) ,  __VA_ARGS__);
+#define saucer_warn(...) saucer_debug::saucer_log_( saucer_debug::SAUCER_DEBUG_LOG_WARN ,  __FILE__ ":" STRINGIFY(__LINE__) , __VA_ARGS__);
+#define saucer_err(...) saucer_debug::saucer_log_( saucer_debug::SAUCER_DEBUG_LOG_ERROR ,  __FILE__ ":" STRINGIFY(__LINE__) , __VA_ARGS__);
 #define saucer_log(...) saucer_print(...);
 
 // Runtime assert. Enabled only if DEBUG is defined
@@ -108,5 +111,6 @@ void saucer_log_( int level , const char* location , Ts ... args ){
 #define ALC_CALL(device,x) x;                                                    
 #endif
 
+}
 
 #endif

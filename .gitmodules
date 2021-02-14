@@ -20,3 +20,6 @@
 	path = deps/glew
 	url = https://github.com/Perlmint/glew-cmake
 	branch = master
+[submodule "deps/vfspp"]
+	path = deps/vfspp
+	url = https://github.com/yevgeniy-logachev/vfspp.git
