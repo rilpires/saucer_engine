@@ -28,6 +28,7 @@ SaucerObject*   SaucerObject::from_saucer_id( const SaucerId& p_id ){
 YamlNode    SaucerObject::to_yaml_node() const{
     YamlNode ret;
     ret["SaucerObject"] = get_saucer_id();
+    ret["Error"] = "This class probably doesn't has \"to_yaml_node\" implemented.";
     return ret;
 }
 void    SaucerObject::from_yaml_node(YamlNode n){
@@ -46,7 +47,7 @@ void    SaucerObject::from_yaml_node( std::string p  ){
 void    SaucerObject::save_as_file( std::string p ) const {
     std::ofstream ofs;
     ofs.open( p , std::ofstream::out );
-    ofs << this->to_yaml_node();
+    ofs << this->to_yaml_node() << '\n';
     ofs.close();
 }
 void    SaucerObject::bind_methods(){

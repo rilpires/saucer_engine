@@ -1,6 +1,6 @@
 #include "core.h"
 
-void open_project( std::string config_path="res/config.yaml"  );
+void open_project( std::string config_path="res/project.config"  );
 void pack_resources();
 
 int main( int argc , char** argv ){
@@ -20,17 +20,7 @@ int main( int argc , char** argv ){
 }
 
 void open_project( std::string config_path ){
-    YamlNode config;
-    try { 
-        config = YAML::LoadFile(config_path); 
-    }
-    catch(const YAML::BadFile::Exception& e) {
-        UNUSED(e);
-        saucer_warn("Configuration file \"" , config_path , "\" not found. Generating a new one.");
-        config["initial_window_size"] = Vector2(640,480);
-    }
-    
-    Engine::initialize( config );
+    Engine::initialize( config_path );
     Engine::set_window_title("SaucerEngine");
 
     while( !Engine::should_close() )

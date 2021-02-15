@@ -28,11 +28,6 @@
 #include "resources.h"
 #include "camera.h"
 #include "patch_rect.h"
-#include "resources/node_template.h"
-#include "resources/font.h"
-#include "resources/image.h"
-#include "resources/shader.h"
-#include "resources/lua_script.h"
 #include "resources/audiofile.h"
 #include "input.h"
 #include "debug.h"
@@ -41,5 +36,11 @@
 #include "file.h"
 #include "editor.h"
 
+#include "resources/project_config.h"
+#include "resources/node_template.h"
+#include "resources/font.h"
+#include "resources/image.h"
+#include "resources/shader.h"
+#include "resources/lua_script.h"
 
 #endif

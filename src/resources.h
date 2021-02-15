@@ -2,6 +2,7 @@
 #define RESOURCES_H
 
 #include "debug.h"
+#include "file.h"
 #include <unordered_map>
 #include "vector.h"
 #include "saucer_object.h"
@@ -79,6 +80,7 @@ class ResourceManager : public SaucerObject {
 
 template<typename T>
 T*  ResourceManager::get_resource(std::string p_resource_path){
+    if( p_resource_path.size()==0 ) return nullptr;
     return static_cast<T*>(get_resource<Resource>(p_resource_path));
 }
 template<> Resource* ResourceManager::get_resource(std::string p_resource_path);

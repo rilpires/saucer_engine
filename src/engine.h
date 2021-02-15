@@ -13,7 +13,7 @@
 class Scene;
 class AudioEngine;
 class RenderEngine;
-
+class ProjectConfig;
 
 
 class Engine : public SaucerObject{
@@ -26,16 +26,16 @@ class Engine : public SaucerObject{
         static Scene*               current_scene;
         static std::list<double>    last_uptimes;
         static double               next_frame_time;
-        static YamlNode             config;
         static bool                 exiting;
+        static ProjectConfig*       project_config;
 
         static void                 u_sleep( long long int nano_s_sleep );
     public:
         
         /**
-         * @brief This should be the first function ever to be called in a Saucer Engine application
+         * @brief This should be the first function to be called in a Saucer Engine application
          */
-        static void             initialize( YamlNode config );
+        static void             initialize( std::string config_path );
         
         /**
          * @brief Safely close every resource managed by Saucer Engine
@@ -168,15 +168,17 @@ class Engine : public SaucerObject{
          */
         static void             exit();
 
-        static YamlNode&        get_config();
+        static ProjectConfig*   get_config();
 
         static void             bind_methods();
     public:
 
         #ifdef SAUCER_EDITOR
-        static bool is_editor();
+        static constexpr bool   is_editor(){ return true;}
+        static bool             is_playing();
         #else
-        static constexpr bool is_editor(){ return false;};
+        static constexpr bool   is_editor(){ return false;};
+        static constexpr bool   is_playing(){ return true;};
         #endif
 
 };

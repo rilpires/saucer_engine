@@ -124,11 +124,11 @@ void                    SceneNode::set_visible( bool new_val ){
 }
 LuaScriptResource*      SceneNode::get_script() const { return lua_script;};
 void                    SceneNode::set_script( LuaScriptResource* ls ){
-    if( !Engine::is_editor() && ls && lua_script && ls != lua_script ){
+    if( Engine::is_playing() && ls && lua_script && ls != lua_script ){
         saucer_err( "Hmm you shouldn't runtime change scripts attached in a node once set..." );
     }
     lua_script = ls;
-    if(!Engine::is_editor() ){
+    if( Engine::is_playing() ){
         if( lua_script )LuaEngine::create_actor_env( this );
     } else {
         // validate script maybe
@@ -240,12 +240,12 @@ void        SceneNode::entered_tree(){
     for( auto& child : children_nodes ) child->entered_tree();
     for( Component*& c : attached_components )
         c->entered_tree();
-    if(!Engine::is_editor() ) LuaEngine::execute_callback( "entered_tree", this );
+    if( Engine::is_playing() ) LuaEngine::execute_callback( "entered_tree", this );
     
 }
 void        SceneNode::exiting_tree(){
     for( auto& child : children_nodes ) child->exiting_tree();
-    if(!Engine::is_editor() ) LuaEngine::execute_callback( "exiting_tree", this );
+    if( Engine::is_playing() ) LuaEngine::execute_callback( "exiting_tree", this );
     for( Component*& c : attached_components )
         c->exiting_tree();
 }

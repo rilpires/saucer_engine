@@ -12,7 +12,7 @@
 	url = https://github.com/kcat/openal-soft
 [submodule "deps/audiofile"]
 	path = deps/audiofile
-	url = https://github.com/adamstark/AudioFile
+	url = https://github.com/rilpires/AudioFile
 [submodule "deps/imgui"]
 	path = deps/imgui
 	url = https://github.com/ocornut/imgui

@@ -9,16 +9,21 @@ RenderEngine*       Engine::render_engine   = nullptr;
 AudioEngine*        Engine::audio_engine    = nullptr;
 Scene*              Engine::current_scene   = nullptr;
 double              Engine::next_frame_time   = 0;
-YamlNode            Engine::config;
 std::list<double>   Engine::last_uptimes;
 bool                Engine::exiting = false;
+ProjectConfig*      Engine::project_config = nullptr;
 
-
-void            Engine::initialize( YamlNode config ){
+void            Engine::initialize( std::string config_path ){
     ResourceManager::fetch_package();
     
-    Engine::config = config;    
-    render_engine = new RenderEngine( config["initial_window_size"].as<Vector2>() );
+    project_config = ResourceManager::get_resource<ProjectConfig>(config_path);
+    if( !project_config ){
+        project_config = new ProjectConfig();
+        ResourceManager::set_resource("res/project.config",project_config);
+        project_config->save_as_file("res/project.config");
+    }
+
+    render_engine = new RenderEngine( project_config );
     audio_engine = new AudioEngine();
     LuaEngine::initialize();
     
@@ -35,23 +40,20 @@ void            Engine::initialize( YamlNode config ){
     glfwSetWindowSizeCallback( render_engine->get_glfw_window(), RenderEngine::__window_resize_callback );
 
     if( is_editor() ) SaucerEditor::setup();
-
-
-    if( config["cursor"].IsDefined() ){
-        auto cursor_texture = ResourceManager::get_resource<TextureResource>( config["cursor"].as<std::string>() );
-        if( cursor_texture ) get_render_engine()->set_custom_cursor(cursor_texture,4,1);
-        else saucer_err("Cursor not found at " , config["cursor"].as<std::string>() );
-    }
     
     Scene* scene = new Scene();
     Engine::set_current_scene( scene );
-    SceneNode* root = new SceneNode();
-    if( config["root"].IsDefined() ){
-        root->from_yaml_node( config["root"] );
+    NodeTemplateResource* root_template = ResourceManager::get_resource<NodeTemplateResource>( project_config->get_initial_root_path() );
+    SceneNode* root;
+    if( root_template ){
+        root = root_template->instantiate_node();
         #ifdef SAUCER_EDITOR
-        SaucerEditor::reference_path[root->get_saucer_id()] = config["root"]["path"].as<std::string>();
+        SaucerEditor::reference_path[root->get_saucer_id()] = project_config->get_initial_root_path();
         #endif
     }
+    else{
+        root = new SceneNode();
+    } 
     scene->set_root_node(root);
     
 }
@@ -140,8 +142,8 @@ void             Engine::exit(){
     if( current_scene && current_scene->get_root_node() ) current_scene->get_root_node()->queue_free();
     exiting = true;
 }
-YamlNode&        Engine::get_config(){
-    return config;
+ProjectConfig*  Engine::get_config(){
+    return project_config;
 }
 void            Engine::bind_methods(){
     REGISTER_LUA_NESTED_STATIC_FUNCTION( Engine , get_uptime );
@@ -161,9 +163,7 @@ void            Engine::bind_methods(){
 
 }
 #ifdef SAUCER_EDITOR
-bool            Engine::is_editor(){ 
-    return !SaucerEditor::currently_playing; 
-};
+bool            Engine::is_playing(){ return SaucerEditor::currently_playing; };
 #endif
 
 #ifdef _WIN32

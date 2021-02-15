@@ -126,7 +126,7 @@ void            Scene::loop_draw(){
 
 }
 void            Scene::loop_input(){
-    if( Engine::is_editor() ){ while( Input::pop_event_queue() ){} return; }
+    if( !Engine::is_playing() ){ while( Input::pop_event_queue() ){} return; }
     
     std::stack< SceneNode* > node_stack;
     std::vector< AnchoredRect* > anchored_rects;
@@ -218,7 +218,7 @@ void            Scene::loop_input(){
 
 }
 void            Scene::loop_script(){
-    if( Engine::is_editor() ) return;
+    if( !Engine::is_playing() ) return;
     std::stack< SceneNode* > node_stack;
     std::vector< SceneNode* > actors;
     double last_frame_duration = Engine::get_last_frame_duration();
@@ -255,7 +255,7 @@ void            Scene::set_current_focused_anchored_rect( AnchoredRect* r ){
     current_focused_anchored_rect = r;
 }
 void            Scene::loop_physics(){
-    if( Engine::is_editor() ) return;
+    if( !Engine::is_playing() ) return;
     collision_world->step();
     
     for( auto it : CollisionBody::component_from_node() ){

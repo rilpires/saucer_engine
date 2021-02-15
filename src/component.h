@@ -8,7 +8,7 @@ class SceneNode;
 class Component : public SaucerObject {
     
     #define REGISTER_AS_INHERITED_COMPONENT(C,ParentComponent)\
-    REGISTER_SAUCER_OBJECT(C,ParentComponent);                                                              \
+    REGISTER_SAUCER_OBJECT(C,ParentComponent)                                                               \
     friend class Scene;                                                                                     \
     private:                                                                                                \
         static std::unordered_multimap< SaucerId , C* >& component_from_node(){                             \

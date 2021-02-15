@@ -177,22 +177,23 @@ void            SaucerEditor::push_inspector(){
     }
 }
 void            SaucerEditor::push_config(){
-    YamlNode& config = Engine::get_config();
+    ProjectConfig* project_config = Engine::get_config();
 
     Begin("Project configuration" , 0 , ImGuiWindowFlags_MenuBar );
     if(BeginMenuBar()){
         if(MenuItem("Save")){
-            std::ofstream ofs("config.yaml",std::ofstream::out);
-            ofs << config;
-            ofs.close();
+            project_config->save_as_file(project_config->get_path());
         }
         EndMenuBar();
     }
     
-    Vector2 initial_window_size = Engine::get_config()["initial_window_size"].as<Vector2>();
-    if( InputFloat2( "initial_window_size" , (float*)&initial_window_size , "%.0f" ) )
-        config["initial_window_size"] = initial_window_size;    
-    
+    PROPERTY_STRING(project_config,project_name);
+    PROPERTY_VEC2(project_config,game_window_size);
+    PROPERTY_VEC2(project_config,editor_window_size);
+    PROPERTY_STRING(project_config,initial_root_path);
+    PROPERTY_BOOL(project_config,start_fullscreen);
+    PROPERTY_BOOL(project_config,window_resizable);
+
     End();
 }
 void            SaucerEditor::push_node_tree( SceneNode* node ){

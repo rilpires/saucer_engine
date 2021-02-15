@@ -12,6 +12,7 @@
 #include "color.h"
 #include "rect.h"
 
+class ProjectConfig;
 class RenderObject;
 class ShaderResource;
 class TextureResource;
@@ -66,7 +67,7 @@ class RenderEngine {
         unsigned short      veb_array[MAX_VERTEX_COUNT];
         
     public:
-        RenderEngine( Vector2 initial_window_size );
+        RenderEngine( ProjectConfig* );
         ~RenderEngine();
 
         GLFWwindow*         get_glfw_window() const;

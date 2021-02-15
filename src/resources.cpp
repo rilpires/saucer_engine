@@ -1,16 +1,8 @@
 #include "resources.h"
-#include "resources/image.h"
-#include "resources/lua_script.h"
-#include "resources/audiofile.h"
-#include "resources/node_template.h"
-#include "resources/shader.h"
-#include "resources/font.h"
-#include "lua_engine.h"
+#include "core.h"
 
-#include "debug.h"
 #include <fstream>
 #include <sstream>
-
 #include <zlib.h>
 
 std::unordered_map<std::string,SaucerId> ResourceManager::id_by_path;
@@ -58,6 +50,7 @@ const uint64_t          ResourceManager::ContentTableEntry::get_compressed_size(
 Resource*               ResourceManager::load_resource(std::string filepath){
     Resource* ret = NULL;
     std::vector<uint8_t> data = get_data(filepath);
+    if( data.size()==0 ) return nullptr;
     size_t extension_pos = filepath.find_last_of('.');
     std::string extension = "";
     if( extension_pos != std::string::npos ) extension = filepath.substr( extension_pos );
@@ -78,6 +71,9 @@ Resource*               ResourceManager::load_resource(std::string filepath){
         }
         else if (extension == ".node"){
             ret = new NodeTemplateResource( data );
+        }
+        else if (extension == ".config"){
+            ret = new ProjectConfig( data );
         }
         else if (extension == ".glsl"){
             ret = new ShaderResource( data );

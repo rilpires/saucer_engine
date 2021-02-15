@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <vector>
 #include "debug.h"
-#include "yaml-cpp/yaml.h"
+#include <yaml-cpp/yaml.h>
 
 #define UNUSED(expr) (void)(expr)
 
@@ -32,8 +32,7 @@ class SaucerObject {
         static constexpr const char* class_name = #Class;                                               \
         using parent_type = ParentClass;                                                                \
         virtual uint32_t my_saucer_class_id() const { return SaucerClassId<Class>::value; }             \
-        virtual const char* my_saucer_class_name() const { return #Class; }                             \
-    ;
+        virtual const char* my_saucer_class_name() const { return #Class; }                             
 
 
     public:

@@ -1,17 +1,29 @@
 #include "render_engine.h"
 #include "resources/shader.h"
 #include "resources/image.h"
+#include "resources/project_config.h"
 #include "engine.h"
 
 
 #define INITIAL_WINDOW_TITLE "SaucerEngine"
 
-RenderEngine::RenderEngine( Vector2 initial_window_size ){
+RenderEngine::RenderEngine( ProjectConfig* config ){
     
-    window_size = initial_window_size;
+    if( Engine::is_editor() )
+        window_size = config->get_editor_window_size();
+    else
+        window_size = config->get_game_window_size();
+    
     if( !glfwInit() ) saucer_err( "Failed to glfwInit()" )
     glfwSetErrorCallback([](int n , const char* s ){ saucer_err( "GLFW error #" , n , ":" , s ) });
-    glfw_window = glfwCreateWindow( window_size.x , window_size.y , INITIAL_WINDOW_TITLE , NULL , NULL );
+    
+    glfwWindowHint( GLFW_RESIZABLE , config->get_window_resizable() );
+    
+    if( !(Engine::is_editor()) && config->get_start_fullscreen() )
+        glfw_window = glfwCreateWindow( window_size.x , window_size.y , INITIAL_WINDOW_TITLE , 0 , NULL );
+    else
+        glfw_window = glfwCreateWindow( window_size.x , window_size.y , INITIAL_WINDOW_TITLE , NULL , NULL );
+
 
     // Defining context variables & other stuffs
     glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR , 3 );
@@ -27,8 +39,8 @@ RenderEngine::RenderEngine( Vector2 initial_window_size ){
     if( ret_glewInit != GLEW_OK ) 
         saucer_err( "Failed to glewInit() :" , glewGetErrorString(ret_glewInit) )
     
-    // saucer_print( "Renderer: " , glGetString( GL_RENDERER )  );
-    // saucer_print( "Version: " , glGetString( GL_VERSION )  );
+    saucer_print( "Renderer: " , glGetString( GL_RENDERER )  );
+    saucer_print( "Version: " , glGetString( GL_VERSION )  );
 
 
     GL_CALL( glGenBuffers(1, &vbo_index) );
