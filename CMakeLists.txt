@@ -130,4 +130,4 @@ endforeach()
 
 add_executable( saucer ${PROJECT_SOURCE_DIR}/main.cpp )
 target_link_libraries( saucer PUBLIC saucer_core $<$<BOOL:${SAUCER_LINK_COMPONENTS}>:${COMPONENT_LIBRARIES}> )
-
+target_link_options( saucer PUBLIC ${SAUCER_LINK_OPTIONS} )

@@ -73,7 +73,7 @@ typedef SaucerObject::SaucerId SaucerId;
 template<typename T>
 uint32_t get_next_saucer_class_id(){
     __class_bind_methods().push_back( (void*)(T::bind_methods) );
-    saucer_print("Generating class id = " , __open_saucer_class_id , " for class " , T::class_name );
+    //saucer_print("Generating class id = " , __open_saucer_class_id , " for class " , T::class_name );
     return __open_saucer_class_id++;
 }
 
