@@ -193,6 +193,7 @@ void            SaucerEditor::push_config(){
     PROPERTY_STRING(project_config,initial_root_path);
     PROPERTY_BOOL(project_config,start_fullscreen);
     PROPERTY_BOOL(project_config,window_resizable);
+    PROPERTY_COLOR(project_config,clear_color);
 
     End();
 }

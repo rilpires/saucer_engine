@@ -20,3 +20,9 @@
 	path = deps/glew
 	url = https://github.com/Perlmint/glew-cmake
 	branch = master
+[submodule "deps/vorbis"]
+	path = deps/vorbis
+	url = https://gitlab.xiph.org/xiph/vorbis.git
+[submodule "deps/ogg"]
+	path = deps/ogg
+	url = https://gitlab.xiph.org/xiph/ogg.git

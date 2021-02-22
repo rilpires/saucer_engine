@@ -21,6 +21,20 @@ endif()
 list( APPEND INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/deps/audiofile )
 
 
+# OGG
+add_subdirectory("deps/ogg")
+get_target_property( OGG_INCLUDE_DIRS ogg INTERFACE_INCLUDE_DIRECTORIES )
+list( APPEND INCLUDE_DIRECTORIES ${OGG_INCLUDE_DIRS} )
+list( APPEND LINK_LIBRARIES ogg )
+
+# VOrbis
+set( OGG_LIBRARY ogg)
+set( OGG_INCLUDE_DIR ${OGG_INCLUDE_DIRS} )
+add_subdirectory("deps/vorbis")
+list( APPEND INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/deps/audiofile )
+list( APPEND LINK_LIBRARIES vorbisfile )
+
+
 # yaml-cpp
 option(YAML_CPP_BUILD_TESTS "" OFF)
 option(YAML_CPP_BUILD_TOOLS "" OFF)

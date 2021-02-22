@@ -5,8 +5,6 @@
 #include "engine.h"
 
 
-#define INITIAL_WINDOW_TITLE "SaucerEngine"
-
 RenderEngine::RenderEngine( ProjectConfig* config ){
     
     if( Engine::is_editor() )
@@ -17,12 +15,13 @@ RenderEngine::RenderEngine( ProjectConfig* config ){
     if( !glfwInit() ) saucer_err( "Failed to glfwInit()" )
     glfwSetErrorCallback([](int n , const char* s ){ saucer_err( "GLFW error #" , n , ":" , s ) });
     
-    glfwWindowHint( GLFW_RESIZABLE , config->get_window_resizable() );
+    glfwWindowHint( GLFW_RESIZABLE , config->get_window_resizable() || Engine::is_editor() );
     
-    if( !(Engine::is_editor()) && config->get_start_fullscreen() )
-        glfw_window = glfwCreateWindow( window_size.x , window_size.y , INITIAL_WINDOW_TITLE , 0 , NULL );
-    else
-        glfw_window = glfwCreateWindow( window_size.x , window_size.y , INITIAL_WINDOW_TITLE , NULL , NULL );
+    GLFWmonitor* monitor = nullptr;
+    if( !(Engine::is_editor()) && config->get_start_fullscreen() ){
+        monitor = glfwGetPrimaryMonitor();
+    }
+    glfw_window = glfwCreateWindow( window_size.x , window_size.y , config->get_project_name().c_str() , NULL , NULL );
 
 
     // Defining context variables & other stuffs
@@ -84,7 +83,6 @@ RenderEngine::RenderEngine( ProjectConfig* config ){
     view_transform = Transform();
     basic_shader_resource = (ShaderResource*) ResourceManager::get_resource("res/shaders/basic.glsl");
     glfw_custom_cursor = nullptr;
-    clear_color = Color( (unsigned char)25 , (unsigned char)24 , (unsigned char)43 , (unsigned char)0 );
     viewport_rect = Rect( Vector2(0,0) , window_size );
     set_current_shader( basic_shader_resource );
     set_fullscreen(0);
@@ -206,18 +204,12 @@ void                RenderEngine::set_custom_cursor( TextureResource* img , int 
         glfwSetCursor(glfw_window,glfw_custom_cursor);
     }
 }
-void                RenderEngine::set_clear_color(Color new_val){
-    clear_color = new_val;
-}
-Color               RenderEngine::get_clear_color() const{
-    return clear_color;
-}
 void                RenderEngine::__window_resize_callback( GLFWwindow* w , int x , int y ){
     UNUSED(w);
     Engine::get_render_engine()->window_size = Vector2(x,y);
 }
 void                RenderEngine::update( const std::vector<RenderData>& draws  ){
-    
+    Color clear_color = Engine::get_config()->get_clear_color();
     GL_CALL( glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
     GL_CALL( glClearColor(  float(clear_color.r)/255.0f,
                             float(clear_color.g)/255.0f,

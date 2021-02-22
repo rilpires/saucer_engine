@@ -44,7 +44,6 @@ class RenderEngine {
         Rect                viewport_rect;
         Vector2             physical_monitor_size;
         GLFWcursor*         glfw_custom_cursor;
-        Color               clear_color;
 
         Transform           view_transform;
         Transform           camera_transform;
@@ -90,8 +89,6 @@ class RenderEngine {
         GLuint              get_last_used_texture() const;
         ShaderResource*     get_basic_shader() const;
         void                set_custom_cursor( TextureResource* img , int xhot , int yhot );
-        void                set_clear_color(Color new_val);
-        Color               get_clear_color() const;
         void                update( const std::vector<RenderData>& draws);
 
         static void         __window_resize_callback( GLFWwindow* , int , int );

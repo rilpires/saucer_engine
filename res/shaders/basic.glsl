@@ -26,11 +26,6 @@ void main(){
     gl_Position.xy /= ( viewport_size.xy/2 );
     gl_Position.yz *= -1;
     uv = in_uv;
-    // modulate = vec4(in_modulate.x/255.0f,
-    //                 in_modulate.y/255.0f,
-    //                 in_modulate.z/255.0f,
-    //                 in_modulate.w/255.0f);
-    // modulate = in_modulate;
     modulate = uniform_modulate;
 };
 
@@ -50,44 +45,11 @@ out vec4 outColor;
 
 void main(){
     vec4 temp_modulate = modulate;
-    bool aesthetics_90s_wave = false;
 
-    if( aesthetics_90s_wave ){
-        temp_modulate.r *=  0.9 + 0.1*sin(time*100);
-
-        vec2    tex_size = textureSize(tex,0);
-        float   dist_in_pixels = 1;
-        float   r_angle = 0;
-        float   g_angle = 3.1415;
-        vec2    r_uv_vec = (vec2(cos(r_angle),sin(r_angle)) / tex_size) * dist_in_pixels ;
-        vec2    g_uv_vec = (vec2(cos(g_angle),sin(g_angle)) / tex_size) * dist_in_pixels ;
-            
-        if(!tex_is_alpha_mask){
-            
-            float r = texture(tex,uv + r_uv_vec ).r;
-            float g = texture(tex,uv + g_uv_vec ).g;
-            float b = texture(tex,uv ).b;
-            outColor.rgba = vec4( temp_modulate.r * r,
-                                temp_modulate.g * g,
-                                temp_modulate.b * b,
-                                temp_modulate.a * texture(tex,uv).a );
-
-        }else{
-            float r = texture(tex,uv + r_uv_vec ).r;
-            float g = texture(tex,uv + g_uv_vec ).r;
-            float a = texture(tex,uv).r;
-            outColor.rgba = vec4(   temp_modulate.r * r,
-                                    temp_modulate.g * g,
-                                    temp_modulate.b,
-                                    temp_modulate.a * a );
-        }
-    }
-    else{
-        if(!tex_is_alpha_mask){
-            outColor.rgba = temp_modulate * texture(tex,uv);
-        }else{
-            outColor.rgba = vec4(temp_modulate.rgb, temp_modulate.a * texture(tex,uv).r);
-        }
+    if( tex_is_alpha_mask ){
+        outColor.rgba = vec4(temp_modulate.rgb, temp_modulate.a * texture(tex,uv).r);
+    }else{
+        outColor.rgba = temp_modulate * texture(tex,uv);
     }
 
 };

@@ -32,7 +32,7 @@ class Resource : public SaucerObject {
          * @return true when succesfully reloaded
          * @return false when not succesfully reloaded
          */
-        virtual bool        reload();
+        virtual void        reload();
 
         static void         bind_methods();   
 };

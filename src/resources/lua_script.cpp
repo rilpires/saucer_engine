@@ -17,9 +17,13 @@ bool    LuaScriptResource::has_callback( std::string callback_name ) const{
 void    LuaScriptResource::flag_as_dirty(){
     dirty = true;
 }
-bool    LuaScriptResource::reload(){
-    //
-    return true;
+void    LuaScriptResource::reload(){
+    std::ifstream ifs{ path };
+    ifs.unsetf(std::ios::skipws);
+    std::istream_iterator<char> begin{ifs} , end;
+    src = std::string( begin , end );
+    dirty = false;
+    ifs.close();
 }
 
 void LuaScriptResource::bind_methods(){

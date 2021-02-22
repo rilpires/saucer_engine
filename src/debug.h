@@ -65,17 +65,17 @@ void saucer_log_( int level , const char* location , Ts ... args ){
         while(gl_error != GLEW_OK ){                                                                        \
             saucer_err("[OpenGL Error] Error code " , gl_error , ";\t" , glewGetErrorString(gl_error) );    \
             switch(gl_error){                                                                               \
-                case GL_INVALID_ENUM: saucer_err("GL_INVALID_ENUM");break;                                  \
-                case GL_INVALID_VALUE: saucer_err("GL_INVALID_VALUE");break;                                \
-                case GL_INVALID_OPERATION: saucer_err("GL_INVALID_OPERATION");break;                        \
-                case GL_OUT_OF_MEMORY: saucer_err("GL_OUT_OF_MEMORY");break;                                \
+                case GL_INVALID_ENUM:       saucer_err("GL_INVALID_ENUM");break;                            \
+                case GL_INVALID_VALUE:      saucer_err("GL_INVALID_VALUE");break;                           \
+                case GL_INVALID_OPERATION:  saucer_err("GL_INVALID_OPERATION");break;                       \
+                case GL_OUT_OF_MEMORY:      saucer_err("GL_OUT_OF_MEMORY");break;                           \
             }                                                                                               \
             break;                                                                                          \
         }                                                                                                   \
     }
 
 #define AL_CALL(x)\
-    x ;                                                                                 \
+    alGetError(); x ;                                                                   \
     {                                                                                   \
         auto al_error = alGetError();                                                   \
         if( al_error != AL_NO_ERROR ){                                                  \

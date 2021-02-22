@@ -21,7 +21,7 @@ class LuaScriptResource : public Resource {
         bool                        has_callback( std::string callback_name ) const ;
         
         void                        flag_as_dirty() override;  
-        bool                        reload() override;
+        void                        reload() override;
 
         static void                 bind_methods();
 

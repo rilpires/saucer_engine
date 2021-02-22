@@ -20,9 +20,7 @@ std::string Resource::get_path() const {
 void        Resource::flag_as_dirty(){
     ;
 }
-bool        Resource::reload(){
-    return true;
-}
+void        Resource::reload(){}
 
 void        Resource::bind_methods(){
     REGISTER_LUA_MEMBER_FUNCTION(Resource,get_path);
@@ -75,10 +73,14 @@ Resource*               ResourceManager::load_resource(std::string filepath){
         else if (extension == ".config"){
             ret = new ProjectConfig( data );
         }
+        else if (extension == ".ogg"){
+            ret = new OggAudioResource( data );
+        }
         else if (extension == ".glsl"){
             ret = new ShaderResource( data );
         } else saucer_err( "What is this? Unknown file format. Couldn't load resource for: " , filepath );
     }
+
     catch(const std::exception& e)
     {
         ret = nullptr;
@@ -115,8 +117,8 @@ std::vector<uint8_t>    ResourceManager::get_data( std::string filepath ){
     auto toc_find = toc_entries.find(filepath);
     std::vector<uint8_t> ret;
     
-    // Use data from package file
-    if( toc_find != toc_entries.end() ){
+    // Using data from package file if available and is not editor
+    if( toc_find != toc_entries.end()  &&  !Engine::is_editor() ){
         if( !package_stream.good() ){
             saucer_err("Package stream should be opened but it isn't? Oopsie unexpected behavior ahead.");
             return ret;
@@ -182,13 +184,9 @@ Resource*               ResourceManager::get_resource( std::string p_resource_pa
         return load_resource(p_resource_path);
     else{
         Resource* ret = static_cast<Resource*>(SaucerObject::from_saucer_id(it->second));
-        if( ret->dirty ){
-            if(ret->reload()==false){
-                saucer_err("Failed to reload resource: " , p_resource_path );
-            } else {
-                ret->dirty = false;
-            }
-        }
+        #ifdef DEBUG
+        if( ret->dirty ) ret->reload();
+        #endif
         return ret;
     }
 }

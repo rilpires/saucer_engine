@@ -125,6 +125,12 @@ void            Scene::loop_draw(){
     Engine::get_render_engine()->update( render_datas );
 
 }
+void            Scene::loop_audio(){
+    for( auto p : AudioStreamer::component_from_node() ){
+        AudioStreamer* streamer = p.second;
+        streamer->update_stream();
+    }
+}
 void            Scene::loop_input(){
     if( !Engine::is_playing() ){ while( Input::pop_event_queue() ){} return; }
     
@@ -279,6 +285,7 @@ void            Scene::loop(){
     for( auto& it : to_free ){ delete it; } to_free.clear();
     loop_physics();
     for( auto& it : to_free ){ delete it; } to_free.clear();
+    loop_audio();
     loop_draw();
 }
 void            Scene::bind_methods(){

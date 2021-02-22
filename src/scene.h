@@ -29,6 +29,7 @@ class Scene : public SaucerObject {
 
         void        loop_input();
         void        loop_draw();
+        void        loop_audio();
         void        loop_script();
         void        loop_physics();
 
