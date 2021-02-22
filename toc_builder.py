@@ -1,6 +1,6 @@
 import os
 
-allowed_extensions = ["png","node","lua","wav","ttf","glsl","config"]
+allowed_extensions = ["png","node","lua","wav","ttf","glsl","config","ogg"]
 
 all_resources = []
 
