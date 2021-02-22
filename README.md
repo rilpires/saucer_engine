@@ -14,7 +14,9 @@ Apart from heavy use of C++ STL libs, these below are all third-party dependenci
 - [Lua script 5.0.3](https://www.lua.org/home.html), for scripting game actors and logic.
 - [Box2D 2.4.1(*)](https://github.com/erincatto/box2d/tree/v2.4.1), for physics and collisions logic.
 - [OpenAL-soft 1.21.0(*)](https://github.com/kcat/openal-soft/tree/openal-soft-1.21.0), for audio rendering.
-- [AudioFile 1.0.8(*)](https://github.com/adamstark/AudioFile/tree/1.0.8) , for loading .WAV files.
+- [AudioFile 1.0.8(*)](https://github.com/adamstark/AudioFile/tree/1.0.8) , for loading .wav files.
+- [Ogg 1.3.4(*)](https://gitlab.xiph.org/xiph/ogg) , for loading .OGG files.
+- [Vorbis 1.3.7(*)](https://gitlab.xiph.org/xiph/vorbis/-/releases/v1.3.7), for decoding .OGG files.
 - [FreeType 2.10.4](https://www.freetype.org/index.html), for loading fonts.
 - [Dear ImGui 1.79(*)](https://github.com/ocornut/imgui/tree/v1.79), for graphic editor interface
 - [yaml-cpp 0.6.3(*)](https://github.com/jbeder/yaml-cpp/tree/yaml-cpp-0.6.3), for yaml file parsing/emitting
@@ -29,7 +31,7 @@ Currently, I'm working on building a proper release build (resource packaging). 
 Documentation is being created with Doxygen. (Incomplete)
 
 # Nexts TO-DO's (by priority):
-- Packing resources to a proper release build
+- Picking objects with mouse cursor on editor scene preview.
 - More audio formats, cursor and possibly positioning("3D") sound.
 - Networking module
 - Integrate a file explorer in editor (will use boost or C++17) 
