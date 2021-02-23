@@ -15,8 +15,8 @@ Apart from heavy use of C++ STL libs, these below are all third-party dependenci
 - [Box2D 2.4.1(*)](https://github.com/erincatto/box2d/tree/v2.4.1), for physics and collisions logic.
 - [OpenAL-soft 1.21.0(*)](https://github.com/kcat/openal-soft/tree/openal-soft-1.21.0), for audio rendering.
 - [AudioFile 1.0.8(*)](https://github.com/adamstark/AudioFile/tree/1.0.8) , for loading .wav files.
-- [Ogg 1.3.4(*)](https://gitlab.xiph.org/xiph/ogg) , for loading .OGG files.
-- [Vorbis 1.3.7(*)](https://gitlab.xiph.org/xiph/vorbis/-/releases/v1.3.7), for decoding .OGG files.
+- [Ogg 1.3.4(*)](https://github.com/xiph/ogg) , for loading .OGG files.
+- [Vorbis 1.3.7(*)](https://github.com/xiph/vorbis/tree/v1.3.7), for decoding .OGG files.
 - [FreeType 2.10.4](https://www.freetype.org/index.html), for loading fonts.
 - [Dear ImGui 1.79(*)](https://github.com/ocornut/imgui/tree/v1.79), for graphic editor interface
 - [yaml-cpp 0.6.3(*)](https://github.com/jbeder/yaml-cpp/tree/yaml-cpp-0.6.3), for yaml file parsing/emitting
