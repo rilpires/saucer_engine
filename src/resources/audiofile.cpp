@@ -11,7 +11,7 @@
 #include <AL/efx.h>
 
 // WAV file decoding:
-#include "AudioFile.h" 
+#include <AudioFile.h> 
 
 // OGG file decoding:
 #include "ogg/ogg.h"
@@ -187,9 +187,10 @@ size_t      OggAudioResource::ogg_read_callback(void* destination, size_t size, 
     if( ogg_resource->raw_offset + length > ogg_resource->raw_data.size() ){
         length = ogg_resource->raw_data.size() - ogg_resource->raw_offset;
     }
-
-    std::memcpy( destination , &(ogg_resource->raw_data[ogg_resource->raw_offset]) , length );
-    ogg_resource->raw_offset += length;
+    if( length > 0 ){
+        std::memcpy( destination , &(ogg_resource->raw_data[ogg_resource->raw_offset]) , length );
+        ogg_resource->raw_offset += length;
+    }
     return length;
 }
 int32_t     OggAudioResource::ogg_seek_callback(void *datasource, int64_t offset, int whence){
@@ -213,7 +214,6 @@ int32_t     OggAudioResource::ogg_seek_callback(void *datasource, int64_t offset
         ogg_resource->raw_offset = ogg_resource->raw_data.size();
         return -1;
     }
-    
     return 0;
 }
 long int    OggAudioResource::ogg_tell_callback(void *datasource){

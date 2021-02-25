@@ -98,14 +98,17 @@ void                    ResourceManager::fetch_package(std::string package_filep
         saucer_warn("Data package is opened already");
         return;
     }
-    package_stream.open(package_filepath);
-    if( !package_stream.good() )
-        saucer_warn("Couldn't find package data \"" , package_filepath , "\"" );
-    package_stream.unsetf(std::ios::skipws);
-
     uint64_t toc_size;
-    package_stream.read( (char*)&toc_size ,8);
+    package_stream.open(package_filepath);
     
+    if( package_stream.good() ){
+        package_stream.unsetf(std::ios::skipws);
+        package_stream.read( (char*)&toc_size ,8);
+    } else {
+        saucer_warn("Couldn't find package data \"" , package_filepath , "\"" );
+        toc_size = 0;
+    }
+
     for( int toc_index = 0 ; toc_index < toc_size ; toc_index++ ){
         ContentTableEntry entry;
         package_stream.read( (char*)&(entry) , sizeof(ResourceManager::ContentTableEntry) );

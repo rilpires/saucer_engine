@@ -56,7 +56,7 @@ AudioEmitter::AudioEmitter(){
     AL_CALL( alGenSources(1,&source) );
     positional = false;
     looping = false;
-    gain = 0.0f;
+    gain = 1.0f;
     AL_CALL( alSourcei( source , AL_LOOPING , looping ) );
 
     // Do we care about these?
@@ -101,7 +101,6 @@ int                     AudioEmitter::get_state() const {
     saucer_warn("Unexpected OpenAL behavior");
 }
 void                    AudioEmitter::play(){
-    set_gain( float(random()%100)/100.0f );
     AL_CALL( alSourceStop(source) );
     AL_CALL( alSourcePlay(source) );
 }

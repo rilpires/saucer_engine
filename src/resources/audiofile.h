@@ -62,7 +62,7 @@ class AudioStreamResource : public AudioResource {
 
     public:
         // Should return TRUE when reached end of stream
-        virtual bool fill_data( std::vector<uint8_t>& buffer , uint64_t pcm_offset){};
+        virtual bool fill_data( std::vector<uint8_t>& buffer , uint64_t pcm_offset){return true;}
 
 };
 
