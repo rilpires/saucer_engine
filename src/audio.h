@@ -85,9 +85,9 @@ class SamplePlayer : public AudioEmitter {
         YamlNode                to_yaml_node() const override ;
         void                    from_yaml_node( YamlNode ) override ;
 };
-// AudioStreamer =====================================================================
-class AudioStreamer : public AudioEmitter {
-    REGISTER_AS_INHERITED_COMPONENT(AudioStreamer,AudioEmitter);
+// StreamPlayer =====================================================================
+class StreamPlayer : public AudioEmitter {
+    REGISTER_AS_INHERITED_COMPONENT(StreamPlayer,AudioEmitter);
 
     private:
         uint64_t                pcm_offset;              
@@ -95,13 +95,13 @@ class AudioStreamer : public AudioEmitter {
 
         static const size_t     NUM_BUFFERS = 2;
         static const size_t     BUFFER_SIZE = (1<<16); 
-        uint32_t                buffer_ids[AudioStreamer::NUM_BUFFERS];
+        uint32_t                buffer_ids[StreamPlayer::NUM_BUFFERS];
         std::set<uint32_t>      unqueued_buffers;
         std::set<uint32_t>      last_buffers;
 
     public:
-        AudioStreamer();
-        ~AudioStreamer();
+        StreamPlayer();
+        ~StreamPlayer();
 
         AudioStreamResource*    get_audio_resource() const ;
         void                    set_audio_resource( AudioStreamResource* new_res );

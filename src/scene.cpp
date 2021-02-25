@@ -126,8 +126,8 @@ void            Scene::loop_draw(){
 
 }
 void            Scene::loop_audio(){
-    for( auto p : AudioStreamer::component_from_node() ){
-        AudioStreamer* streamer = p.second;
+    for( auto p : StreamPlayer::component_from_node() ){
+        StreamPlayer* streamer = p.second;
         streamer->update_stream();
     }
 }

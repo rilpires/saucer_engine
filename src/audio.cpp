@@ -200,28 +200,28 @@ void                    SamplePlayer::from_yaml_node( YamlNode yaml_node ) {
         set_audio_resource( ResourceManager::get_resource<WavAudioResource>(yaml_node["audio_resource"].as<std::string>()) );
 }
 
-// AudioStreamer =====================================================================
-AudioStreamer::AudioStreamer(){
+// StreamPlayer =====================================================================
+StreamPlayer::StreamPlayer(){
     audio_resource = nullptr;
     pcm_offset = 0;
     AL_CALL( alGenBuffers( NUM_BUFFERS , buffer_ids ) );
     for( auto b : buffer_ids ) unqueued_buffers.insert(b);
     pause();
 }
-AudioStreamer::~AudioStreamer(){
+StreamPlayer::~StreamPlayer(){
 }
-AudioStreamResource*    AudioStreamer::get_audio_resource() const {
+AudioStreamResource*    StreamPlayer::get_audio_resource() const {
     return audio_resource;
 }
-void                    AudioStreamer::set_audio_resource( AudioStreamResource* new_res ){
+void                    StreamPlayer::set_audio_resource( AudioStreamResource* new_res ){
     pcm_offset = 0;
     if( audio_resource ) reset_buffers();
     audio_resource = new_res;
 }
-void                    AudioStreamer::set_looping( bool new_val ){
+void                    StreamPlayer::set_looping( bool new_val ){
     looping = new_val;
 }
-void                    AudioStreamer::seek_seconds_position( float seconds ){
+void                    StreamPlayer::seek_seconds_position( float seconds ){
     if( audio_resource ){
         reset_buffers();
         float ratio = seconds / audio_resource->get_length_seconds();
@@ -233,7 +233,7 @@ void                    AudioStreamer::seek_seconds_position( float seconds ){
         pcm_offset = audio_resource->get_sample_rate() * seconds;
     }
 }
-void                    AudioStreamer::reset_buffers(){
+void                    StreamPlayer::reset_buffers(){
     int state = get_state();
     AL_CALL( alSourceStop( source ) );
     AL_CALL( alSourcei( source , AL_BUFFER , 0 ) );
@@ -244,7 +244,7 @@ void                    AudioStreamer::reset_buffers(){
         play();
     }
 }
-void                    AudioStreamer::update_stream(){
+void                    StreamPlayer::update_stream(){
     if( audio_resource == nullptr ) return;
     ALint buffers_processed = 0;
     AL_CALL( alGetSourcei( source,AL_BUFFERS_PROCESSED, &buffers_processed) );
@@ -279,13 +279,15 @@ void                    AudioStreamer::update_stream(){
         }
     }
 }
-void                    AudioStreamer::bind_methods(){
-    REGISTER_COMPONENT_HELPERS(AudioStreamer,"audio_streamer");
+void                    StreamPlayer::bind_methods(){
+    REGISTER_COMPONENT_HELPERS(StreamPlayer,"stream_player");
 
-    REGISTER_LUA_MEMBER_FUNCTION(AudioStreamer,set_looping);
-    REGISTER_LUA_MEMBER_FUNCTION(AudioStreamer,seek_seconds_position);
+    REGISTER_LUA_MEMBER_FUNCTION(StreamPlayer,set_looping);
+    REGISTER_LUA_MEMBER_FUNCTION(StreamPlayer,get_audio_resource )
+    REGISTER_LUA_MEMBER_FUNCTION(StreamPlayer,set_audio_resource);
+    REGISTER_LUA_MEMBER_FUNCTION(StreamPlayer,seek_seconds_position);
 }
-void                    AudioStreamer::push_editor_items(){
+void                    StreamPlayer::push_editor_items(){
 #ifdef SAUCER_EDITOR
     AudioEmitter::push_editor_items();
     PROPERTY_RESOURCE(this,audio_resource, AudioStreamResource );
@@ -295,12 +297,12 @@ void                    AudioStreamer::push_editor_items(){
     if(ImGui::SmallButton("Rewind") && get_audio_resource()) this->seek_seconds_position(0);
 #endif
 }
-YamlNode                AudioStreamer::to_yaml_node() const {
+YamlNode                StreamPlayer::to_yaml_node() const {
     YamlNode ret = AudioEmitter::to_yaml_node();
     if(audio_resource) ret["audio_resource"] = audio_resource->get_path();
     return ret;
 }
-void                    AudioStreamer::from_yaml_node( YamlNode yaml_node ) {
+void                    StreamPlayer::from_yaml_node( YamlNode yaml_node ) {
     AudioEmitter::from_yaml_node(yaml_node);
     if( yaml_node["audio_resource"].IsDefined() )
         set_audio_resource( ResourceManager::get_resource<AudioStreamResource>(yaml_node["audio_resource"].as<std::string>()) );
