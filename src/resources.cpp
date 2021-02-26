@@ -32,7 +32,7 @@ ResourceManager::ContentTableEntry::ContentTableEntry( std::string p_path , uint
         exit(1);
     }
     for( size_t i = 0 ; i < p_path.size() ; i++ )path[i]=p_path[i];
-    path[p_path.size()] = '\0';
+    for( size_t i = p_path.size() ; i < 256 ; i++ )path[i]='\0';
 }
 ResourceManager::ContentTableEntry::ContentTableEntry() {
 }
@@ -99,7 +99,7 @@ void                    ResourceManager::fetch_package(std::string package_filep
         return;
     }
     uint64_t toc_size;
-    package_stream.open(package_filepath);
+    package_stream.open(package_filepath , std::ios::binary );
     
     if( package_stream.good() ){
         package_stream.unsetf(std::ios::skipws);
@@ -108,13 +108,12 @@ void                    ResourceManager::fetch_package(std::string package_filep
         saucer_warn("Couldn't find package data \"" , package_filepath , "\"" );
         toc_size = 0;
     }
-
+    
     for( int toc_index = 0 ; toc_index < toc_size ; toc_index++ ){
         ContentTableEntry entry;
         package_stream.read( (char*)&(entry) , sizeof(ResourceManager::ContentTableEntry) );
         toc_entries.insert( std::pair<std::string,ContentTableEntry&>(entry.get_path() , entry) );
     }
-
 }
 std::vector<uint8_t>    ResourceManager::get_data( std::string filepath ){
     auto toc_find = toc_entries.find(filepath);

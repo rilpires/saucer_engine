@@ -1,10 +1,10 @@
 #include "core.h"
+#include <zlib.h>
 
 void open_project( std::string config_path="res/project.config"  );
 void pack_resources();
 
 int main( int argc , char** argv ){
-    
     for( int i = 0 ; i < argc ; i++ )
         saucer_print( "argv[" , i , "] = " , argv[i] );  
 
@@ -19,6 +19,8 @@ int main( int argc , char** argv ){
 
 }
 
+int WinMain(){open_project();}
+
 void open_project( std::string config_path ){
     Engine::initialize( config_path );
     Engine::set_window_title("SaucerEngine");
@@ -29,7 +31,6 @@ void open_project( std::string config_path ){
     LuaEngine::finish();
 }
 
-#include <zlib.h>
 void pack_resources(){
 
     std::ifstream ifs , resource_file ;
@@ -72,7 +73,7 @@ void pack_resources(){
         compressed_data.resize(compressing_stream.total_out);
         compressed_data.shrink_to_fit();
         
-        saucer_print("Compressed \"" , resource_path , "\" ratio: " , 100.0f * float(compressed_data.size())/resource_data.size() , "%" );
+        saucer_print("Compressed \"" , resource_path , "\" from " , float(resource_data.size())/1000.0f , " KB to " , float(compressed_data.size())/1000 , " KB. Ratio: " , 100.0f * float(compressed_data.size())/resource_data.size() , "%" );
 
 
         resource_compressed_datas.push_back(compressed_data);
@@ -102,9 +103,10 @@ void pack_resources(){
     // array of ContentTableEntry
     for( int i = 0 ; i < resource_paths.size() ; i++ ){
         auto entry = toc_entries[i];
-        for( size_t i = 0 ; i < sizeof(entry) ; i++ ){
-            package_data.push_back( ((uint8_t*)&entry)[i] );
-        }
+        std::vector<uint8_t> toc_entry_data;
+        toc_entry_data.resize( sizeof(entry) );
+        memcpy( &(toc_entry_data[0]) , &entry , sizeof(entry) );
+        package_data.insert( package_data.end() , toc_entry_data.begin() , toc_entry_data.end() );
     }
     // Compressed datas (offsets is relative from here)
     for( int i = 0 ; i < resource_paths.size() ; i++ ){
@@ -117,6 +119,6 @@ void pack_resources(){
     std::ofstream output_file;
     output_file.open("package.data", std::ios::binary );
     output_file.unsetf( std::ios::skipws );
-    output_file.write( (const char*)&(package_data[0]) , package_data.size() );
+    output_file.write( (char*)&(package_data[0]) , package_data.size() );
     output_file.close();
 }
