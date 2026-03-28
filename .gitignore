@@ -1,5 +1,4 @@
 # VS/VScode stuffs
-.vscode/
 .vs/
 CMakeSettings.json
 
@@ -26,6 +25,12 @@ config.yaml
 # Executables
 main_debug
 main_release
-
-
 imgui.ini
+
+
+
+# misc
+res.zip
+saucer
+toc
+package.data

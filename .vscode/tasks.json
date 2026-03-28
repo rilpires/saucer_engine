@@ -1,0 +1,92 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "CMake: Configure Debug",
+			"type": "shell",
+			"command": "cmake -S \"${workspaceFolder}\" -B \"${workspaceFolder}/build/Debug\" -DCMAKE_BUILD_TYPE=Debug",
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "CMake: Configure Release",
+			"type": "shell",
+			"command": "cmake -S \"${workspaceFolder}\" -B \"${workspaceFolder}/build/Release\" -DCMAKE_BUILD_TYPE=Release",
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "CMake: Build Debug",
+			"type": "shell",
+			"command": "cmake -S \"${workspaceFolder}\" -B \"${workspaceFolder}/build/Debug\" -DCMAKE_BUILD_TYPE=Debug && cmake --build \"${workspaceFolder}/build/Debug\" --target saucer",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "CMake: Build Release",
+			"type": "shell",
+			"command": "cmake -S \"${workspaceFolder}\" -B \"${workspaceFolder}/build/Release\" -DCMAKE_BUILD_TYPE=Release && cmake --build \"${workspaceFolder}/build/Release\" --target saucer",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "CMake: Clean Debug",
+			"type": "shell",
+			"command": "cmake --build \"${workspaceFolder}/build/Debug\" --target clean",
+			"group": "build",
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "CMake: Clean Release",
+			"type": "shell",
+			"command": "cmake --build \"${workspaceFolder}/build/Release\" --target clean",
+			"group": "build",
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			}
+		},
+		{
+			"label": "Legacy: Debug build (make)",
+			"type": "shell",
+			"command": "make main_debug DEBUG=1",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			},
+		},
+		{
+			"label": "Legacy: Release build (make)",
+			"type": "shell",
+			"command": "make RELEASE=1",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			},
+		}
+	]
+}
