@@ -5,6 +5,9 @@
 #include <fstream>
 #include <algorithm>
 
+// Defined in main.cpp; scans toc file and generates package.data
+extern void pack_resources();
+
 using namespace ImGui;
 
 SaucerId        SaucerEditor::node_id_selected = 0;
@@ -183,6 +186,9 @@ void            SaucerEditor::push_config(){
     if(BeginMenuBar()){
         if(MenuItem("Save")){
             project_config->save_as_file(project_config->get_path());
+        }
+        if(MenuItem("Pack Resources")){
+            pack_resources();
         }
         EndMenuBar();
     }

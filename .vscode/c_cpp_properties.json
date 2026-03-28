@@ -1,0 +1,33 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "include",
+                "deps/glew/include",
+                "deps/lua/include",
+                "deps/box2d/include",
+                "deps/openal-soft/include",
+                "deps/audiofile",
+                "deps/ogg/include",
+                "deps/vorbis/include",
+                "deps/freetype/include",
+                "deps/yaml-cpp/include",
+                "deps/imgui",
+                "deps/imgui/examples",
+                "deps/imgui/misc/cpp",
+                "deps/glfw/include"
+            ],
+            "defines": [
+                "SAUCER_EDITOR",
+                "DEBUG"
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu23",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "gcc-x64",
+            "configurationProvider": "ms-vscode.cmake-tools"
+        }
+    ],
+    "version": 4
+}

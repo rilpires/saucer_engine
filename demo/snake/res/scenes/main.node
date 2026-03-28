@@ -1,0 +1,11 @@
+name: root
+position: [0, 0]
+scale: [1, 1]
+rotation_degrees: 0
+z: 0
+relative_z: true
+modulate: [255, 255, 255, 255]
+self_modulate: [255, 255, 255, 255]
+inherits_transform: true
+visible: true
+lua: res/scripts/snake.lua

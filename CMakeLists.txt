@@ -50,6 +50,7 @@ list( APPEND LINK_LIBRARIES libglew_static )
 
 # openal-soft
 set( LIBTYPE STATIC )
+set( HAVE_STD_ALIGNED_ALLOC FALSE CACHE BOOL "" FORCE ) # CMP0067: check_cxx_source_compiles ignora CMAKE_CXX_STANDARD em cmake_minimum_required < 3.12, detectando std::aligned_alloc (C++17) mas compilando em C++14
 add_subdirectory("deps/openal-soft")
 list( APPEND LINK_LIBRARIES OpenAL common ex-common )
 
@@ -96,7 +97,7 @@ list( APPEND ENGINE_SRCS ${CORE_ENGINE_SRCS} )
 list( APPEND INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/src )
 
 add_library( saucer_core STATIC ${ENGINE_SRCS} )
-target_compile_definitions( saucer_core PUBLIC GLEW_STATIC 
+target_compile_definitions( saucer_core PUBLIC GLEW_STATIC GLEW_NO_GLU
 	$<$<CONFIG:Debug>: DEBUG >
 	$<$<AND:$<BOOL:SAUCER_BUILD_EDITOR>,$<CONFIG:Debug>>:SAUCER_EDITOR> 
 )

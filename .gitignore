@@ -1,7 +1,5 @@
-# VS/VScode stuffs
-.vscode/
+# VS stuffs
 .vs/
-CMakeSettings.json
 
 # Extra components folder
 components/
@@ -26,6 +24,17 @@ config.yaml
 # Executables
 main_debug
 main_release
-
-
 imgui.ini
+
+
+
+# misc
+res.zip
+saucer
+toc
+package.data
+
+# CMake/build generated files
+CMakeSettings.json
+CPackConfig.cmake
+CPackSourceConfig.cmake
