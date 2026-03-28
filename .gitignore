@@ -1,6 +1,5 @@
-# VS/VScode stuffs
+# VS stuffs
 .vs/
-CMakeSettings.json
 
 # Extra components folder
 components/
@@ -34,3 +33,8 @@ res.zip
 saucer
 toc
 package.data
+
+# CMake/build generated files
+CMakeSettings.json
+CPackConfig.cmake
+CPackSourceConfig.cmake
